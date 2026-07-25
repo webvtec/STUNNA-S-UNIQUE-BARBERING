@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stunna's — Admin Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#050505;color:white;font-family:Poppins,sans-serif;min-height:100vh;}
+
+/* ---------- ACCESS GUARD ---------- */
+#guard{
+  position:fixed;inset:0;background:#050505;z-index:99999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;
+}
+#guard.hidden{display:none;}
+#guard h1{font-family:Cinzel;letter-spacing:4px;font-size:22px;}
+#guard.denied h1{color:#e60000;letter-spacing:6px;}
+.dots{display:flex;gap:10px;}
+.dots span{
+  width:10px;height:10px;border-radius:50%;background:#b30000;
+  animation:pulse 1.4s infinite ease-in-out;
+}
+.dots span:nth-child(2){animation-delay:.2s;}
+.dots span:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{
+  0%,80%,100%{opacity:.2;transform:scale(.8);}
+  40%{opacity:1;transform:scale(1.2);}
+}
+
+/* ---------- HEADER ---------- */
+header{
+  padding:20px 40px;background:rgba(0,0,0,.5);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,.05);
+  display:flex;justify-content:space-between;align-items:center;
+  position:sticky;top:0;z-index:100;
+}
+header h1{font-family:Cinzel;letter-spacing:3px;font-size:22px;}
+.user-info{display:flex;align-items:center;gap:16px;font-size:14px;}
+.role-badge{
+  background:#b30000;padding:4px 12px;border-radius:50px;font-size:11px;
+  letter-spacing:2px;text-transform:uppercase;
+}
+.role-badge.barber{background:#3a3a3a;}
+.logout{
+  background:transparent;border:1px solid #b30000;color:#e60000;
+  padding:8px 20px;border-radius:50px;font-family:Poppins;cursor:pointer;font-size:13px;
+  transition:.3s;
+}
+.logout:hover{background:#b30000;color:white;}
+
+/* ---------- NAV ---------- */
+.dash-nav{
+  padding:20px 40px;display:flex;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.dash-nav button{
+  background:#111;border:1px solid #b30000;color:#e60000;
+  padding:12px 22px;border-radius:50px;font-family:Poppins;cursor:pointer;font-size:13px;
+  letter-spacing:1px;transition:.3s;
+}
+.dash-nav button:hover,.dash-nav button.active{background:#b30000;color:white;}
+
+/* ---------- LAYOUT ---------- */
+main{padding:40px;}
+.panel{
+  background:#111;border:1px solid rgba(255,255,255,.08);border-radius:20px;
+  padding:32px;margin-bottom:24px;
+}
+.panel h2{font-family:Cinzel;letter-spacing:2px;margin-bottom:24px;font-size:24px;}
+.panel h3{font-family:Cinzel;letter-spacing:1px;font-size:18px;margin-bottom:14px;color:#e60000;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* ---------- FORM ---------- */
+.field{margin-bottom:16px;}
+label{display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+input,select,textarea{
+  width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;
+  padding:12px 14px;border-radius:10px;font-family:Poppins;font-size:14px;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#b30000;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.btn{
+  background:#b30000;color:white;border:none;padding:12px 24px;border-radius:50px;
+  cursor:pointer;font-family:Poppins;font-size:13px;letter-spacing:1px;transition:.3s;
+}
+.btn:hover{background:#e60000;}
+.btn.ghost{background:transparent;border:1px solid #b30000;color:#e60000;}
+.btn.ghost:hover{background:#b30000;color:white;}
+.btn.danger{background:#4d0a0a;}
+.btn.danger:hover{background:#7a0000;}
+.btn.small{padding:8px 16px;font-size:12px;}
+
+/* ---------- SEARCH ---------- */
+.search-row{
+  display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;
+}
+.search-row input,.search-row select{max-width:280px;}
+
+/* ---------- BOOKING CARDS ---------- */
+.group-title{
+  font-family:Cinzel;font-size:14px;letter-spacing:3px;color:#888;
+  margin:24px 0 12px;text-transform:uppercase;
+}
+.group-title .cnt{color:#e60000;margin-left:8px;}
+.bcard{
+  background:#0a0a0a;border-left:3px solid #b30000;border-radius:12px;
+  padding:20px;margin-bottom:12px;transition:.3s;
+  border-top:1px solid rgba(255,255,255,.04);
+  border-right:1px solid rgba(255,255,255,.04);
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.bcard.cancelled{border-left-color:#666;opacity:.65;}
+.bcard.highlight{box-shadow:0 0 0 2px #e60000, 0 0 40px rgba(255,0,0,.4);}
+.bcard .top{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;
+}
+.bcard .bnum{font-family:Cinzel;color:#e60000;letter-spacing:1px;font-size:15px;}
+.bcard .name{font-size:16px;margin:6px 0;}
+.bcard .info-row{color:#bbb;font-size:13px;margin:3px 0;}
+.bcard .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.bcard .barber-tag{background:#1a1a1a;padding:3px 10px;border-radius:20px;font-size:11px;color:#bbb;letter-spacing:1px;}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+.b-active{background:#0a4d0a;color:#7fff7f;}
+.b-cancel{background:#4d0a0a;color:#ff8080;}
+.b-comp{background:#0a3d4d;color:#7fdfff;}
+.b-pay-y{background:#0a4d0a;color:#7fff7f;}
+.b-pay-n{background:#4d0a0a;color:#ff8080;}
+
+/* ---------- STATS ---------- */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;}
+.stat{
+  background:#0a0a0a;border:1px solid rgba(255,255,255,.05);border-radius:15px;
+  padding:28px;text-align:center;
+}
+.stat .lbl{color:#888;font-size:11px;letter-spacing:2px;text-transform:uppercase;}
+.stat .val{font-family:Cinzel;font-size:44px;color:#e60000;margin-top:8px;letter-spacing:1px;}
+.stat .sub{color:#666;font-size:12px;margin-top:4px;}
+
+/* ---------- TABLE ---------- */
+table{width:100%;border-collapse:collapse;margin-top:12px;}
+th,td{padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+th{color:#888;letter-spacing:1px;font-weight:500;text-transform:uppercase;font-size:11px;cursor:pointer;}
+th:hover{color:#e60000;}
+td{color:#ddd;}
+
+/* ---------- UPLOAD ---------- */
+.drop-zone{
+  border:2px dashed rgba(255,255,255,.15);border-radius:15px;padding:40px;
+  text-align:center;cursor:pointer;transition:.3s;color:#888;
+}
+.drop-zone:hover,.drop-zone.drag{border-color:#b30000;background:rgba(179,0,0,.05);}
+.preview{max-width:200px;border-radius:10px;margin-top:14px;display:none;}
+.preview.on{display:inline-block;}
+.progress{
+  height:6px;background:#050505;border-radius:3px;overflow:hidden;margin-top:12px;display:none;
+}
+.progress.on{display:block;}
+.progress-bar{height:100%;background:#b30000;width:0%;transition:.2s;}
+
+/* ---------- BARBER LIST ---------- */
+.barber-item{
+  background:#0a0a0a;padding:16px;border-radius:12px;margin-bottom:10px;
+  display:flex;align-items:center;gap:16px;
+}
+.barber-item img{width:60px;height:60px;border-radius:50%;object-fit:cover;}
+.barber-item .meta{flex:1;}
+.barber-item .meta strong{font-family:Cinzel;letter-spacing:1px;font-size:15px;}
+.barber-item .meta small{color:#888;display:block;font-size:12px;margin-top:2px;}
+
+/* ---------- GALLERY GRID ---------- */
+.gal-cat{margin-bottom:24px;}
+.gal-cat h4{font-family:Cinzel;letter-spacing:2px;color:#bbb;margin-bottom:12px;font-size:14px;text-transform:uppercase;}
+.gal-cat .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.gal-item{
+  position:relative;border-radius:12px;overflow:hidden;background:#050505;cursor:grab;
+  border:1px solid rgba(255,255,255,.05);
+}
+.gal-item.dragging{opacity:.3;}
+.gal-item img{width:100%;height:180px;object-fit:cover;display:block;}
+.gal-item .rm{
+  position:absolute;top:8px;right:8px;background:#b30000;color:white;
+  border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;
+}
+
+/* ---------- UNAVAILABLE LIST ---------- */
+.unavail-item{
+  background:#0a0a0a;padding:14px 18px;border-radius:10px;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.unavail-item .info{color:#ddd;font-size:13px;}
+.unavail-item small{color:#888;display:block;margin-top:3px;}
+
+/* ---------- TOAST ---------- */
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  background:#111;border-top:2px solid #b30000;padding:14px 28px;border-radius:10px;
+  z-index:9999;font-size:14px;opacity:0;pointer-events:none;transition:.3s;
+  box-shadow:0 20px 40px rgba(0,0,0,.5);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-10px);}
+.toast.green{border-top-color:#0a8f0a;}
+.toast.red{border-top-color:#e60000;}
+
+/* ---------- MODAL ---------- */
+.backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.backdrop.open{display:flex;}
+.modal{
+  background:#111;border-top:3px solid #b30000;border-radius:20px;padding:32px;
+  max-width:500px;width:100%;max-height:85vh;overflow-y:auto;
+}
+.modal h3{font-family:Cinzel;letter-spacing:2px;margin-bottom:16px;font-size:22px;}
+.modal p{color:#bbb;margin-bottom:20px;line-height:1.6;font-size:14px;}
+.modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.radio-opt{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;background:#050505;
+  border-radius:10px;margin-bottom:8px;cursor:pointer;border:1px solid transparent;
+}
+.radio-opt:hover{border-color:rgba(255,255,255,.1);}
+.radio-opt input{width:auto;}
+
+/* ---------- CATEGORY / STATUS ---------- */
+@media(max-width:900px){
+  header{padding:16px 20px;}
+  main{padding:20px;}
+  .dash-nav{padding:16px 20px;}
+  .two-col{grid-template-columns:1fr;}
+  .gal-cat .grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ACCESS GUARD -->
+<div id="guard">
+  <h1 id="guardTitle">CHECKING ACCESS</h1>
+  <div class="dots" id="guardDots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- HEADER -->
+<header style="display:none;" id="mainHeader">
+  <h1>STUNNA'S — ADMIN</h1>
+  <div class="user-info">
+    <span id="userName"></span>
+    <span class="role-badge" id="roleBadge">…</span>
+    <button class="logout" onclick="doLogout()">Sign Out</button>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="dash-nav" id="dashNav" style="display:none;"></nav>
+
+<main id="mainArea" style="display:none;">
+
+  <!-- MY RESERVATIONS / ALL RESERVATIONS -->
+  <section class="section active" id="sec-reservations">
+    <div class="panel">
+      <h2 id="reservationsTitle">My Reservations</h2>
+      <div class="search-row">
+        <input id="resSearch" placeholder="Search by name, phone, or booking #…">
+        <select id="barberFilter" style="display:none;">
+          <option value="">All Barbers</option>
+        </select>
+        <button class="btn ghost" onclick="clearPast()">Clear Past Reservations</button>
+      </div>
+      <div id="reservationsList"></div>
+    </div>
+  </section>
+
+  <!-- UNAVAILABLE DAYS -->
+  <section class="section" id="sec-unavail">
+    <div class="panel">
+      <h2 id="unavailTitle">My Unavailable Days</h2>
+      <div class="two-col" style="align-items:end;">
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="uaDate">
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="uaAllDay" checked style="width:auto;" onchange="toggleUaTimes()">
+            All Day
+          </label>
+        </div>
+      </div>
+      <div class="two-col" id="uaTimes" style="display:none;">
+        <div class="field">
+          <label>Start Time</label>
+          <input type="time" id="uaStart">
+        </div>
+        <div class="field">
+          <label>End Time</label>
+          <input type="time" id="uaEnd">
+        </div>
+      </div>
+      <div id="uaScopeWrap" style="display:none;">
+        <div class="field">
+          <label>Applies To</label>
+          <select id="uaScope">
+            <option value="self">Just me</option>
+            <option value="global">All barbers (shop closure)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="addUnavailable()">Add Unavailable Day</button>
+
+      <h3 style="margin-top:32px;">Current Unavailable Days</h3>
+      <div id="unavailList"></div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="section" id="sec-gallery">
+    <div class="panel">
+      <h2 id="galleryTitle">My Gallery</h2>
+      <div class="two-col">
+        <div class="field">
+          <label>Category</label>
+          <input type="text" id="galCategory" placeholder="e.g. Fades, Beards, Designs">
+        </div>
+        <div class="field">
+          <label>Upload Photo</label>
+          <div class="drop-zone" id="galDrop" onclick="document.getElementById('galFile').click()">
+            <div>Drop image here or click to browse</div>
+            <img class="preview" id="galPreview">
+            <input type="file" id="galFile" accept="image/*" style="display:none;">
+          </div>
+          <div class="progress" id="galProgress"><div class="progress-bar" id="galProgressBar"></div></div>
+        </div>
+      </div>
+      <button class="btn" onclick="uploadGalleryPhoto()">Upload Photo</button>
+      <h3 style="margin-top:32px;">Photos</h3>
+      <div id="galList"></div>
+    </div>
+  </section>
+
+  <!-- EARNINGS -->
+  <section class="section" id="sec-earnings">
+    <div class="panel">
+      <h2 id="earningsTitle">My Earnings</h2>
+      <div class="stat-grid">
+        <div class="stat"><div class="lbl">Today</div><div class="val" id="earnToday">$0</div></div>
+        <div class="stat"><div class="lbl">This Week</div><div class="val" id="earnWeek">$0</div></div>
+        <div class="stat"><div class="lbl">This Month</div><div class="val" id="earnMonth">$0</div></div>
+      </div>
+      <h3 style="margin-top:32px;">Completed Bookings</h3>
+      <div id="earnBreakdown"></div>
+    </div>
+  </section>
+
+  <!-- ADMIN: BARBER MANAGEMENT -->
+  <section class="section" id="sec-barbers">
+    <div class="panel">
+      <h2>Barber Management</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:20px;">Add or edit barbers. To find a Google UID: after the barber signs into the site once, open Firebase Console → Authentication → Users and copy their UID.</p>
+      <div class="two-col">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="bmName" placeholder="Full name">
+        </div>
+        <div class="field">
+          <label>Specialty</label>
+          <input type="text" id="bmSpecialty" placeholder="e.g. Master Fade Specialist">
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label>Google UID</label>
+          <input type="text" id="bmUid" placeholder="Firebase Auth UID">
+        </div>
+        <div class="field">
+          <label>Telegram Chat ID (optional)</label>
+          <input type="text" id="bmTelegram" placeholder="Chat ID for notifications">
+        </div>
+      </div>
+      <div class="field">
+        <label>Profile Photo</label>
+        <div class="drop-zone" id="bmDrop" onclick="document.getElementById('bmFile').click()">
+          <div>Click to upload</div>
+          <img class="preview" id="bmPreview">
+          <input type="file" id="bmFile" accept="image/*" style="display:none;">
+        </div>
+        <div class="progress" id="bmProgress"><div class="progress-bar" id="bmProgressBar"></div></div>
+      </div>
+      <button class="btn" onclick="saveBarber()">Save Barber</button>
+      <button class="btn ghost" onclick="resetBarberForm()" style="margin-left:8px;">Cancel Edit</button>
+      <input type="hidden" id="bmEditId">
+      <input type="hidden" id="bmPhotoURL">
+
+      <h3 style="margin-top:32px;">Current Barbers</h3>
+      <div id="barbersList"></div>
+    </div>
+  </section>
+
+  <!-- ADMIN: REVENUE -->
+  <section class="section" id="sec-revenue">
+    <div class="panel">
+      <h2>Revenue Dashboard</h2>
+      <div class="stat-grid">
+        <div class="stat"><div class="lbl">Today</div><div class="val" id="revToday">$0</div><div class="sub" id="revTodayN">0 bookings</div></div>
+        <div class="stat"><div class="lbl">This Week</div><div class="val" id="revWeek">$0</div><div class="sub" id="revWeekN">0 bookings</div></div>
+        <div class="stat"><div class="lbl">This Month</div><div class="val" id="revMonth">$0</div><div class="sub" id="revMonthN">0 bookings</div></div>
+        <div class="stat"><div class="lbl">Cancellations</div><div class="val" style="color:#888;" id="revCancel">0</div><div class="sub">all-time</div></div>
+      </div>
+
+      <h3 style="margin-top:32px;">Custom Range</h3>
+      <div class="search-row">
+        <input type="date" id="rangeStart"> <input type="date" id="rangeEnd">
+        <button class="btn small" onclick="renderRevenueTable()">Apply</button>
+      </div>
+      <h3 style="margin-top:24px;">Per Barber</h3>
+      <table id="revTable">
+        <thead><tr><th onclick="sortRev('name')">Barber</th><th onclick="sortRev('count')">Bookings</th><th onclick="sortRev('revenue')">Revenue</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- ACTION MODAL -->
+<div class="backdrop" id="actionModal">
+  <div class="modal">
+    <h3 id="modalTitle">Confirm</h3>
+    <div id="modalBody"></div>
+    <div class="actions">
+      <button class="btn ghost" onclick="closeAM()">Cancel</button>
+      <button class="btn" id="modalConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   FIREBASE INIT
+========================================================= */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const storage = firebase.storage();
+const provider = new firebase.auth.GoogleAuthProvider();
+
+/* =========================================================
+   CONSTANTS + STATE
+========================================================= */
+const ADMIN_UID = "REPLACE_WITH_ADMIN_UID";
+const SLOT_MINUTES = 35;
+
+let currentUser = null;
+let role = null;            // "admin" | "barber"
+let myBarberId = null;      // set for barbers
+let barbers = [];
+let bookings = [];
+let unavailable = [];
+let gallery = [];
+let currentSection = "reservations";
+let revSort = { key:"revenue", dir:-1 };
+
+/* =========================================================
+   ACCESS GUARD
+========================================================= */
+auth.onAuthStateChanged(async u => {
+  if(!u){
+    setTimeout(async () => {
+      try{ await auth.signInWithPopup(provider); }
+      catch(e){ denyAccess("Sign-in cancelled"); }
+    }, 500);
+    return;
+  }
+  currentUser = u;
+
+  // Determine role
+  if(u.uid === ADMIN_UID){
+    role = "admin";
+    initApp();
+    return;
+  }
+  // Check if UID matches any barber
+  try{
+    const snap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
+    if(!snap.empty){
+      role = "barber";
+      myBarberId = snap.docs[0].id;
+      initApp();
+    } else {
+      denyAccess("You do not have staff access.");
+    }
+  }catch(e){
+    denyAccess("Access check failed: " + e.message);
+  }
+});
+
+function denyAccess(reason){
+  const g = document.getElementById("guard");
+  g.classList.add("denied");
+  document.getElementById("guardTitle").textContent = "ACCESS DENIED";
+  document.getElementById("guardDots").innerHTML = `<p style="color:#888;font-size:13px;">${reason}</p>`;
+  setTimeout(() => { auth.signOut(); window.location.href = "index.html"; }, 2500);
+}
+
+function initApp(){
+  document.getElementById("guard").classList.add("hidden");
+  document.getElementById("mainHeader").style.display = "flex";
+  document.getElementById("dashNav").style.display = "flex";
+  document.getElementById("mainArea").style.display = "block";
+  document.getElementById("userName").textContent = currentUser.displayName || currentUser.email || "Signed in";
+  document.getElementById("roleBadge").textContent = role;
+  document.getElementById("roleBadge").className = "role-badge " + role;
+
+  buildNav();
+  attachListeners();
+  setupUploads();
+  setupSearch();
+}
+function doLogout(){ auth.signOut().then(() => window.location.href = "index.html"); }
+
+/* =========================================================
+   NAV
+========================================================= */
+function buildNav(){
+  const items = [
+    { id:"reservations", label: role === "admin" ? "All Reservations" : "My Reservations" },
+    { id:"unavail",      label: role === "admin" ? "Unavailable Days" : "My Unavailable Days" },
+    { id:"gallery",      label: role === "admin" ? "Gallery" : "My Gallery" },
+    { id:"earnings",     label: role === "admin" ? "Earnings" : "My Earnings" }
+  ];
+  if(role === "admin"){
+    items.push({ id:"barbers", label:"Barbers" });
+    items.push({ id:"revenue", label:"Revenue" });
+  }
+  document.getElementById("dashNav").innerHTML = items.map(i =>
+    `<button data-sec="${i.id}" class="${i.id===currentSection?'active':''}" onclick="showSection('${i.id}')">${i.label}</button>`
+  ).join("");
+
+  // Titles + admin filters
+  document.getElementById("reservationsTitle").textContent = role === "admin" ? "All Reservations" : "My Reservations";
+  document.getElementById("unavailTitle").textContent = role === "admin" ? "Unavailable Days" : "My Unavailable Days";
+  document.getElementById("galleryTitle").textContent = role === "admin" ? "Gallery" : "My Gallery";
+  document.getElementById("earningsTitle").textContent = role === "admin" ? "Earnings" : "My Earnings";
+  if(role === "admin"){
+    document.getElementById("barberFilter").style.display = "";
+    document.getElementById("uaScopeWrap").style.display = "";
+  }
+}
+function showSection(id){
+  currentSection = id;
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById("sec-" + id).classList.add("active");
+  document.querySelectorAll(".dash-nav button").forEach(b => b.classList.toggle("active", b.dataset.sec === id));
+  if(id === "earnings") renderEarnings();
+  if(id === "revenue") { renderRevenueStats(); renderRevenueTable(); }
+}
+
+/* =========================================================
+   LISTENERS
+========================================================= */
+function attachListeners(){
+  db.collection("barbers").onSnapshot(snap => {
+    barbers = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderBarbersList();
+    renderBarberFilter();
+    renderReservations();
+  });
+  db.collection("bookings").onSnapshot(snap => {
+    bookings = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderReservations();
+    if(currentSection === "earnings") renderEarnings();
+    if(currentSection === "revenue") { renderRevenueStats(); renderRevenueTable(); }
+  });
+  db.collection("unavailableDays").onSnapshot(snap => {
+    unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderUnavailable();
+  });
+  db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
+    gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderGallery();
+  });
+}
+
+/* =========================================================
+   RESERVATIONS
+========================================================= */
+function renderBarberFilter(){
+  if(role !== "admin") return;
+  const sel = document.getElementById("barberFilter");
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All Barbers</option>' +
+    barbers.map(b => `<option value="${b.id}" ${b.id===cur?'selected':''}>${esc(b.name)}</option>`).join("");
+}
+document.addEventListener("change", e => {
+  if(e.target.id === "barberFilter") renderReservations();
+});
+
+function renderReservations(){
+  const list = document.getElementById("reservationsList");
+  const search = (document.getElementById("resSearch")?.value || "").toLowerCase().trim();
+  const barberFilter = document.getElementById("barberFilter")?.value || "";
+  let mine = bookings.slice();
+  if(role === "barber") mine = mine.filter(b => b.barberId === myBarberId);
+  if(role === "admin" && barberFilter) mine = mine.filter(b => b.barberId === barberFilter);
+  if(search){
+    mine = mine.filter(b =>
+      (b.name||"").toLowerCase().includes(search) ||
+      (b.phone||"").toLowerCase().includes(search) ||
+      (b.bookingNumber||"").toLowerCase().includes(search)
+    );
+  }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const dayAfter = new Date(tomorrow); dayAfter.setDate(dayAfter.getDate()+1);
+  const groups = { Today:[], Tomorrow:[], Upcoming:[], Past:[] };
+  mine.forEach(b => {
+    if(!b.date) return;
+    const d = new Date(b.date + "T00:00:00");
+    if(d.getTime() === today.getTime()) groups.Today.push(b);
+    else if(d.getTime() === tomorrow.getTime()) groups.Tomorrow.push(b);
+    else if(d > today) groups.Upcoming.push(b);
+    else groups.Past.push(b);
+  });
+  Object.keys(groups).forEach(k => {
+    groups[k].sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+  });
+
+  let html = "";
+  ["Today","Tomorrow","Upcoming","Past"].forEach(g => {
+    if(!groups[g].length) return;
+    html += `<div class="group-title">${g}<span class="cnt">${groups[g].length}</span></div>`;
+    html += groups[g].map(b => bookingCard(b, g === "Today")).join("");
+  });
+  list.innerHTML = html || '<div style="color:#666;text-align:center;padding:40px;">No reservations yet.</div>';
+}
+
+function bookingCard(b, isToday){
+  const barberName = barbers.find(x => x.id === b.barberId)?.name || "—";
+  const cancelled = b.status === "Cancelled";
+  const completed = b.status === "Completed";
+  return `
+    <div class="bcard ${cancelled?'cancelled':''}" id="bk-${b.id}">
+      <div class="top">
+        <span class="bnum">#${b.bookingNumber || ""}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${role === "admin" ? `<span class="barber-tag">${esc(barberName)}</span>` : ""}
+          <span class="badge ${cancelled?'b-cancel':completed?'b-comp':'b-active'}">${b.status||"Active"}</span>
+          <span class="badge ${b.deposit==='Yes'?'b-pay-y':'b-pay-n'}">${b.deposit==='Yes'?'Paid':'Not Paid'}</span>
+        </div>
+      </div>
+      <div class="name"><strong>${esc(b.name)}</strong> — ${esc(b.phone||"")}</div>
+      <div class="info-row"><strong>${b.date}</strong> @ ${b.time} · ${b.duration||SLOT_MINUTES} min</div>
+      <div class="info-row" style="color:#999;">${esc(b.service||"")}</div>
+      <div class="info-row" style="color:#e60000;font-family:Cinzel;font-size:16px;">$${b.total||0}</div>
+      ${cancelled ? `<div class="info-row" style="color:#888;font-size:11px;margin-top:6px;">Cancelled by ${b.cancelledBy||"—"}</div>` : ""}
+      <div class="actions">
+        ${!cancelled ? `<button class="btn small danger" onclick="promptCancel('${b.id}')">Cancel</button>` : ""}
+        <button class="btn small ghost" onclick="promptPayment('${b.id}')">Payment</button>
+        ${isToday && !cancelled ? `<button class="btn small ghost" onclick="promptStatus('${b.id}')">Status</button>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   BOOKING ACTIONS
+========================================================= */
+function promptCancel(id){
+  openAM("Cancel Booking", "Are you sure? This cannot be undone.", async () => {
+    await db.collection("bookings").doc(id).update({
+      status: "Cancelled",
+      cancelledBy: role === "admin" ? "admin" : "barber"
+    });
+    toast("Booking cancelled", "red");
+    closeAM();
+  });
+}
+function promptPayment(id){
+  const b = bookings.find(x => x.id === id);
+  openAM("Payment Status", `
+    <div class="radio-opt"><input type="radio" name="pay" value="Yes" ${b.deposit==='Yes'?'checked':''}> Payment Made</div>
+    <div class="radio-opt"><input type="radio" name="pay" value="No" ${b.deposit!=='Yes'?'checked':''}> Not Paid</div>
+  `, async () => {
+    const val = document.querySelector('input[name="pay"]:checked')?.value || "No";
+    await db.collection("bookings").doc(id).update({ deposit: val });
+    toast("Payment status updated", "green");
+    closeAM();
+  });
+}
+function promptStatus(id){
+  openAM("Update Status", `
+    <div class="radio-opt"><input type="radio" name="st" value="Completed" checked> Completed</div>
+    <div class="radio-opt"><input type="radio" name="st" value="Active"> Not Completed</div>
+  `, async () => {
+    const val = document.querySelector('input[name="st"]:checked')?.value || "Active";
+    await db.collection("bookings").doc(id).update({ status: val });
+    toast("Status updated", "green");
+    closeAM();
+  });
+}
+
+async function clearPast(){
+  openAM("Clear Past Reservations", `
+    <p>Type <strong style="color:#e60000;">CONFIRM</strong> to permanently delete all your past bookings.</p>
+    <input id="confirmField" placeholder="Type CONFIRM">
+  `, async () => {
+    if(document.getElementById("confirmField").value !== "CONFIRM"){
+      toast("You must type CONFIRM exactly", "red");
+      return;
+    }
+    const today = new Date(); today.setHours(0,0,0,0);
+    let scope = bookings;
+    if(role === "barber") scope = scope.filter(b => b.barberId === myBarberId);
+    const past = scope.filter(b => b.date && new Date(b.date + "T00:00:00") < today);
+    const batch = db.batch();
+    past.forEach(b => batch.delete(db.collection("bookings").doc(b.id)));
+    await batch.commit();
+    toast(`Deleted ${past.length} past bookings`, "green");
+    closeAM();
+  });
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+function setupSearch(){
+  document.getElementById("resSearch").addEventListener("input", e => {
+    renderReservations();
+    const term = e.target.value.toLowerCase().trim();
+    if(!term) return;
+    setTimeout(() => {
+      const match = document.querySelector(".bcard");
+      if(match){
+        document.querySelectorAll(".bcard").forEach(c => c.classList.remove("highlight"));
+        match.classList.add("highlight");
+        match.scrollIntoView({behavior:"smooth", block:"center"});
+      }
+    }, 100);
+  });
+}
+
+/* =========================================================
+   UNAVAILABLE DAYS
+========================================================= */
+function toggleUaTimes(){
+  const allDay = document.getElementById("uaAllDay").checked;
+  document.getElementById("uaTimes").style.display = allDay ? "none" : "grid";
+}
+async function addUnavailable(){
+  const date = document.getElementById("uaDate").value;
+  const allDay = document.getElementById("uaAllDay").checked;
+  const startTime = document.getElementById("uaStart").value;
+  const endTime = document.getElementById("uaEnd").value;
+  const scope = role === "admin" ? document.getElementById("uaScope").value : "self";
+  const barberId = scope === "global" ? "global" : (role === "admin" ? "global" : myBarberId);
+
+  if(!date) return toast("Pick a date", "red");
+  if(!allDay && (!startTime || !endTime)) return toast("Enter start and end times", "red");
+
+  // Conflict check against own bookings
+  const [sh,sm] = allDay ? [0,0] : parseTime24(startTime);
+  const [eh,em] = allDay ? [24,0] : parseTime24(endTime);
+  const rangeStart = sh*60+sm, rangeEnd = eh*60+em;
+  const conflicts = bookings.filter(b => {
+    if(b.status === "Cancelled") return false;
+    if(barberId !== "global" && b.barberId !== barberId) return false;
+    if(b.date !== date) return false;
+    const [bh,bm] = parseTimeAmPm(b.time);
+    const bStart = bh*60+bm, bEnd = bStart + (b.duration||SLOT_MINUTES);
+    return !(bEnd <= rangeStart || bStart >= rangeEnd);
+  });
+
+  if(conflicts.length){
+    const list = conflicts.map(b => `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);"><strong>#${b.bookingNumber}</strong> — ${esc(b.name)} @ ${b.time}</div>`).join("");
+    openAM("Booking Conflict", `<p>Cannot add: you have ${conflicts.length} booking(s) in that window.</p>${list}`, () => {
+      closeAM();
+      showSection("reservations");
+      setTimeout(() => {
+        const el = document.getElementById("bk-" + conflicts[0].id);
+        if(el){
+          document.querySelectorAll(".bcard").forEach(c => c.classList.remove("highlight"));
+          el.classList.add("highlight");
+          el.scrollIntoView({behavior:"smooth",block:"center"});
+        }
+      }, 300);
+    }, "Go to Reservations");
+    return;
+  }
+
+  await db.collection("unavailableDays").add({
+    barberId, date, allDay,
+    startTime: allDay ? null : startTime,
+    endTime: allDay ? null : endTime,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById("uaDate").value = "";
+  document.getElementById("uaAllDay").checked = true;
+  toggleUaTimes();
+  toast("Unavailable day added", "green");
+}
+
+function renderUnavailable(){
+  const list = document.getElementById("unavailList");
+  let mine = unavailable.slice();
+  if(role === "barber") mine = mine.filter(u => u.barberId === myBarberId || u.barberId === "global");
+  mine.sort((a,b) => (a.date||"").localeCompare(b.date||""));
+  if(!mine.length){
+    list.innerHTML = '<div style="color:#666;padding:20px;">No unavailable days set.</div>';
+    return;
+  }
+  list.innerHTML = mine.map(u => {
+    const scope = u.barberId === "global" ? "SHOP-WIDE" : (barbers.find(b => b.id === u.barberId)?.name || "You");
+    return `
+      <div class="unavail-item">
+        <div class="info">
+          <strong>${u.date}</strong> · ${u.allDay ? "All Day" : `${u.startTime} – ${u.endTime}`}
+          <small>${esc(scope)}</small>
+        </div>
+        <button class="btn small danger" onclick="removeUnavailable('${u.id}')">Remove</button>
+      </div>
+    `;
+  }).join("");
+}
+async function removeUnavailable(id){
+  await db.collection("unavailableDays").doc(id).delete();
+  toast("Removed", "green");
+}
+
+/* =========================================================
+   GALLERY UPLOAD
+========================================================= */
+let galFile = null;
+let bmFile = null;
+function setupUploads(){
+  const galInput = document.getElementById("galFile");
+  const galDrop = document.getElementById("galDrop");
+  const galPrev = document.getElementById("galPreview");
+  galInput.addEventListener("change", e => {
+    galFile = e.target.files[0];
+    if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }
+  });
+  ["dragenter","dragover"].forEach(ev => galDrop.addEventListener(ev, e => { e.preventDefault(); galDrop.classList.add("drag"); }));
+  ["dragleave","drop"].forEach(ev => galDrop.addEventListener(ev, e => { e.preventDefault(); galDrop.classList.remove("drag"); }));
+  galDrop.addEventListener("drop", e => {
+    galFile = e.dataTransfer.files[0];
+    if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }
+  });
+
+  // Barber management upload
+  const bmInput = document.getElementById("bmFile");
+  const bmDrop = document.getElementById("bmDrop");
+  const bmPrev = document.getElementById("bmPreview");
+  bmInput.addEventListener("change", e => {
+    bmFile = e.target.files[0];
+    if(bmFile){ bmPrev.src = URL.createObjectURL(bmFile); bmPrev.classList.add("on"); }
+  });
+  ["dragenter","dragover"].forEach(ev => bmDrop.addEventListener(ev, e => { e.preventDefault(); bmDrop.classList.add("drag"); }));
+  ["dragleave","drop"].forEach(ev => bmDrop.addEventListener(ev, e => { e.preventDefault(); bmDrop.classList.remove("drag"); }));
+  bmDrop.addEventListener("drop", e => {
+    bmFile = e.dataTransfer.files[0];
+    if(bmFile){ bmPrev.src = URL.createObjectURL(bmFile); bmPrev.classList.add("on"); }
+  });
+}
+
+async function uploadGalleryPhoto(){
+  if(!galFile) return toast("Choose an image first", "red");
+  const category = document.getElementById("galCategory").value.trim() || "General";
+  const barberId = myBarberId || "admin";
+  const path = `gallery/${barberId}/${Date.now()}_${galFile.name}`;
+  const ref = storage.ref(path);
+  const task = ref.put(galFile);
+  const bar = document.getElementById("galProgressBar");
+  const wrap = document.getElementById("galProgress");
+  wrap.classList.add("on");
+  task.on("state_changed",
+    snap => { bar.style.width = ((snap.bytesTransferred/snap.totalBytes)*100) + "%"; },
+    err => { toast("Upload failed", "red"); wrap.classList.remove("on"); },
+    async () => {
+      const url = await task.snapshot.ref.getDownloadURL();
+      const maxOrder = Math.max(0, ...gallery.filter(g => (g.category||"General") === category).map(g => g.sortOrder || 0));
+      await db.collection("gallery").add({
+        barberId, url, category, sortOrder: maxOrder + 1,
+        uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast("Photo uploaded", "green");
+      document.getElementById("galPreview").classList.remove("on");
+      document.getElementById("galCategory").value = "";
+      galFile = null;
+      wrap.classList.remove("on");
+      bar.style.width = "0%";
+    }
+  );
+}
+
+function renderGallery(){
+  const list = document.getElementById("galList");
+  let mine = gallery.slice();
+  if(role === "barber") mine = mine.filter(g => g.barberId === myBarberId);
+  if(!mine.length){
+    list.innerHTML = '<div style="color:#666;padding:20px;">No photos yet.</div>';
+    return;
+  }
+  const byCat = {};
+  mine.forEach(g => {
+    const c = g.category || "General";
+    (byCat[c] = byCat[c] || []).push(g);
+  });
+  list.innerHTML = Object.keys(byCat).map(cat => {
+    const items = byCat[cat].sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
+    return `
+      <div class="gal-cat">
+        <h4>${esc(cat)}</h4>
+        <div class="grid" data-cat="${esc(cat)}">
+          ${items.map(g => `
+            <div class="gal-item" draggable="true" data-id="${g.id}">
+              <img src="${g.url}">
+              <button class="rm" onclick="removePhoto('${g.id}')">×</button>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
+  attachDragDrop();
+}
+async function removePhoto(id){
+  openAM("Remove Photo", "Delete this photo permanently?", async () => {
+    await db.collection("gallery").doc(id).delete();
+    toast("Photo removed", "green");
+    closeAM();
+  });
+}
+function attachDragDrop(){
+  let dragged = null;
+  document.querySelectorAll(".gal-item").forEach(el => {
+    el.addEventListener("dragstart", e => { dragged = el; el.classList.add("dragging"); });
+    el.addEventListener("dragend", async e => {
+      el.classList.remove("dragging");
+      if(dragged) await commitOrder(el.parentElement);
+      dragged = null;
+    });
+    el.addEventListener("dragover", e => {
+      e.preventDefault();
+      if(!dragged || dragged === el) return;
+      const grid = el.parentElement;
+      if(dragged.parentElement !== grid) return;
+      const rect = el.getBoundingClientRect();
+      const before = e.clientY < rect.top + rect.height/2;
+      grid.insertBefore(dragged, before ? el : el.nextSibling);
+    });
+    // touch fallback: long-press then move
+    let touchStart = null;
+    el.addEventListener("touchstart", e => {
+      touchStart = Date.now();
+      setTimeout(() => { if(Date.now() - touchStart >= 400) dragged = el; }, 400);
+    });
+    el.addEventListener("touchmove", e => {
+      if(!dragged) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      const target = document.elementFromPoint(t.clientX, t.clientY);
+      const item = target?.closest(".gal-item");
+      if(item && item !== dragged && item.parentElement === dragged.parentElement){
+        const rect = item.getBoundingClientRect();
+        const before = t.clientY < rect.top + rect.height/2;
+        item.parentElement.insertBefore(dragged, before ? item : item.nextSibling);
+      }
+    }, {passive:false});
+    el.addEventListener("touchend", async () => {
+      if(dragged) await commitOrder(dragged.parentElement);
+      dragged = null; touchStart = null;
+    });
+  });
+}
+async function commitOrder(grid){
+  const batch = db.batch();
+  [...grid.children].forEach((el, i) => {
+    batch.update(db.collection("gallery").doc(el.dataset.id), { sortOrder: i + 1 });
+  });
+  await batch.commit();
+  toast("Order saved", "green");
+}
+
+/* =========================================================
+   BARBER MANAGEMENT (admin)
+========================================================= */
+async function saveBarber(){
+  const name = document.getElementById("bmName").value.trim();
+  const specialty = document.getElementById("bmSpecialty").value.trim();
+  const uid = document.getElementById("bmUid").value.trim();
+  const telegramChatId = document.getElementById("bmTelegram").value.trim();
+  const editId = document.getElementById("bmEditId").value;
+  let photoURL = document.getElementById("bmPhotoURL").value;
+
+  if(!name || !specialty || !uid) return toast("Name, specialty and UID required", "red");
+
+  const finish = async (url) => {
+    const data = { name, specialty, uid, telegramChatId, photoURL: url, active: true };
+    if(editId){
+      await db.collection("barbers").doc(editId).update(data);
+      toast("Barber updated", "green");
+    } else {
+      await db.collection("barbers").add(data);
+      toast("Barber added", "green");
+    }
+    resetBarberForm();
+  };
+
+  if(bmFile){
+    const path = `barbers/${Date.now()}_${bmFile.name}`;
+    const ref = storage.ref(path);
+    const task = ref.put(bmFile);
+    const bar = document.getElementById("bmProgressBar");
+    const wrap = document.getElementById("bmProgress");
+    wrap.classList.add("on");
+    task.on("state_changed",
+      snap => { bar.style.width = ((snap.bytesTransferred/snap.totalBytes)*100) + "%"; },
+      err => { toast("Upload failed", "red"); wrap.classList.remove("on"); },
+      async () => {
+        const url = await task.snapshot.ref.getDownloadURL();
+        wrap.classList.remove("on");
+        await finish(url);
+      }
+    );
+  } else {
+    await finish(photoURL || null);
+  }
+}
+function resetBarberForm(){
+  document.getElementById("bmName").value = "";
+  document.getElementById("bmSpecialty").value = "";
+  document.getElementById("bmUid").value = "";
+  document.getElementById("bmTelegram").value = "";
+  document.getElementById("bmEditId").value = "";
+  document.getElementById("bmPhotoURL").value = "";
+  document.getElementById("bmPreview").classList.remove("on");
+  bmFile = null;
+}
+function editBarber(id){
+  const b = barbers.find(x => x.id === id);
+  if(!b) return;
+  document.getElementById("bmName").value = b.name || "";
+  document.getElementById("bmSpecialty").value = b.specialty || "";
+  document.getElementById("bmUid").value = b.uid || "";
+  document.getElementById("bmTelegram").value = b.telegramChatId || "";
+  document.getElementById("bmEditId").value = b.id;
+  document.getElementById("bmPhotoURL").value = b.photoURL || "";
+  const prev = document.getElementById("bmPreview");
+  if(b.photoURL){ prev.src = b.photoURL; prev.classList.add("on"); }
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+async function toggleBarberActive(id){
+  const b = barbers.find(x => x.id === id);
+  await db.collection("barbers").doc(id).update({ active: !b.active });
+  toast(b.active ? "Deactivated" : "Activated", "green");
+}
+function renderBarbersList(){
+  if(role !== "admin") return;
+  const list = document.getElementById("barbersList");
+  if(!barbers.length){
+    list.innerHTML = '<div style="color:#666;padding:20px;">No barbers yet.</div>';
+    return;
+  }
+  list.innerHTML = barbers.map(b => `
+    <div class="barber-item">
+      <img src="${b.photoURL || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=200&q=80'}">
+      <div class="meta">
+        <strong>${esc(b.name)}</strong>
+        <small>${esc(b.specialty||"")}</small>
+        <small style="color:${b.active?'#7fff7f':'#888'};">${b.active ? "Active" : "Inactive"}</small>
+      </div>
+      <button class="btn small ghost" onclick="editBarber('${b.id}')">Edit</button>
+      <button class="btn small ${b.active?'danger':''}" onclick="toggleBarberActive('${b.id}')">${b.active?'Deactivate':'Activate'}</button>
+    </div>
+  `).join("");
+}
+
+/* =========================================================
+   EARNINGS (barber view)
+========================================================= */
+function renderEarnings(){
+  const scope = role === "barber"
+    ? bookings.filter(b => b.barberId === myBarberId && b.status === "Completed")
+    : bookings.filter(b => b.status === "Completed");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const wkStart = new Date(today); wkStart.setDate(wkStart.getDate() - today.getDay());
+  const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const isSame = (d, ref) => d.toDateString() === ref.toDateString();
+  const sum = arr => arr.reduce((s,b) => s + (b.total||0), 0);
+  const todaysBk = scope.filter(b => b.date && isSame(new Date(b.date + "T00:00:00"), today));
+  const weekBk   = scope.filter(b => b.date && new Date(b.date + "T00:00:00") >= wkStart);
+  const monthBk  = scope.filter(b => b.date && new Date(b.date + "T00:00:00") >= mStart);
+
+  document.getElementById("earnToday").textContent = "$" + sum(todaysBk);
+  document.getElementById("earnWeek").textContent  = "$" + sum(weekBk);
+  document.getElementById("earnMonth").textContent = "$" + sum(monthBk);
+
+  const list = scope.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
+  document.getElementById("earnBreakdown").innerHTML = list.length ? list.map(b => `
+    <div class="unavail-item">
+      <div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
+      <div style="color:#e60000;font-family:Cinzel;font-size:18px;">$${b.total||0}</div>
+    </div>
+  `).join("") : '<div style="color:#666;padding:20px;">No completed bookings yet.</div>';
+}
+
+/* =========================================================
+   REVENUE (admin)
+========================================================= */
+function renderRevenueStats(){
+  const done = bookings.filter(b => b.status === "Completed");
+  const cancelled = bookings.filter(b => b.status === "Cancelled");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const wkStart = new Date(today); wkStart.setDate(wkStart.getDate() - today.getDay());
+  const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const inDay = b => b.date === today.toISOString().slice(0,10);
+  const inWeek = b => b.date && new Date(b.date + "T00:00:00") >= wkStart;
+  const inMonth = b => b.date && new Date(b.date + "T00:00:00") >= mStart;
+
+  const setStat = (id, arr) => {
+    document.getElementById(id).textContent = "$" + arr.reduce((s,b) => s + (b.total||0), 0);
+    document.getElementById(id + "N").textContent = arr.length + " booking" + (arr.length===1?"":"s");
+  };
+  setStat("revToday", done.filter(inDay));
+  setStat("revWeek",  done.filter(inWeek));
+  setStat("revMonth", done.filter(inMonth));
+  document.getElementById("revCancel").textContent = cancelled.length;
+}
+function renderRevenueTable(){
+  const start = document.getElementById("rangeStart").value;
+  const end = document.getElementById("rangeEnd").value;
+  let done = bookings.filter(b => b.status === "Completed");
+  if(start) done = done.filter(b => b.date >= start);
+  if(end) done = done.filter(b => b.date <= end);
+  const perBarber = {};
+  done.forEach(b => {
+    const bid = b.barberId || "unknown";
+    if(!perBarber[bid]) perBarber[bid] = { count:0, revenue:0 };
+    perBarber[bid].count++;
+    perBarber[bid].revenue += (b.total || 0);
+  });
+  let rows = Object.entries(perBarber).map(([bid, d]) => ({
+    name: barbers.find(x => x.id === bid)?.name || "—",
+    count: d.count,
+    revenue: d.revenue
+  }));
+  rows.sort((a,b) => (a[revSort.key] > b[revSort.key] ? 1 : -1) * revSort.dir);
+  document.querySelector("#revTable tbody").innerHTML = rows.length
+    ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.count}</td><td style="color:#e60000;font-family:Cinzel;">$${r.revenue}</td></tr>`).join("")
+    : `<tr><td colspan="3" style="color:#666;text-align:center;padding:20px;">No completed bookings in range.</td></tr>`;
+}
+function sortRev(key){
+  if(revSort.key === key) revSort.dir *= -1;
+  else { revSort.key = key; revSort.dir = -1; }
+  renderRevenueTable();
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+function openAM(title, bodyHTML, onConfirm, confirmLabel){
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalBody").innerHTML = bodyHTML;
+  const btn = document.getElementById("modalConfirm");
+  btn.textContent = confirmLabel || "Confirm";
+  btn.onclick = onConfirm;
+  document.getElementById("actionModal").classList.add("open");
+}
+function closeAM(){ document.getElementById("actionModal").classList.remove("open"); }
+document.getElementById("actionModal").addEventListener("click", e => {
+  if(e.target.id === "actionModal") closeAM();
+});
+
+/* =========================================================
+   TOAST
+========================================================= */
+function toast(msg, kind){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + (kind || "");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.className = "toast " + (kind || ""); }, 2600);
+}
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function esc(s){ return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function parseTime24(str){
+  if(!str) return [0,0];
+  const [h,m] = str.split(":").map(n => parseInt(n,10));
+  return [h||0, m||0];
+}
+function parseTimeAmPm(str){
+  if(!str) return [0,0];
+  const m = str.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+  if(!m) return [0,0];
+  let h = parseInt(m[1],10), mm = parseInt(m[2],10);
+  const ap = (m[3]||"").toUpperCase();
+  if(ap === "PM" && h < 12) h += 12;
+  if(ap === "AM" && h === 12) h = 0;
+  return [h,mm];
+}
+</script>
+
+<!-- Suggested Firestore rules (commented, for reference) -->
+<!--
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return isSignedIn() && request.auth.uid == "REPLACE_WITH_ADMIN_UID"; }
+    function isBarber(barberId) {
+      return isSignedIn() && get(/databases/$(database)/documents/barbers/$(barberId)).data.uid == request.auth.uid;
+    }
+
+    match /barbers/{barberId} {
+      allow read: if true;
+      allow write: if isAdmin();
+      allow update: if isBarber(barberId);
+    }
+    match /bookings/{bookingId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid) || isBarber(resource.data.barberId);
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isAdmin()
+                    || isBarber(resource.data.barberId)
+                    || (isSignedIn() && resource.data.uid == request.auth.uid
+                        && request.resource.data.status == "Cancelled"
+                        && request.resource.data.cancelledBy == "client");
+      allow delete: if isAdmin() || isBarber(resource.data.barberId);
+    }
+    match /gallery/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isBarber(request.resource.data.barberId) || isBarber(resource.data.barberId);
+    }
+    match /reviews/{docId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
+    }
+    match /unavailableDays/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin()
+                                    || isBarber(request.resource.data.barberId)
+                                    || isBarber(resource.data.barberId);
+    }
+  }
+}
+-->
+
+</body>
+</html>

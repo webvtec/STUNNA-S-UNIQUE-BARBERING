@@ -1,518 +1,984 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Stunna's Unique Barbering</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+<!-- Firebase v9 compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
+*{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth;}
+body{background:#050505;color:white;font-family:Poppins,sans-serif;}
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-scroll-behavior:smooth;
-}
-
-body{
-
-background:#050505;
-color:white;
-font-family:Poppins,sans-serif;
-
-}
-
+/* ---------- NAV ---------- */
 nav{
-
-position:fixed;
-top:0;
-left:0;
-width:100%;
-padding:25px 80px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-
-background:rgba(0,0,0,.4);
-backdrop-filter:blur(20px);
-
-z-index:999;
-
+  position:fixed;top:0;left:0;width:100%;
+  padding:25px 80px;display:flex;justify-content:space-between;align-items:center;
+  background:rgba(0,0,0,.4);backdrop-filter:blur(20px);z-index:999;
 }
-
-nav h1{
-
-font-family:Cinzel;
-font-size:28px;
-letter-spacing:3px;
-
+nav h1{font-family:Cinzel;font-size:28px;letter-spacing:3px;}
+nav ul{display:flex;gap:32px;list-style:none;align-items:center;}
+nav a,nav button.link{
+  color:white;text-decoration:none;transition:.3s;background:none;border:none;
+  font-family:Poppins;font-size:15px;cursor:pointer;
 }
+nav a:hover,nav button.link:hover{color:#d60000;}
+nav .staff-link{font-size:12px;opacity:.5;letter-spacing:2px;}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;}
+.hamburger span{width:26px;height:2px;background:white;transition:.3s;}
 
-nav ul{
-
-display:flex;
-gap:40px;
-list-style:none;
-
-}
-
-nav a{
-
-color:white;
-text-decoration:none;
-transition:.3s;
-
-}
-
-nav a:hover{
-
-color:#d60000;
-
-}
-
+/* ---------- HERO ---------- */
 .hero{
-
-height:100vh;
-
-background:
-
-linear-gradient(rgba(0,0,0,.75),
-rgba(0,0,0,.75)),
-
-url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1800&q=80");
-
-background-size:cover;
-background-position:center;
-
-display:flex;
-justify-content:center;
-align-items:center;
-text-align:center;
-
+  height:100vh;
+  background:
+    linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.75)),
+    url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1800&q=80");
+  background-size:cover;background-position:center;
+  display:flex;justify-content:center;align-items:center;text-align:center;
 }
+.hero h2{font-size:70px;font-family:Cinzel;letter-spacing:2px;}
+.hero p{margin-top:20px;font-size:20px;opacity:.8;}
 
-.hero h2{
-
-font-size:70px;
-
-font-family:Cinzel;
-
-}
-
-.hero p{
-
-margin-top:20px;
-font-size:20px;
-opacity:.8;
-
-}
-
+/* ---------- BUTTONS ---------- */
 .btn{
-
-margin-top:40px;
-
-display:inline-block;
-
-padding:18px 45px;
-
-background:#b30000;
-
-border-radius:50px;
-
-color:white;
-
-text-decoration:none;
-
-transition:.4s;
-
+  margin-top:40px;display:inline-block;padding:18px 45px;background:#b30000;
+  border-radius:50px;color:white;text-decoration:none;transition:.4s;
+  border:none;font-family:Poppins;font-size:16px;cursor:pointer;letter-spacing:1px;
 }
+.btn:hover{background:#e60000;transform:translateY(-5px);}
+.btn.small{padding:12px 28px;font-size:14px;margin-top:20px;}
+.btn.ghost{background:transparent;border:1px solid #b30000;color:#e60000;}
+.btn.ghost:hover{background:#b30000;color:white;}
 
-.btn:hover{
+/* ---------- SECTIONS ---------- */
+section{padding:120px 8%;}
+.title{font-size:50px;font-family:Cinzel;text-align:center;margin-bottom:70px;letter-spacing:2px;}
+.subtitle{text-align:center;margin-top:-50px;margin-bottom:60px;color:#bbb;font-size:16px;}
 
-background:#e60000;
-transform:translateY(-5px);
+/* ---------- ABOUT ---------- */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.about img{width:100%;border-radius:20px;}
+.about p{line-height:2;color:#ddd;font-size:17px;}
 
-}
-
-section{
-
-padding:120px 8%;
-
-}
-
-.title{
-
-font-size:50px;
-
-font-family:Cinzel;
-
-text-align:center;
-
-margin-bottom:70px;
-
-}
-
-.about{
-
-display:grid;
-
-grid-template-columns:1fr 1fr;
-
-gap:80px;
-
-align-items:center;
-
-}
-
-.about img{
-
-width:100%;
-
-border-radius:20px;
-
-}
-
-.about p{
-
-line-height:2;
-
-color:#ddd;
-
-}
-
-.barbers{
-
-display:grid;
-
-grid-template-columns:repeat(3,1fr);
-
-gap:35px;
-
-}
-
+/* ---------- BARBERS ---------- */
+.barbers{display:grid;grid-template-columns:repeat(3,1fr);gap:35px;}
 .card{
-
-background:#111;
-
-border:1px solid rgba(255,255,255,.08);
-
-border-radius:20px;
-
-overflow:hidden;
-
-transition:.4s;
-
+  background:#111;border:1px solid rgba(255,255,255,.08);border-radius:20px;
+  overflow:hidden;transition:.4s;display:flex;flex-direction:column;
 }
+.card:hover{transform:translateY(-10px);box-shadow:0 30px 60px rgba(255,0,0,.25);}
+.card img{height:320px;width:100%;object-fit:cover;}
+.card h3{padding:20px 20px 6px;font-size:24px;font-family:Cinzel;letter-spacing:1px;}
+.card p.specialty{padding:0 20px 20px;color:#bbb;flex:1;}
+.card .btn{margin:0 20px 24px;padding:12px 24px;font-size:13px;text-align:center;}
 
-.card:hover{
-
-transform:translateY(-10px);
-
-box-shadow:0 30px 60px rgba(255,0,0,.25);
-
-}
-
-.card img{
-
-height:320px;
-
-width:100%;
-
-object-fit:cover;
-
-}
-
-.card h3{
-
-padding:20px;
-
-font-size:24px;
-
-font-family:Cinzel;
-
-}
-
-.card p{
-
-padding:0 20px 30px;
-
-color:#bbb;
-
-}
-
-.services{
-
-display:grid;
-
-grid-template-columns:repeat(4,1fr);
-
-gap:25px;
-
-}
-
+/* ---------- SERVICES ---------- */
+.services{display:grid;grid-template-columns:repeat(4,1fr);gap:25px;}
 .service{
-
-background:#111;
-
-padding:35px;
-
-border-radius:20px;
-
-text-align:center;
-
+  background:#111;padding:35px;border-radius:20px;text-align:center;
+  border:1px solid rgba(255,255,255,.08);transition:.3s;
 }
+.service:hover{transform:translateY(-5px);border-color:#b30000;}
+.service h4{font-family:Cinzel;font-size:20px;margin-bottom:14px;letter-spacing:1px;}
+.service .price{font-size:32px;color:#e60000;font-family:Cinzel;}
+.service .dur{color:#888;font-size:13px;margin-top:6px;}
+.service .tag{color:#888;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
 
-.gallery{
-
-display:grid;
-
-grid-template-columns:repeat(3,1fr);
-
-gap:20px;
-
+/* ---------- GALLERY ---------- */
+.gallery-filter{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-bottom:40px;}
+.gallery-filter button{
+  padding:8px 20px;border-radius:50px;background:transparent;border:1px solid rgba(255,255,255,.15);
+  color:#bbb;font-family:Poppins;cursor:pointer;transition:.3s;font-size:13px;letter-spacing:1px;
 }
-
-.gallery img{
-
-width:100%;
-height:350px;
-object-fit:cover;
-border-radius:15px;
-
+.gallery-filter button.active,.gallery-filter button:hover{
+  background:#b30000;color:white;border-color:#b30000;
 }
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.gallery img{width:100%;height:350px;object-fit:cover;border-radius:15px;transition:.3s;cursor:pointer;}
+.gallery img:hover{transform:scale(1.02);box-shadow:0 20px 40px rgba(255,0,0,.2);}
+.gallery-empty{grid-column:1/-1;text-align:center;color:#666;padding:40px;}
 
-.contact{
-
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:50px;
-
+/* ---------- REVIEWS ---------- */
+.reviews-wrap{display:grid;grid-template-columns:1fr 1.5fr;gap:50px;}
+.review-form{background:#111;padding:40px;border-radius:20px;border:1px solid rgba(255,255,255,.08);}
+.review-form h3{font-family:Cinzel;margin-bottom:24px;font-size:22px;letter-spacing:1px;}
+.review-form input,.review-form textarea{
+  width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;
+  padding:14px 16px;border-radius:10px;font-family:Poppins;margin-bottom:16px;font-size:14px;
 }
-
-.info{
-
-background:#111;
-padding:40px;
-border-radius:20px;
-
+.review-form textarea{resize:vertical;min-height:100px;}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#b30000;}
+.star-picker{display:flex;gap:8px;margin-bottom:20px;font-size:28px;cursor:pointer;}
+.star-picker span{color:#333;transition:.2s;}
+.star-picker span.on{color:#e60000;}
+.reviews-list{display:flex;flex-direction:column;gap:20px;max-height:600px;overflow-y:auto;padding-right:8px;}
+.reviews-list::-webkit-scrollbar{width:6px;}
+.reviews-list::-webkit-scrollbar-thumb{background:#b30000;border-radius:3px;}
+.review{
+  background:#111;padding:24px 28px;border-radius:15px;border-left:3px solid #b30000;
+  border-top:1px solid rgba(255,255,255,.05);border-right:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);
 }
+.review .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.review .name{font-family:Cinzel;font-size:16px;letter-spacing:1px;}
+.review .stars{color:#e60000;letter-spacing:2px;}
+.review .comment{color:#ddd;line-height:1.6;font-size:14px;}
+.review .meta{color:#666;font-size:12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;}
+.review .del{background:none;border:none;color:#e60000;cursor:pointer;font-size:12px;}
 
-footer{
+/* ---------- CONTACT ---------- */
+.contact{display:grid;grid-template-columns:repeat(2,1fr);gap:50px;}
+.info{background:#111;padding:40px;border-radius:20px;border:1px solid rgba(255,255,255,.08);}
+.info h3{font-family:Cinzel;letter-spacing:1px;font-size:18px;color:#e60000;margin-bottom:6px;}
+.info p{color:#ddd;line-height:1.7;}
 
-padding:40px;
+/* ---------- FOOTER ---------- */
+footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13px;letter-spacing:1px;}
 
-text-align:center;
-
-background:#090909;
-
-color:#777;
-
+/* ---------- BOOKING SECTION ---------- */
+#booking{display:none;}
+.booking-panel{
+  background:#111;padding:50px;border-radius:20px;border:1px solid rgba(255,255,255,.08);
+  max-width:900px;margin:0 auto;
 }
+.booking-panel .field{margin-bottom:22px;}
+.booking-panel label{display:block;color:#bbb;font-size:13px;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;}
+.booking-panel input,.booking-panel select{
+  width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;
+  padding:16px;border-radius:10px;font-family:Poppins;font-size:15px;
+}
+.booking-panel input:focus,.booking-panel select:focus{outline:none;border-color:#b30000;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.services-picker{
+  background:#050505;border-radius:15px;padding:24px;border:1px solid rgba(255,255,255,.08);
+}
+.services-picker h4{font-family:Cinzel;letter-spacing:2px;font-size:13px;color:#e60000;margin:0 0 14px;text-transform:uppercase;}
+.svc-row{
+  display:flex;justify-content:space-between;align-items:center;padding:14px 16px;
+  background:#0a0a0a;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s;
+  border:1px solid transparent;
+}
+.svc-row:hover{background:#131313;}
+.svc-row.selected{border-color:#b30000;background:#180505;}
+.svc-row .check{
+  width:22px;height:22px;border:2px solid #444;border-radius:5px;display:flex;
+  align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0;
+}
+.svc-row.selected .check{background:#b30000;border-color:#b30000;}
+.svc-row .lbl{flex:1;padding:0 14px;font-size:14px;}
+.svc-row .prc{color:#e60000;font-family:Cinzel;font-size:16px;}
+.svc-row.radio .check{border-radius:50%;}
+.summary-bar{
+  margin-top:20px;padding:18px;background:#050505;border-radius:10px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  border:1px solid rgba(255,255,255,.08);
+}
+.summary-bar .chips{display:flex;flex-wrap:wrap;gap:6px;}
+.summary-bar .chip{background:#1a1a1a;padding:5px 12px;border-radius:50px;font-size:12px;color:#ddd;}
+.summary-bar .total{font-family:Cinzel;font-size:26px;color:#e60000;letter-spacing:1px;}
+.time-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px;}
+.time-slot{
+  background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:10px;
+  border-radius:8px;cursor:pointer;transition:.2s;text-align:center;font-size:14px;
+}
+.time-slot:hover{border-color:#b30000;}
+.time-slot.selected{background:#b30000;border-color:#b30000;}
+.time-slot:disabled{opacity:.25;cursor:not-allowed;}
+.time-empty{color:#666;padding:10px 0;font-size:14px;}
 
+/* ---------- MODAL ---------- */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-backdrop.open{display:flex;}
+.modal{
+  background:#111;border-top:3px solid #b30000;border-radius:20px;padding:40px;
+  max-width:600px;width:100%;max-height:90vh;overflow-y:auto;
+}
+.modal h3{font-family:Cinzel;font-size:26px;letter-spacing:2px;margin-bottom:20px;}
+.modal .close{
+  position:absolute;top:20px;right:24px;background:none;border:none;color:#888;
+  font-size:28px;cursor:pointer;
+}
+.modal-wrap{position:relative;max-width:600px;width:100%;}
+.check-icon{
+  width:70px;height:70px;background:#b30000;border-radius:50%;margin:0 auto 20px;
+  display:flex;align-items:center;justify-content:center;font-size:36px;color:white;
+}
+.booking-line{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;}
+.booking-line .k{color:#888;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+.booking-line .v{color:white;font-weight:500;}
+.pay-note{margin-top:20px;padding:16px;background:#050505;border-radius:10px;color:#bbb;font-size:13px;line-height:1.6;border-left:3px solid #b30000;}
+
+/* ---------- MY BOOKINGS ---------- */
+.mybk{background:#0a0a0a;padding:20px;border-radius:12px;margin-bottom:12px;border-left:3px solid #b30000;}
+.mybk.cancelled{border-left-color:#666;opacity:.7;}
+.mybk .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.mybk .bnum{font-family:Cinzel;color:#e60000;letter-spacing:1px;}
+.mybk .badge{padding:3px 10px;border-radius:20px;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+.badge.active{background:#0a4d0a;color:#7fff7f;}
+.badge.cancelled{background:#4d0a0a;color:#ff8080;}
+.badge.pay-yes{background:#0a4d0a;color:#7fff7f;}
+.badge.pay-no{background:#4d0a0a;color:#ff8080;}
+.mybk .info-line{color:#bbb;font-size:14px;margin:4px 0;}
+
+/* ---------- MOBILE ---------- */
 @media(max-width:900px){
-
-.about,
-.contact{
-
-grid-template-columns:1fr;
-
+  nav{padding:20px;}
+  nav ul{
+    display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;
+    background:rgba(0,0,0,.95);padding:24px;gap:20px;align-items:flex-start;
+    backdrop-filter:blur(20px);
+  }
+  nav ul.open{display:flex;}
+  .hamburger{display:flex;}
+  .about,.contact,.reviews-wrap{grid-template-columns:1fr;gap:40px;}
+  .barbers{grid-template-columns:1fr;}
+  .services{grid-template-columns:1fr 1fr;}
+  .gallery{grid-template-columns:1fr;}
+  .hero h2{font-size:38px;}
+  .hero p{font-size:16px;}
+  .title{font-size:34px;}
+  section{padding:80px 6%;}
+  .booking-panel{padding:28px;}
+  .two-col{grid-template-columns:1fr;}
 }
-
-.barbers{
-
-grid-template-columns:1fr;
-
-}
-
-.services{
-
-grid-template-columns:1fr 1fr;
-
-}
-
-.gallery{
-
-grid-template-columns:1fr;
-
-}
-
-.hero h2{
-
-font-size:45px;
-
-}
-
-nav{
-
-padding:20px;
-
-}
-
-}
-
 </style>
-
 </head>
 
 <body>
 
 <nav>
-
-<h1>STUNNA'S</h1>
-
-<ul>
-
-<li><a href="#">Home</a></li>
-<li><a href="#">Barbers</a></li>
-<li><a href="#">Gallery</a></li>
-<li><a href="#">Contact</a></li>
-
-</ul>
-
+  <h1>STUNNA'S</h1>
+  <ul id="navlist">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#our-shop">Shop</a></li>
+    <li><a href="#barbers-sec">Barbers</a></li>
+    <li><a href="#services-sec">Services</a></li>
+    <li><a href="#gallery-sec">Gallery</a></li>
+    <li><a href="#reviews-sec">Reviews</a></li>
+    <li><a href="#contact-sec">Contact</a></li>
+    <li><button class="link" onclick="openMyBookings()">My Bookings</button></li>
+    <li><button class="link" id="authBtn" onclick="handleAuth()">Login</button></li>
+    <li><a class="staff-link" href="dashboard.html">STAFF</a></li>
+  </ul>
+  <button class="hamburger" onclick="document.getElementById('navlist').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
-<header class="hero">
-
-<div>
-
-<h2>STUNNA'S UNIQUE BARBERING</h2>
-
-<p>Luxury Grooming. Precision Cuts. Premium Experience.</p>
-
-<a class="btn">Book Appointment</a>
-
-</div>
-
+<header class="hero" id="home">
+  <div>
+    <h2>STUNNA'S UNIQUE BARBERING</h2>
+    <p>Luxury Grooming. Precision Cuts. Premium Experience.</p>
+    <a class="btn" onclick="openBooking()">Book Appointment</a>
+  </div>
 </header>
 
-<section>
-
-<h2 class="title">Our Shop</h2>
-
-<div class="about">
-
-<img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1200&q=80">
-
-<div>
-
-<p>
-
-Located in Welland, Ontario, Stunna's Unique Barbering offers premium fades, beard grooming, luxury hot towel shaves, and modern styling in a relaxed upscale atmosphere.
-
-</p>
-
-</div>
-
-</div>
-
+<section id="our-shop">
+  <h2 class="title">Our Shop</h2>
+  <div class="about">
+    <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1200&q=80">
+    <div>
+      <p>
+        Located in Welland, Ontario, Stunna's Unique Barbering offers premium fades, beard grooming, luxury hot towel shaves, and modern styling in a relaxed upscale atmosphere. Every chair is a craftsman's station — every client leaves sharper than they came.
+      </p>
+    </div>
+  </div>
 </section>
 
-<section>
-
-<h2 class="title">Choose Your Barber</h2>
-
-<div class="barbers">
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80">
-<h3>Barber #1</h3>
-<p>Master Fade Specialist</p>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=80">
-<h3>Barber #2</h3>
-<p>Classic Cuts</p>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80">
-<h3>Barber #3</h3>
-<p>Modern Styles</p>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80">
-<h3>Barber #4</h3>
-<p>Precision Beard Artist</p>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=900&q=80">
-<h3>Barber #5</h3>
-<p>Texture Specialist</p>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=900&q=80">
-<h3>Barber #6</h3>
-<p>Luxury Grooming</p>
-</div>
-
-</div>
-
+<section id="barbers-sec">
+  <h2 class="title">Choose Your Barber</h2>
+  <div class="barbers" id="barbersGrid">
+    <div class="gallery-empty" style="grid-column:1/-1;">Loading barbers…</div>
+  </div>
 </section>
 
-<section>
+<section id="booking">
+  <h2 class="title">Book Your Appointment</h2>
+  <div class="booking-panel">
+    <div class="two-col">
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="bkName" placeholder="Full name">
+      </div>
+      <div class="field">
+        <label>Phone Number</label>
+        <input type="tel" id="bkPhone" placeholder="(647) 000-0000" maxlength="14">
+      </div>
+    </div>
+    <div class="field">
+      <label>Choose Your Barber</label>
+      <select id="bkBarber" onchange="rebuildTimeSlots()">
+        <option value="">— Select a barber —</option>
+      </select>
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="bkDate" onchange="rebuildTimeSlots()">
+      </div>
+      <div class="field">
+        <label>Estimated Duration</label>
+        <input type="text" id="bkDuration" value="35 min" readonly>
+      </div>
+    </div>
+    <div class="field">
+      <label>Available Times</label>
+      <div class="time-grid" id="bkTimes">
+        <div class="time-empty">Select a barber and date to see available times.</div>
+      </div>
+      <input type="hidden" id="bkTime">
+    </div>
 
-<h2 class="title">Contact</h2>
+    <div class="field">
+      <label>Services</label>
+      <div class="services-picker">
+        <h4>Choose Your Cut</h4>
+        <div id="cutList"></div>
+        <h4 style="margin-top:22px;">Add-Ons</h4>
+        <div id="addonList"></div>
+        <div class="summary-bar">
+          <div class="chips" id="summaryChips"><span style="color:#666;font-size:13px;">No services selected</span></div>
+          <div class="total" id="summaryTotal">$0</div>
+        </div>
+      </div>
+    </div>
 
-<div class="contact">
-
-<div class="info">
-
-<h3>Phone</h3>
-<p>(647) 707 7600</p>
-
-<br>
-
-<h3>Email</h3>
-<p>stunnauniquebarbering@gmail.com</p>
-
-<br>
-
-<h3>Location</h3>
-
-<p>
-
-626 E Main St<br>
-
-Welland, ON L3B 3Y2
-
-</p>
-
-<br>
-
-<h3>Website</h3>
-
-<p>
-
-stunnauniquebarbering.com
-
-</p>
-
-</div>
-
-<div>
-
-<img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=80" style="width:100%;border-radius:20px;">
-
-</div>
-
-</div>
-
+    <button class="btn" style="width:100%;margin-top:10px;" onclick="submitBooking()">Confirm Booking</button>
+    <p style="text-align:center;color:#888;margin-top:16px;font-size:13px;">You'll be asked to sign in with Google to confirm.</p>
+  </div>
 </section>
 
-<footer>
+<section id="services-sec">
+  <h2 class="title">Services & Pricing</h2>
+  <div class="services" id="servicesGrid"></div>
+</section>
 
-© 2025 Stunna's Unique Barbering
+<section id="gallery-sec">
+  <h2 class="title">Gallery</h2>
+  <div class="gallery-filter" id="galleryFilter"></div>
+  <div class="gallery" id="galleryGrid">
+    <div class="gallery-empty">Loading photos…</div>
+  </div>
+</section>
 
-</footer>
+<section id="reviews-sec">
+  <h2 class="title">Reviews</h2>
+  <div class="reviews-wrap">
+    <div class="review-form">
+      <h3>Leave a Review</h3>
+      <input type="text" id="rvName" placeholder="Your name">
+      <div class="star-picker" id="rvStars">
+        <span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span>
+      </div>
+      <textarea id="rvComment" placeholder="Tell us about your experience…"></textarea>
+      <button class="btn small" onclick="submitReview()">Post Review</button>
+      <p style="color:#888;font-size:12px;margin-top:12px;">Google sign-in required.</p>
+    </div>
+    <div class="reviews-list" id="reviewsList">
+      <div style="color:#666;text-align:center;padding:20px;">Loading reviews…</div>
+    </div>
+  </div>
+</section>
 
+<section id="contact-sec">
+  <h2 class="title">Contact</h2>
+  <div class="contact">
+    <div class="info">
+      <h3>Phone</h3><p>(647) 707 7600</p><br>
+      <h3>Email</h3><p>stunnauniquebarbering@gmail.com</p><br>
+      <h3>Location</h3><p>626 E Main St<br>Welland, ON L3B 3Y2</p><br>
+      <h3>Website</h3><p>stunnauniquebarbering.com</p>
+    </div>
+    <div>
+      <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=80" style="width:100%;border-radius:20px;">
+    </div>
+  </div>
+</section>
+
+<footer>© 2025 Stunna's Unique Barbering</footer>
+
+<!-- Booking success modal -->
+<div class="modal-backdrop" id="successModal">
+  <div class="modal-wrap">
+    <div class="modal">
+      <div class="check-icon">✓</div>
+      <h3 style="text-align:center;">Booking Confirmed</h3>
+      <div id="successBody"></div>
+      <div class="pay-note">
+        <strong style="color:#e60000;">Payment:</strong> No deposit required. Payment is due in-shop at the time of your appointment (cash, debit, or Interac e-Transfer).
+      </div>
+      <button class="btn" style="width:100%;margin-top:20px;" onclick="closeModal('successModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- My Bookings modal -->
+<div class="modal-backdrop" id="myBookingsModal">
+  <div class="modal-wrap">
+    <div class="modal">
+      <button class="close" onclick="closeModal('myBookingsModal')">×</button>
+      <h3>My Bookings</h3>
+      <div id="myBookingsList"><div style="color:#888;">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   FIREBASE INITIALIZATION
+========================================================= */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const provider = new firebase.auth.GoogleAuthProvider();
+
+/* =========================================================
+   CONSTANTS
+========================================================= */
+const ADMIN_UID = "REPLACE_WITH_ADMIN_UID";
+const TELEGRAM_BOT_TOKEN = ""; // optional, leave blank to skip notifications
+const BUSINESS_HOURS = { start: 9, end: 19 };  // 9 AM – 7 PM
+const SLOT_MINUTES = 35;
+
+const CUTS = [
+  { id:"signature",   name:"Signature Haircut",   price:40 },
+  { id:"haircut_beard", name:"Haircut + Beard",    price:55 },
+  { id:"skin_fade",   name:"Skin Fade",            price:45 },
+  { id:"buzz",        name:"Buzz Cut",             price:20 },
+  { id:"kids",        name:"Kids Cut (12 & under)",price:25 }
+];
+const ADDONS = [
+  { id:"beard",     name:"Beard Trim",         price:15 },
+  { id:"hot_towel", name:"Hot Towel Shave",    price:25 },
+  { id:"lineup",    name:"Line Up / Edge Up",  price:10 },
+  { id:"eyebrows",  name:"Eyebrows",           price:10 },
+  { id:"design",    name:"Hair Design",        price:15 }
+];
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+let currentUser = null;
+let barbers = [];
+let unavailable = [];
+let bookings = [];
+let reviews = [];
+let gallery = [];
+let selectedCut = null;
+let selectedAddons = new Set();
+let selectedRating = 0;
+let galleryCategory = "All";
+
+/* =========================================================
+   AUTH
+========================================================= */
+auth.onAuthStateChanged(u => {
+  currentUser = u;
+  document.getElementById("authBtn").textContent = u ? "Logout" : "Login";
+});
+function handleAuth(){
+  if(currentUser){ auth.signOut(); }
+  else{ auth.signInWithPopup(provider).catch(e => Swal.fire({icon:"error",title:"Sign-in failed",text:e.message,background:"#111",color:"#fff"})); }
+}
+async function requireAuth(){
+  if(currentUser) return currentUser;
+  try{
+    const res = await auth.signInWithPopup(provider);
+    return res.user;
+  }catch(e){ return null; }
+}
+
+/* =========================================================
+   FIRESTORE LISTENERS
+========================================================= */
+db.collection("barbers").where("active","==",true).onSnapshot(snap => {
+  barbers = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderBarbers();
+  populateBarberSelector();
+});
+db.collection("unavailableDays").onSnapshot(snap => {
+  unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  rebuildTimeSlots();
+});
+db.collection("bookings").onSnapshot(snap => {
+  bookings = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  rebuildTimeSlots();
+});
+db.collection("reviews").orderBy("timestamp","desc").onSnapshot(snap => {
+  reviews = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderReviews();
+});
+db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
+  gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderGallery();
+});
+
+/* =========================================================
+   RENDER: BARBERS
+========================================================= */
+function renderBarbers(){
+  const grid = document.getElementById("barbersGrid");
+  if(!barbers.length){
+    grid.innerHTML = '<div class="gallery-empty" style="grid-column:1/-1;">No barbers listed yet.</div>';
+    return;
+  }
+  grid.innerHTML = barbers.map(b => `
+    <div class="card">
+      <img src="${b.photoURL || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80'}" alt="${b.name}">
+      <h3>${b.name || "Barber"}</h3>
+      <p class="specialty">${b.specialty || ""}</p>
+      <a class="btn" onclick="openBooking('${b.id}')">Book with ${(b.name||"").split(" ")[0]}</a>
+    </div>
+  `).join("");
+}
+
+/* =========================================================
+   RENDER: SERVICES (static list)
+========================================================= */
+function renderServices(){
+  const grid = document.getElementById("servicesGrid");
+  grid.innerHTML = [
+    ...CUTS.map(c => ({...c, tag:"Cut"})),
+    ...ADDONS.map(a => ({...a, tag:"Add-On"}))
+  ].map(s => `
+    <div class="service">
+      <div class="tag">${s.tag}</div>
+      <h4>${s.name}</h4>
+      <div class="price">$${s.price}</div>
+      ${s.tag === "Cut" ? '<div class="dur">~35 min</div>' : ""}
+    </div>
+  `).join("");
+}
+renderServices();
+
+/* =========================================================
+   RENDER: GALLERY
+========================================================= */
+function renderGallery(){
+  const grid = document.getElementById("galleryGrid");
+  const filter = document.getElementById("galleryFilter");
+  const cats = ["All", ...new Set(gallery.map(g => g.category || "General"))];
+  filter.innerHTML = cats.map(c =>
+    `<button class="${c===galleryCategory?"active":""}" onclick="setGalleryCat('${c.replace(/'/g,"\\'")}')">${c}</button>`
+  ).join("");
+  const shown = galleryCategory === "All" ? gallery : gallery.filter(g => (g.category||"General") === galleryCategory);
+  if(!shown.length){
+    grid.innerHTML = '<div class="gallery-empty">No photos yet.</div>';
+    return;
+  }
+  grid.innerHTML = shown.map(g => `<img src="${g.url}" alt="Gallery photo">`).join("");
+}
+function setGalleryCat(c){ galleryCategory = c; renderGallery(); }
+
+/* =========================================================
+   RENDER: REVIEWS
+========================================================= */
+function renderReviews(){
+  const list = document.getElementById("reviewsList");
+  if(!reviews.length){
+    list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Be the first to leave a review.</div>';
+    return;
+  }
+  list.innerHTML = reviews.map(r => `
+    <div class="review">
+      <div class="top">
+        <div class="name">${escape(r.name||"Anonymous")}</div>
+        <div class="stars">${"★".repeat(r.rating||0)}${"☆".repeat(5-(r.rating||0))}</div>
+      </div>
+      <div class="comment">${escape(r.comment||"")}</div>
+      <div class="meta">
+        <span>${relTime(r.timestamp)}</span>
+        ${currentUser && r.uid === currentUser.uid ? `<button class="del" onclick="deleteReview('${r.id}')">Delete</button>` : ""}
+      </div>
+    </div>
+  `).join("");
+}
+
+/* =========================================================
+   BOOKING FLOW
+========================================================= */
+function openBooking(barberId){
+  document.getElementById("booking").style.display = "block";
+  if(barberId) document.getElementById("bkBarber").value = barberId;
+  populateBarberSelector();
+  buildServicePicker();
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById("bkDate").min = today;
+  rebuildTimeSlots();
+  document.getElementById("booking").scrollIntoView({behavior:"smooth"});
+}
+
+function populateBarberSelector(){
+  const sel = document.getElementById("bkBarber");
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Select a barber —</option>' +
+    barbers.map(b => `<option value="${b.id}" ${b.id===current?"selected":""}>${escape(b.name||"Barber")}</option>`).join("");
+}
+
+function buildServicePicker(){
+  document.getElementById("cutList").innerHTML = CUTS.map(c => `
+    <div class="svc-row radio" data-cut="${c.id}" onclick="pickCut('${c.id}')">
+      <div class="check">${selectedCut===c.id?"✓":""}</div>
+      <div class="lbl">${c.name}</div>
+      <div class="prc">$${c.price}</div>
+    </div>
+  `).join("");
+  document.getElementById("addonList").innerHTML = ADDONS.map(a => `
+    <div class="svc-row" data-addon="${a.id}" onclick="toggleAddon('${a.id}')">
+      <div class="check">${selectedAddons.has(a.id)?"✓":""}</div>
+      <div class="lbl">${a.name}</div>
+      <div class="prc">+$${a.price}</div>
+    </div>
+  `).join("");
+  updateSummary();
+}
+function pickCut(id){
+  selectedCut = id;
+  document.querySelectorAll("[data-cut]").forEach(el => {
+    const on = el.dataset.cut === id;
+    el.classList.toggle("selected", on);
+    el.querySelector(".check").textContent = on ? "✓" : "";
+  });
+  updateSummary();
+}
+function toggleAddon(id){
+  if(selectedAddons.has(id)) selectedAddons.delete(id); else selectedAddons.add(id);
+  const el = document.querySelector(`[data-addon="${id}"]`);
+  const on = selectedAddons.has(id);
+  el.classList.toggle("selected", on);
+  el.querySelector(".check").textContent = on ? "✓" : "";
+  updateSummary();
+}
+function updateSummary(){
+  const items = [];
+  let total = 0;
+  if(selectedCut){
+    const c = CUTS.find(x => x.id === selectedCut);
+    items.push(c.name); total += c.price;
+  }
+  selectedAddons.forEach(id => {
+    const a = ADDONS.find(x => x.id === id);
+    items.push(a.name); total += a.price;
+  });
+  const chips = document.getElementById("summaryChips");
+  chips.innerHTML = items.length
+    ? items.map(i => `<span class="chip">${i}</span>`).join("")
+    : '<span style="color:#666;font-size:13px;">No services selected</span>';
+  document.getElementById("summaryTotal").textContent = "$" + total;
+}
+
+/* Phone auto-format */
+document.getElementById("bkPhone").addEventListener("input", e => {
+  const v = e.target.value.replace(/\D/g,"").slice(0,10);
+  let out = "";
+  if(v.length > 0) out = "(" + v.slice(0,3);
+  if(v.length >= 4) out += ") " + v.slice(3,6);
+  if(v.length >= 7) out += "-" + v.slice(6,10);
+  e.target.value = out;
+});
+
+/* =========================================================
+   TIME SLOT CALCULATION
+========================================================= */
+function rebuildTimeSlots(){
+  const barberId = document.getElementById("bkBarber")?.value;
+  const date = document.getElementById("bkDate")?.value;
+  const container = document.getElementById("bkTimes");
+  if(!container) return;
+  if(!barberId || !date){
+    container.innerHTML = '<div class="time-empty">Select a barber and date to see available times.</div>';
+    return;
+  }
+  const slots = generateSlots();
+  const taken = getBlockedRanges(barberId, date);
+  const now = new Date();
+  const isToday = date === now.toISOString().slice(0,10);
+  const html = slots.map(s => {
+    const startMin = s.h*60 + s.m;
+    const endMin = startMin + SLOT_MINUTES;
+    const blocked = taken.some(([a,b]) => !(endMin <= a || startMin >= b));
+    const past = isToday && startMin <= (now.getHours()*60 + now.getMinutes());
+    if(blocked || past) return "";
+    const label = fmtTime(s.h, s.m);
+    return `<button class="time-slot" onclick="pickTime('${label}',this)">${label}</button>`;
+  }).join("");
+  container.innerHTML = html || '<div class="time-empty">No slots available on this date.</div>';
+  document.getElementById("bkTime").value = "";
+}
+function generateSlots(){
+  const out = [];
+  let mins = BUSINESS_HOURS.start * 60;
+  const end = BUSINESS_HOURS.end * 60;
+  while(mins + SLOT_MINUTES <= end){
+    out.push({ h: Math.floor(mins/60), m: mins%60 });
+    mins += SLOT_MINUTES;
+  }
+  return out;
+}
+function getBlockedRanges(barberId, date){
+  const ranges = [];
+  bookings.forEach(b => {
+    if(b.status === "Cancelled") return;
+    if(b.barberId !== barberId) return;
+    if(b.date !== date) return;
+    const [h,m] = parseTime(b.time);
+    const start = h*60+m;
+    ranges.push([start, start + (b.duration || SLOT_MINUTES)]);
+  });
+  unavailable.forEach(u => {
+    if(u.date !== date) return;
+    if(u.barberId !== barberId && u.barberId !== "global") return;
+    if(u.allDay){ ranges.push([0, 24*60]); return; }
+    const [sh,sm] = parseTime(u.startTime);
+    const [eh,em] = parseTime(u.endTime);
+    ranges.push([sh*60+sm, eh*60+em]);
+  });
+  return ranges;
+}
+function pickTime(t, btn){
+  document.getElementById("bkTime").value = t;
+  document.querySelectorAll(".time-slot").forEach(el => el.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+function fmtTime(h,m){
+  const pd = n => String(n).padStart(2,"0");
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hh = ((h + 11) % 12) + 1;
+  return `${hh}:${pd(m)} ${ampm}`;
+}
+function parseTime(str){
+  if(!str) return [0,0];
+  const m = str.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+  if(!m) return [0,0];
+  let h = parseInt(m[1],10), mm = parseInt(m[2],10);
+  const ap = (m[3]||"").toUpperCase();
+  if(ap === "PM" && h < 12) h += 12;
+  if(ap === "AM" && h === 12) h = 0;
+  return [h,mm];
+}
+
+/* =========================================================
+   SUBMIT BOOKING
+========================================================= */
+async function submitBooking(){
+  const name = document.getElementById("bkName").value.trim();
+  const phone = document.getElementById("bkPhone").value.trim();
+  const barberId = document.getElementById("bkBarber").value;
+  const date = document.getElementById("bkDate").value;
+  const time = document.getElementById("bkTime").value;
+
+  if(!name || !phone || !barberId || !date || !time){
+    return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in every field and pick a time.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+  if(!selectedCut){
+    return Swal.fire({icon:"warning", title:"Pick a cut", text:"Please select at least one cut.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+
+  const user = await requireAuth();
+  if(!user) return;
+
+  // Re-validate slot against latest data
+  const [h,m] = parseTime(time);
+  const startMin = h*60+m;
+  const endMin = startMin + SLOT_MINUTES;
+  const blocked = getBlockedRanges(barberId, date).some(([a,b]) => !(endMin<=a || startMin>=b));
+  if(blocked){
+    return Swal.fire({icon:"error", title:"Slot just taken", text:"That time was just booked. Please pick another.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+
+  const cut = CUTS.find(c => c.id === selectedCut);
+  const addons = ADDONS.filter(a => selectedAddons.has(a.id));
+  const total = cut.price + addons.reduce((s,a)=>s+a.price,0);
+  const serviceList = [cut.name, ...addons.map(a => a.name)].join(", ");
+  const initials = (name.trim().split(/\s+/).map(w => w[0]||"").join("").slice(0,2) || "XX").toUpperCase();
+  const bookingNumber = initials + Math.floor(1000 + Math.random()*9000);
+
+  try{
+    await db.collection("bookings").add({
+      barberId, uid:user.uid, bookingNumber, name, phone, date, time,
+      service: serviceList, duration: SLOT_MINUTES, total,
+      deposit: "No", status: "Active", cancelledBy: null,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Optional Telegram notification
+    const barber = barbers.find(b => b.id === barberId);
+    const chatId = barber?.telegramChatId;
+    if(TELEGRAM_BOT_TOKEN && chatId){
+      const msg = `New booking #${bookingNumber}\n${name} — ${phone}\n${date} @ ${time}\n${serviceList}\nTotal: $${total}`;
+      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ chat_id: chatId, text: msg })
+      }).catch(()=>{});
+    }
+
+    // Success modal
+    const barberName = barber?.name || "";
+    document.getElementById("successBody").innerHTML = `
+      <div class="booking-line"><span class="k">Booking #</span><span class="v">${bookingNumber}</span></div>
+      <div class="booking-line"><span class="k">Barber</span><span class="v">${escape(barberName)}</span></div>
+      <div class="booking-line"><span class="k">Date</span><span class="v">${date}</span></div>
+      <div class="booking-line"><span class="k">Time</span><span class="v">${time}</span></div>
+      <div class="booking-line"><span class="k">Services</span><span class="v" style="text-align:right;max-width:60%;">${escape(serviceList)}</span></div>
+      <div class="booking-line"><span class="k">Total</span><span class="v" style="color:#e60000;font-family:Cinzel;">$${total}</span></div>
+    `;
+    document.getElementById("successModal").classList.add("open");
+
+    // Reset form
+    selectedCut = null; selectedAddons.clear();
+    document.getElementById("bkName").value = "";
+    document.getElementById("bkPhone").value = "";
+    document.getElementById("bkTime").value = "";
+    buildServicePicker();
+    rebuildTimeSlots();
+  }catch(e){
+    Swal.fire({icon:"error", title:"Booking failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+}
+
+/* =========================================================
+   REVIEWS
+========================================================= */
+document.getElementById("rvStars").addEventListener("click", e => {
+  if(e.target.dataset.v){
+    selectedRating = parseInt(e.target.dataset.v,10);
+    document.querySelectorAll("#rvStars span").forEach(s => {
+      s.classList.toggle("on", parseInt(s.dataset.v,10) <= selectedRating);
+    });
+  }
+});
+async function submitReview(){
+  const name = document.getElementById("rvName").value.trim();
+  const comment = document.getElementById("rvComment").value.trim();
+  if(!name || !comment || !selectedRating){
+    return Swal.fire({icon:"warning", title:"Missing info", text:"Please add your name, a rating, and a comment.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+  const user = await requireAuth();
+  if(!user) return;
+  await db.collection("reviews").add({
+    name, comment, rating: selectedRating, uid: user.uid, barberId: null,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById("rvName").value = "";
+  document.getElementById("rvComment").value = "";
+  selectedRating = 0;
+  document.querySelectorAll("#rvStars span").forEach(s => s.classList.remove("on"));
+  Swal.fire({icon:"success", title:"Thanks!", text:"Review posted.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+}
+async function deleteReview(id){
+  const res = await Swal.fire({
+    icon:"warning", title:"Delete review?", showCancelButton:true,
+    background:"#111", color:"#fff",
+    confirmButtonColor:"#b30000", cancelButtonColor:"#333",
+    confirmButtonText:"Delete"
+  });
+  if(res.isConfirmed){
+    const r = reviews.find(x => x.id === id);
+    if(r && currentUser && r.uid === currentUser.uid){
+      await db.collection("reviews").doc(id).delete();
+    }
+  }
+}
+
+/* =========================================================
+   MY BOOKINGS
+========================================================= */
+async function openMyBookings(){
+  const user = await requireAuth();
+  if(!user) return;
+  const modal = document.getElementById("myBookingsModal");
+  modal.classList.add("open");
+  const mine = bookings
+    .filter(b => b.uid === user.uid)
+    .sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
+    .slice(0,5);
+  const list = document.getElementById("myBookingsList");
+  if(!mine.length){
+    list.innerHTML = '<div style="color:#888;text-align:center;padding:20px;">No bookings yet.</div>';
+    return;
+  }
+  list.innerHTML = mine.map(b => {
+    const barber = barbers.find(x => x.id === b.barberId)?.name || "—";
+    const cancelled = b.status === "Cancelled";
+    return `
+      <div class="mybk ${cancelled?'cancelled':''}">
+        <div class="row">
+          <span class="bnum">#${b.bookingNumber}</span>
+          <span class="badge ${cancelled?'cancelled':'active'}">${b.status||"Active"}</span>
+        </div>
+        <div class="info-line"><strong>Barber:</strong> ${escape(barber)}</div>
+        <div class="info-line"><strong>${b.date}</strong> @ ${b.time}</div>
+        <div class="info-line" style="color:#999;font-size:13px;">${escape(b.service||"")}</div>
+        <div class="row" style="margin-top:10px;">
+          <span class="badge ${b.deposit==='Yes'?'pay-yes':'pay-no'}">Payment: ${b.deposit==='Yes'?'Made':'Not Paid'}</span>
+          <span style="color:#e60000;font-family:Cinzel;">$${b.total||0}</span>
+        </div>
+        ${!cancelled ? `<button class="btn small" style="margin-top:12px;background:#4d0a0a;" onclick="cancelBooking('${b.id}')">Cancel Booking</button>` : ""}
+      </div>
+    `;
+  }).join("");
+}
+async function cancelBooking(id){
+  const b = bookings.find(x => x.id === id);
+  if(!b || !currentUser || b.uid !== currentUser.uid) return;
+  const res = await Swal.fire({
+    icon:"warning", title:"Cancel this booking?", showCancelButton:true,
+    background:"#111", color:"#fff",
+    confirmButtonColor:"#b30000", cancelButtonColor:"#333",
+    confirmButtonText:"Yes, cancel"
+  });
+  if(res.isConfirmed){
+    await db.collection("bookings").doc(id).update({
+      status:"Cancelled", cancelledBy:"client"
+    });
+    openMyBookings();
+  }
+}
+
+/* =========================================================
+   MODAL / HELPERS
+========================================================= */
+function closeModal(id){ document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll(".modal-backdrop").forEach(m => {
+  m.addEventListener("click", e => { if(e.target === m) m.classList.remove("open"); });
+});
+function escape(s){ return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function relTime(ts){
+  if(!ts?.toDate) return "just now";
+  const d = ts.toDate();
+  const secs = (Date.now() - d.getTime())/1000;
+  if(secs < 60) return "just now";
+  if(secs < 3600) return `${Math.floor(secs/60)} min ago`;
+  if(secs < 86400) return `${Math.floor(secs/3600)} hr ago`;
+  const days = Math.floor(secs/86400);
+  if(days < 30) return `${days} day${days>1?"s":""} ago`;
+  return d.toLocaleDateString();
+}
+
+/* Close mobile nav on link click */
+document.querySelectorAll("#navlist a, #navlist button").forEach(el => {
+  el.addEventListener("click", () => document.getElementById("navlist").classList.remove("open"));
+});
+</script>
 </body>
-
 </html>
