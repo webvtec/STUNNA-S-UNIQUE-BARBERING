@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Stunna's Unique Barbering</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+scroll-behavior:smooth;
+}
+
+body{
+
+background:#050505;
+color:white;
+font-family:Poppins,sans-serif;
+
+}
+
+nav{
+
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:25px 80px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+background:rgba(0,0,0,.4);
+backdrop-filter:blur(20px);
+
+z-index:999;
+
+}
+
+nav h1{
+
+font-family:Cinzel;
+font-size:28px;
+letter-spacing:3px;
+
+}
+
+nav ul{
+
+display:flex;
+gap:40px;
+list-style:none;
+
+}
+
+nav a{
+
+color:white;
+text-decoration:none;
+transition:.3s;
+
+}
+
+nav a:hover{
+
+color:#d60000;
+
+}
+
+.hero{
+
+height:100vh;
+
+background:
+
+linear-gradient(rgba(0,0,0,.75),
+rgba(0,0,0,.75)),
+
+url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1800&q=80");
+
+background-size:cover;
+background-position:center;
+
+display:flex;
+justify-content:center;
+align-items:center;
+text-align:center;
+
+}
+
+.hero h2{
+
+font-size:70px;
+
+font-family:Cinzel;
+
+}
+
+.hero p{
+
+margin-top:20px;
+font-size:20px;
+opacity:.8;
+
+}
+
+.btn{
+
+margin-top:40px;
+
+display:inline-block;
+
+padding:18px 45px;
+
+background:#b30000;
+
+border-radius:50px;
+
+color:white;
+
+text-decoration:none;
+
+transition:.4s;
+
+}
+
+.btn:hover{
+
+background:#e60000;
+transform:translateY(-5px);
+
+}
+
+section{
+
+padding:120px 8%;
+
+}
+
+.title{
+
+font-size:50px;
+
+font-family:Cinzel;
+
+text-align:center;
+
+margin-bottom:70px;
+
+}
+
+.about{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:80px;
+
+align-items:center;
+
+}
+
+.about img{
+
+width:100%;
+
+border-radius:20px;
+
+}
+
+.about p{
+
+line-height:2;
+
+color:#ddd;
+
+}
+
+.barbers{
+
+display:grid;
+
+grid-template-columns:repeat(3,1fr);
+
+gap:35px;
+
+}
+
+.card{
+
+background:#111;
+
+border:1px solid rgba(255,255,255,.08);
+
+border-radius:20px;
+
+overflow:hidden;
+
+transition:.4s;
+
+}
+
+.card:hover{
+
+transform:translateY(-10px);
+
+box-shadow:0 30px 60px rgba(255,0,0,.25);
+
+}
+
+.card img{
+
+height:320px;
+
+width:100%;
+
+object-fit:cover;
+
+}
+
+.card h3{
+
+padding:20px;
+
+font-size:24px;
+
+font-family:Cinzel;
+
+}
+
+.card p{
+
+padding:0 20px 30px;
+
+color:#bbb;
+
+}
+
+.services{
+
+display:grid;
+
+grid-template-columns:repeat(4,1fr);
+
+gap:25px;
+
+}
+
+.service{
+
+background:#111;
+
+padding:35px;
+
+border-radius:20px;
+
+text-align:center;
+
+}
+
+.gallery{
+
+display:grid;
+
+grid-template-columns:repeat(3,1fr);
+
+gap:20px;
+
+}
+
+.gallery img{
+
+width:100%;
+height:350px;
+object-fit:cover;
+border-radius:15px;
+
+}
+
+.contact{
+
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:50px;
+
+}
+
+.info{
+
+background:#111;
+padding:40px;
+border-radius:20px;
+
+}
+
+footer{
+
+padding:40px;
+
+text-align:center;
+
+background:#090909;
+
+color:#777;
+
+}
+
+@media(max-width:900px){
+
+.about,
+.contact{
+
+grid-template-columns:1fr;
+
+}
+
+.barbers{
+
+grid-template-columns:1fr;
+
+}
+
+.services{
+
+grid-template-columns:1fr 1fr;
+
+}
+
+.gallery{
+
+grid-template-columns:1fr;
+
+}
+
+.hero h2{
+
+font-size:45px;
+
+}
+
+nav{
+
+padding:20px;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav>
+
+<h1>STUNNA'S</h1>
+
+<ul>
+
+<li><a href="#">Home</a></li>
+<li><a href="#">Barbers</a></li>
+<li><a href="#">Gallery</a></li>
+<li><a href="#">Contact</a></li>
+
+</ul>
+
+</nav>
+
+<header class="hero">
+
+<div>
+
+<h2>STUNNA'S UNIQUE BARBERING</h2>
+
+<p>Luxury Grooming. Precision Cuts. Premium Experience.</p>
+
+<a class="btn">Book Appointment</a>
+
+</div>
+
+</header>
+
+<section>
+
+<h2 class="title">Our Shop</h2>
+
+<div class="about">
+
+<img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1200&q=80">
+
+<div>
+
+<p>
+
+Located in Welland, Ontario, Stunna's Unique Barbering offers premium fades, beard grooming, luxury hot towel shaves, and modern styling in a relaxed upscale atmosphere.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2 class="title">Choose Your Barber</h2>
+
+<div class="barbers">
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80">
+<h3>Barber #1</h3>
+<p>Master Fade Specialist</p>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=80">
+<h3>Barber #2</h3>
+<p>Classic Cuts</p>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80">
+<h3>Barber #3</h3>
+<p>Modern Styles</p>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80">
+<h3>Barber #4</h3>
+<p>Precision Beard Artist</p>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=900&q=80">
+<h3>Barber #5</h3>
+<p>Texture Specialist</p>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=900&q=80">
+<h3>Barber #6</h3>
+<p>Luxury Grooming</p>
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2 class="title">Contact</h2>
+
+<div class="contact">
+
+<div class="info">
+
+<h3>Phone</h3>
+<p>(647) 707 7600</p>
+
+<br>
+
+<h3>Email</h3>
+<p>stunnauniquebarbering@gmail.com</p>
+
+<br>
+
+<h3>Location</h3>
+
+<p>
+
+626 E Main St<br>
+
+Welland, ON L3B 3Y2
+
+</p>
+
+<br>
+
+<h3>Website</h3>
+
+<p>
+
+stunnauniquebarbering.com
+
+</p>
+
+</div>
+
+<div>
+
+<img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=80" style="width:100%;border-radius:20px;">
+
+</div>
+
+</div>
+
+</section>
+
+<footer>
+
+© 2025 Stunna's Unique Barbering
+
+</footer>
+
+</body>
+
+</html>
