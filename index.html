@@ -295,6 +295,13 @@ section{padding:120px 8%;}
 }
 .map-placeholder .addr{color:var(--text-dim);font-size:15px;line-height:1.8;}
 
+/* ============ GALLERY BACK LINK ============ */
+.gallery-back-link{
+  display:inline-flex;align-items:center;gap:8px;color:var(--text-dim);
+  text-decoration:none;font-size:14px;margin-bottom:30px;transition:.3s;
+}
+.gallery-back-link:hover{color:var(--red-bright);}
+
 /* ============ FOOTER ============ */
 footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30px;}
 .footer-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;margin-bottom:40px;}
@@ -531,7 +538,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
     <li><a href="#home">Home</a></li>
     <li><a href="#barbers-sec">Barbers</a></li>
     <li><a href="#services-sec">Services</a></li>
-    <li><a href="#gallery-sec">Gallery</a></li>
+    <li><a href="#" onclick="showGalleryPage(); return false;">Gallery</a></li>
     <li id="navLogin"><button class="link" id="authBtn" onclick="openAuthModal()">Login</button></li>
     <li id="navProfile" style="display:none;position:relative;">
       <button class="profile-btn" onclick="toggleProfileMenu()">
@@ -551,6 +558,9 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
     <span></span><span></span><span></span>
   </button>
 </nav>
+
+<!-- HOME PAGE CONTENT -->
+<div id="homePage">
 
 <!-- HERO -->
 <header class="hero" id="home">
@@ -593,6 +603,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 
 <!-- BARBERS -->
 <section id="barbers-sec">
+  <h2 class="title reveal">Barbers</h2>
   <div class="barbers" id="barbersGrid">
     <div class="gallery-empty" style="grid-column:1/-1;">Loading barbers…</div>
   </div>
@@ -621,14 +632,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   </div>
 </section>
 
-<!-- GALLERY -->
-<section id="gallery-sec" style="background:rgba(10,10,10,.72);">
-  <h2 class="title reveal">Gallery</h2>
-  <div class="gallery-filter" id="galleryFilter"></div>
-  <div class="gallery" id="galleryGrid">
-    <div class="gallery-empty">Loading photos…</div>
-  </div>
-</section>
+<!-- Gallery moved to gallery.html -->
 
 <!-- Reviews section removed -->
 <div id="rvStars" style="display:none;"><span data-v="1"></span></div>
@@ -664,6 +668,23 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 
 <!-- Hours & Location section removed -->
 
+</div><!-- end #homePage -->
+
+<!-- GALLERY PAGE (hidden by default, shown when Gallery is clicked) -->
+<div id="galleryPage" style="display:none;">
+  <section id="gallery-sec" style="background:rgba(10,10,10,.72);min-height:100vh;padding-top:120px;">
+    <a href="#" class="gallery-back-link" onclick="showHomePage(); return false;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Home
+    </a>
+    <h2 class="title">Gallery</h2>
+    <div class="gallery-filter" id="galleryFilter"></div>
+    <div class="gallery" id="galleryGrid">
+      <div class="gallery-empty">Loading photos…</div>
+    </div>
+  </section>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-grid">
@@ -679,7 +700,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <ul>
         <li><a href="#services-sec">Services</a></li>
         <li><a href="#barbers-sec">Barbers</a></li>
-        <li><a href="#gallery-sec">Gallery</a></li>
+        <li><a href="#" onclick="showGalleryPage(); return false;">Gallery</a></li>
       </ul>
     </div>
 
@@ -875,8 +896,8 @@ const SHOP_SERVICES = [
   { id:"svc_kids_fade",         name:"Kids Fade Haircut",         price:25,  duration:30,  note:"Under 11 Years" },
   { id:"svc_youth",             name:"Youth Haircut",             price:28,  duration:30,  note:"12 Years – 16 Years" },
   { id:"svc_facial",            name:"Men's Facial",              price:40,  duration:40,  note:"" },
-  { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" },
-  { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" }
+  { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" },
+  { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" }
 ];
 
 const SHOP = {
@@ -915,13 +936,14 @@ let galleryCategory = "All";
 (function initReveal(){
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
+      const el = e.target;
       if(e.isIntersecting){
-        const el = e.target;
         const siblings = el.parentElement ? [...el.parentElement.children].filter(c => c.classList.contains('reveal')) : [];
         const idx = siblings.indexOf(el);
         const delay = idx >= 0 ? idx * 70 : 0;
         setTimeout(() => el.classList.add('visible'), delay);
-        obs.unobserve(el);
+      } else {
+        el.classList.remove('visible');
       }
     });
   }, { threshold:0.15 });
@@ -1243,18 +1265,27 @@ function renderBarbers(){
   grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
 }
 
-/* =========================================================
-   RENDER: GALLERY (with lightbox)
-========================================================= */
+/* Gallery moved to its own view within index.html */
+const MAX_PHOTOS_PER_SECTION = 12;
+
 function renderGallery(){
   const grid = document.getElementById("galleryGrid");
   const filter = document.getElementById("galleryFilter");
+  if(!grid || !filter) return;
   const site = gallery.filter(g => g.barberId === "shop" || g.barberId === "admin");
   const cats = ["All", ...new Set(site.map(g => g.category || "General"))];
   filter.innerHTML = cats.map(c =>
     `<button class="${c===galleryCategory?"active":""}" onclick="setGalleryCat('${c.replace(/'/g,"\\'")}')">${c}</button>`
   ).join("");
-  const shown = galleryCategory === "All" ? site : site.filter(g => (g.category||"General") === galleryCategory);
+  let shown;
+  if(galleryCategory === "All"){
+    const byCat = {};
+    site.forEach(g => { const c = g.category || "General"; (byCat[c] = byCat[c] || []).push(g); });
+    shown = [];
+    Object.values(byCat).forEach(arr => { shown.push(...arr.slice(0, MAX_PHOTOS_PER_SECTION)); });
+  } else {
+    shown = site.filter(g => (g.category||"General") === galleryCategory).slice(0, MAX_PHOTOS_PER_SECTION);
+  }
   if(!shown.length){
     grid.innerHTML = '<div class="gallery-empty">No photos yet.</div>';
     return;
@@ -1262,6 +1293,38 @@ function renderGallery(){
   grid.innerHTML = shown.map(g => `<img src="${g.url}" alt="Gallery photo" loading="lazy" onclick="openLightbox('${g.url}')">`).join("");
 }
 function setGalleryCat(c){ galleryCategory = c; renderGallery(); }
+
+/* =========================================================
+   PAGE TOGGLE — Home ↔ Gallery
+========================================================= */
+function showGalleryPage(){
+  document.getElementById("homePage").style.display = "none";
+  document.getElementById("galleryPage").style.display = "block";
+  document.getElementById("stickyCta").style.display = "none";
+  window.scrollTo({ top:0, behavior:"smooth" });
+  renderGallery();
+}
+function showHomePage(){
+  document.getElementById("galleryPage").style.display = "none";
+  document.getElementById("homePage").style.display = "block";
+  document.getElementById("stickyCta").style.display = "";
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+/* Update logo click to always go home */
+document.querySelector("nav .logo").addEventListener("click", function(e){
+  if(document.getElementById("galleryPage").style.display !== "none"){
+    e.preventDefault();
+    showHomePage();
+  }
+});
+/* Update Home nav link */
+document.querySelector('#navlist a[href="#home"]').addEventListener("click", function(e){
+  if(document.getElementById("galleryPage").style.display !== "none"){
+    e.preventDefault();
+    showHomePage();
+  }
+});
 
 /* =========================================================
    RENDER: REVIEWS
@@ -1346,8 +1409,47 @@ function buildServicePicker(){
   }).join("");
   updateSummary();
 }
+/*
+ * SERVICE CONFLICT MAP
+ * Prevents nonsensical combos — e.g. selecting "Men's Haircut" + "Hair Cut & Beard Trim".
+ * When a service is toggled ON, any conflicting services are automatically deselected.
+ *
+ * Rules:
+ *  - All standalone haircut types are mutually exclusive (you only have one head)
+ *  - Combo services conflict with their component parts & other haircuts
+ *  - Stunna's Signature Service is a full package — conflicts with everything
+ *  - Hair Perm conflicts with other haircut services
+ *  - Men's Facial can stack with haircuts / beard trims (valid add-on)
+ *  - Beard Trim can stack with a standalone haircut (but not the combo that already has it)
+ *  - Hot Towel Shave can stack with a standalone haircut (but not the combo that already has it)
+ */
+const HAIRCUTS = ["svc_mens_haircut","svc_senior","svc_basic_kids","svc_kids_fade","svc_youth"];
+const ALL_PRIMARY = [...HAIRCUTS,"svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"];
+
+const SERVICE_CONFLICTS = {
+  svc_mens_haircut:      [...HAIRCUTS.filter(x=>x!=="svc_mens_haircut"), "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_senior:            [...HAIRCUTS.filter(x=>x!=="svc_senior"),       "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_basic_kids:        [...HAIRCUTS.filter(x=>x!=="svc_basic_kids"),   "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_kids_fade:         [...HAIRCUTS.filter(x=>x!=="svc_kids_fade"),    "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_youth:             [...HAIRCUTS.filter(x=>x!=="svc_youth"),        "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_beard_trim:        ["svc_cut_beard","svc_signature"],
+  svc_hot_towel:         ["svc_hot_towel_haircut","svc_signature"],
+  svc_cut_beard:         [...HAIRCUTS,"svc_beard_trim","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_hot_towel_haircut: [...HAIRCUTS,"svc_hot_towel","svc_cut_beard","svc_perm","svc_signature"],
+  svc_perm:              [...HAIRCUTS,"svc_cut_beard","svc_hot_towel_haircut","svc_signature"],
+  svc_signature:         ["svc_mens_haircut","svc_beard_trim","svc_cut_beard","svc_hot_towel","svc_hot_towel_haircut","svc_senior","svc_basic_kids","svc_kids_fade","svc_youth","svc_facial","svc_perm"],
+  svc_facial:            ["svc_signature"]
+};
+
 function toggleService(id){
-  if(selectedServices.has(id)) selectedServices.delete(id); else selectedServices.add(id);
+  if(selectedServices.has(id)){
+    selectedServices.delete(id);
+  } else {
+    /* Remove anything that conflicts with the newly selected service */
+    const conflicts = SERVICE_CONFLICTS[id] || [];
+    conflicts.forEach(c => selectedServices.delete(c));
+    selectedServices.add(id);
+  }
   buildServicePicker();
   renderCal();
   rebuildTimeSlots();

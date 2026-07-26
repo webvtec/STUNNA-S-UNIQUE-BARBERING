@@ -531,8 +531,8 @@ const SHOP_SERVICES = [
   { id:"svc_kids_fade",         name:"Kids Fade Haircut",         price:25,  duration:30,  note:"Under 11 Years" },
   { id:"svc_youth",             name:"Youth Haircut",             price:28,  duration:30,  note:"12 Years – 16 Years" },
   { id:"svc_facial",            name:"Men's Facial",              price:40,  duration:40,  note:"" },
-  { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" },
-  { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" }
+  { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" },
+  { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" }
 ];
 
 const SHOP = {
@@ -1095,6 +1095,8 @@ async function uploadGalleryPhoto(){
   if(!galFile) return toast("Choose an image first", "red");
   if(role !== "admin") return toast("Only the admin can upload photos", "red");
   const category = document.getElementById("galCategory").value.trim() || "General";
+  const catCount = gallery.filter(g => (g.barberId === "shop" || g.barberId === "admin") && (g.category || "General") === category).length;
+  if(catCount >= 12) return toast("Limit reached — each gallery section can hold a maximum of 12 photos. Remove a photo from \"" + category + "\" before uploading.", "red");
   const barberId = "shop";
   const path = `gallery/${barberId}/${Date.now()}_${galFile.name}`;
   const ref = storage.ref(path);
