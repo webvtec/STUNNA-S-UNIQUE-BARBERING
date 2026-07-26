@@ -363,14 +363,8 @@ td{color:#ddd;}
   <!-- GALLERY -->
   <section class="section" id="sec-gallery">
     <div class="panel">
-      <h2 id="galleryTitle">My Gallery</h2>
-      <div class="field" id="galTargetWrap" style="display:none;">
-        <label>Upload To</label>
-        <select id="galTarget">
-          <option value="shop">Website Gallery (homepage)</option>
-          <option value="mine">My Barber Gallery (shown on my Book Now card)</option>
-        </select>
-      </div>
+      <h2 id="galleryTitle">Website Gallery</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:16px;">Photos here appear in the public homepage gallery. Only the admin can upload.</p>
       <div class="two-col">
         <div class="field">
           <label>Category</label>
@@ -646,11 +640,13 @@ function buildNav(){
     { id:"reservations", label: role === "admin" ? "All Reservations" : "My Reservations" },
     { id:"menu",         label:"Shop Menu" },
     { id:"unavail",      label: role === "admin" ? "Unavailable Days" : "My Unavailable Days" },
-    { id:"gallery",      label: role === "admin" ? "Gallery" : "My Gallery" },
     { id:"earnings",     label:"My Earnings" },
     { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" }
   ];
-  if(role === "admin") items.splice(5, 0, { id:"barbers", label:"Barbers" });
+  if(role === "admin"){
+    items.splice(3, 0, { id:"gallery", label:"Website Gallery" });
+    items.splice(5, 0, { id:"barbers", label:"Barbers" });
+  }
   if(role === "barber") items.push({ id:"profile", label:"My Profile" });
 
   document.getElementById("dashNav").innerHTML = items.map(i =>
@@ -659,7 +655,7 @@ function buildNav(){
 
   document.getElementById("reservationsTitle").textContent = role === "admin" ? "All Reservations" : "My Reservations";
   document.getElementById("unavailTitle").textContent = role === "admin" ? "Unavailable Days" : "My Unavailable Days";
-  document.getElementById("galleryTitle").textContent = role === "admin" ? "Gallery" : "My Gallery";
+  document.getElementById("galleryTitle").textContent = "Website Gallery";
   document.getElementById("earningsTitle").textContent = "My Earnings";
   document.getElementById("menuTitle").textContent = "Shop Menu";
   document.getElementById("clientsTitle").textContent = role === "admin" ? "Clients" : "My Clients";
@@ -668,7 +664,6 @@ function buildNav(){
   if(role === "admin"){
     document.getElementById("barberChips").style.display = "flex";
     document.getElementById("uaScopeWrap").style.display = "";
-    document.getElementById("galTargetWrap").style.display = "";
     document.getElementById("vacScopeWrap").style.display = "";
   }
 }
@@ -1098,15 +1093,9 @@ function setupUploads(){
 
 async function uploadGalleryPhoto(){
   if(!galFile) return toast("Choose an image first", "red");
+  if(role !== "admin") return toast("Only the admin can upload photos", "red");
   const category = document.getElementById("galCategory").value.trim() || "General";
-  let barberId;
-  if(role === "admin"){
-    if(document.getElementById("galTarget").value === "mine"){
-      try{ await ensureMyBarberDoc(); }
-      catch(e){ return toast("Could not create your barber profile: " + e.message, "red"); }
-      barberId = myBarberId;
-    } else { barberId = "shop"; }
-  } else { barberId = myBarberId; }
+  const barberId = "shop";
   const path = `gallery/${barberId}/${Date.now()}_${galFile.name}`;
   const ref = storage.ref(path);
   const task = ref.put(galFile);
@@ -1134,15 +1123,10 @@ async function uploadGalleryPhoto(){
 
 function renderGallery(){
   const list = document.getElementById("galList");
-  let mine = gallery.slice();
-  if(role === "barber") mine = mine.filter(g => g.barberId === myBarberId);
+  const mine = gallery.filter(g => g.barberId === "shop" || g.barberId === "admin");
   if(!mine.length){ list.innerHTML = '<div style="color:#666;padding:20px;">No photos yet.</div>'; return; }
-  const ownerName = bid =>
-    (bid === "shop" || bid === "admin") ? "Website Gallery"
-    : bid === myBarberId ? "My Gallery"
-    : (barbers.find(b => b.id === bid)?.name || "Unknown") + "'s Gallery";
   const byCat = {};
-  mine.forEach(g => { const c = g.category || "General"; const key = role === "admin" ? ownerName(g.barberId) + " — " + c : c; (byCat[key] = byCat[key] || []).push(g); });
+  mine.forEach(g => { const c = g.category || "General"; (byCat[c] = byCat[c] || []).push(g); });
   list.innerHTML = Object.keys(byCat).map(cat => {
     const items = byCat[cat].sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
     return `<div class="gal-cat"><h4>${esc(cat)}</h4><div class="grid" data-cat="${esc(cat)}">
