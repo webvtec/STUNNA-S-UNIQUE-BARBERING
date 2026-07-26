@@ -181,13 +181,21 @@ section{padding:120px 8%;}
 }
 .barber-profile h3{font-family:Cinzel;font-size:20px;letter-spacing:1px;margin-top:18px;}
 .barber-profile .specialty{color:var(--text-dim);font-size:13px;margin-top:6px;min-height:20px;flex-grow:1;}
-.barber-profile .btn-book{
-  margin-top:auto;padding:14px 36px;background:#1a1a1a;color:#fff;
-  border:1px solid rgba(255,255,255,.15);font-family:Poppins;font-size:12px;font-weight:600;letter-spacing:3px;
-  text-transform:uppercase;cursor:pointer;transition:.4s;border-radius:0;
-  width:auto;align-self:center;
+.barber-profile .book-group{
+  margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:0;align-self:center;
 }
-.barber-profile .btn-book:hover{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 0 20px rgba(230,0,0,.35);}
+.barber-profile .certified-badge{
+  background:#fff;color:#b8860b;font-family:Poppins;font-size:9px;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;padding:5px 18px;
+  border:1px solid rgba(184,134,11,.25);
+}
+.barber-profile .btn-book{
+  margin-top:0;padding:9px 34px;background:#111;color:#fff;
+  border:1px solid rgba(255,255,255,.12);font-family:Poppins;font-size:11px;font-weight:600;letter-spacing:3px;
+  text-transform:uppercase;cursor:pointer;transition:.4s;border-radius:0;
+  box-shadow:0 0 12px rgba(0,0,0,.4);
+}
+.barber-profile .btn-book:hover{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 4px 25px rgba(230,0,0,.45);}
 .vacation-badge{
   margin-top:10px;padding:6px 14px;background:rgba(47,107,255,.15);
   border:1px solid rgba(47,107,255,.3);color:var(--blue-glow);
@@ -643,7 +651,6 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 <!-- BARBERS -->
 <section id="barbers-sec">
   <h2 class="title reveal">Barbers</h2>
-  <p class="reveal" style="text-align:center;color:#999;font-family:Poppins;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;margin-top:-10px;margin-bottom:30px;">Licensed &amp; Certified Professionals</p>
   <div class="barbers" id="barbersGrid">
     <div class="gallery-empty" style="grid-column:1/-1;">Loading barbers…</div>
   </div>
@@ -1327,7 +1334,10 @@ function renderBarbers(){
       <h3>${esc(b.name || "Barber")}</h3>
       <p class="specialty">${esc(b.specialty || "")}</p>
       ${vacHtml}
-      <button class="btn-book" onclick="openBarberBooking('${b.id}')">BOOK NOW</button>
+      <div class="book-group">
+        <span class="certified-badge">CERTIFIED PROFESSIONAL</span>
+        <button class="btn-book" onclick="openBarberBooking('${b.id}')">BOOK NOW</button>
+      </div>
     </div>`;
   }).join("");
   grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
