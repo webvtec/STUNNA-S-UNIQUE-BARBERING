@@ -47,7 +47,7 @@ nav a:hover,nav button.link:hover{color:#d60000;}
   height:100vh;
   background:
     linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.75)),
-    url("https://images.unsplash.com/photo-1585747860019-8661c4869e09?auto=format&fit=crop&w=1800&q=80");
+    url("https://images.unsplash.com/photo-1647140655214-e4a2d914971f?auto=format&fit=crop&w=1800&q=80");
   background-size:cover;background-position:center;
   display:flex;justify-content:center;align-items:center;text-align:center;
 }
@@ -412,18 +412,14 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
 </section>
 
 <footer>
-  <div style="margin-bottom:20px;">
+  <div style="margin-bottom:24px;">
     <span style="color:#e60000;font-family:Cinzel;font-size:18px;letter-spacing:4px;">STUNNA'S UNIQUE BARBERING</span>
   </div>
-  <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:28px;margin-bottom:20px;font-size:14px;">
-    <span><span style="color:#e60000;font-weight:600;letter-spacing:1px;">Phone</span>&nbsp; (647) 707 7600</span>
-    <span><span style="color:#e60000;font-weight:600;letter-spacing:1px;">Email</span>&nbsp; stunnauniquebarbering@gmail.com</span>
-  </div>
-  <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:28px;margin-bottom:20px;font-size:14px;">
-    <span><span style="color:#e60000;font-weight:600;letter-spacing:1px;">Location</span>&nbsp; 626 E Main St, Welland, ON L3B 3Y2</span>
-    <span><span style="color:#e60000;font-weight:600;letter-spacing:1px;">Hours</span>&nbsp; Mon–Sat: 9 AM – 7 PM · Sunday: Closed</span>
-  </div>
-  <div style="width:60px;height:2px;background:linear-gradient(90deg,#b30000,#333);margin:20px auto;border-radius:1px;"></div>
+  <p style="margin-bottom:10px;font-size:14px;color:#ccc;"><span style="color:#e60000;font-weight:600;">Phone:</span> (647) 707 7600</p>
+  <p style="margin-bottom:10px;font-size:14px;color:#ccc;"><span style="color:#e60000;font-weight:600;">Email:</span> stunnauniquebarbering@gmail.com</p>
+  <p style="margin-bottom:10px;font-size:14px;color:#ccc;"><span style="color:#e60000;font-weight:600;">Location:</span> 626 E Main St, Welland, ON L3B 3Y2</p>
+  <p style="margin-bottom:10px;font-size:14px;color:#ccc;"><span style="color:#e60000;font-weight:600;">Hours:</span> Mon–Sat: 9 AM – 7 PM · Sunday: Closed</p>
+  <div style="width:60px;height:2px;background:linear-gradient(90deg,#b30000,#333);margin:22px auto;border-radius:1px;"></div>
   <p style="font-size:12px;">© 2026 Stunna's Unique Barbering</p>
 </footer>
 
@@ -792,7 +788,6 @@ async function saveProfile(){
 db.collection("barbers").where("active","==",true).onSnapshot(snap => {
   barbers = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderBarbers();
-  populateBarberSelector();
 });
 db.collection("unavailableDays").onSnapshot(snap => {
   unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
