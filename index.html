@@ -1173,7 +1173,7 @@ async function submitBooking(){
       const slotSnap = await tx.get(slotRef);
       if(slotSnap.exists) throw new Error("This time slot was just booked by someone else. Please pick another.");
       const bookingRef = db.collection("bookings").doc();
-      tx.set(slotRef, { barberId, date, time, duration: getBookingDuration(), bookingId: bookingRef.id, createdAt: new Date().toISOString() });
+      tx.set(slotRef, { barberId, date, time, duration: getBookingDuration(), bookingId: bookingRef.id, uid: user.uid, createdAt: new Date().toISOString() });
       tx.set(bookingRef, {
       barberId, uid:user.uid, userEmail: user.email || "", bookingNumber, name, phone, date, time,
       service: serviceList, duration: getBookingDuration(), total, fromPrice: anyFrom,

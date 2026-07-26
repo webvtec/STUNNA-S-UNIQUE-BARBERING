@@ -978,13 +978,14 @@ function renderUnavailable(){
   }
   list.innerHTML = mine.map(u => {
     const scope = u.barberId === "global" ? "SHOP-WIDE" : (barbers.find(b => b.id === u.barberId)?.name || "You");
+    const canRemove = role === "admin" || u.barberId !== "global";
     return `
       <div class="unavail-item">
         <div class="info">
           <strong>${u.date}</strong> · ${u.allDay ? "All Day" : `${u.startTime} – ${u.endTime}`}
           <small>${esc(scope)}</small>
         </div>
-        <button class="btn small danger" onclick="removeUnavailable('${u.id}')">Remove</button>
+        ${canRemove ? `<button class="btn small danger" onclick="removeUnavailable('${u.id}')">Remove</button>` : ""}
       </div>
     `;
   }).join("");
