@@ -106,7 +106,7 @@ nav a:hover,nav button.link:hover{color:var(--red-bright);}
 .hero .hero-bg.on{opacity:1;}
 .hero::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.72);}
 .hero > div{position:relative;z-index:2;}
-.hero h2{font-size:clamp(36px, 6vw, 70px);font-family:Cinzel;letter-spacing:2px;}
+.hero h2{font-size:clamp(36px, 4.5vw, 52px);font-family:Cinzel;letter-spacing:2px;}
 .hero p{margin-top:20px;font-size:20px;color:var(--text-accent);opacity:.9;}
 
 /* ============ HERO BUTTONS — solid red & white ============ */
@@ -153,14 +153,20 @@ section{padding:120px 8%;}
 .step-card p{color:var(--text-dim);font-size:14px;line-height:1.7;}
 
 /* ============ BARBERS ============ */
-.barbers{display:flex;flex-wrap:wrap;justify-content:center;gap:50px;}
+.barbers{display:flex;flex-wrap:wrap;justify-content:center;gap:30px;}
 .barber-profile{
   display:flex;flex-direction:column;align-items:center;text-align:center;
-  width:220px;transition:.4s;
+  width:260px;transition:.4s;
+  background:var(--dark-card);border:1px solid var(--border);
+  padding:36px 24px 28px;border-radius:18px;
 }
-.barber-profile:hover{transform:translateY(-8px);}
+.barber-profile:hover{
+  transform:translateY(-8px);
+  border-color:rgba(179,0,0,.5);
+  box-shadow:0 20px 50px rgba(0,0,0,.5), 0 0 30px rgba(179,0,0,.12);
+}
 .barber-avatar{
-  width:160px;height:160px;border-radius:50%;object-fit:cover;
+  width:140px;height:140px;border-radius:50%;object-fit:cover;
   border:3px solid rgba(179,0,0,.5);
   box-shadow:0 0 25px rgba(179,0,0,.35), 0 0 60px rgba(179,0,0,.12);
   transition:.4s;
@@ -172,9 +178,10 @@ section{padding:120px 8%;}
 .barber-profile h3{font-family:Cinzel;font-size:20px;letter-spacing:1px;margin-top:18px;}
 .barber-profile .specialty{color:var(--text-dim);font-size:13px;margin-top:6px;min-height:20px;}
 .barber-profile .btn-book{
-  margin-top:16px;padding:12px 32px;background:var(--red);color:white;
+  margin-top:auto;padding:12px 32px;background:var(--red);color:white;
   border:none;font-family:Poppins;font-size:13px;letter-spacing:2px;
-  text-transform:uppercase;cursor:pointer;transition:.3s;
+  text-transform:uppercase;cursor:pointer;transition:.3s;border-radius:0;
+  width:100%;margin-top:20px;
 }
 .barber-profile .btn-book:hover{background:var(--red-bright);box-shadow:0 0 20px rgba(230,0,0,.5);}
 .vacation-badge{
@@ -311,6 +318,17 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 .footer-col ul{list-style:none;}
 .footer-col ul li a{display:block;padding:2px 0;}
 .footer-bottom{text-align:center;border-top:1px solid var(--border);padding-top:24px;color:#555;font-size:12px;letter-spacing:1px;}
+.social-links{display:flex;gap:16px;margin-top:4px;}
+.social-links a{
+  display:flex;align-items:center;justify-content:center;
+  width:42px;height:42px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:1px solid var(--border-light);
+  color:var(--text-dim);transition:.3s;
+}
+.social-links a:hover{
+  background:var(--red);border-color:var(--red);color:white;
+  box-shadow:0 0 18px rgba(230,0,0,.4);transform:translateY(-3px);
+}
 .footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .footer-logo img{height:40px;border-radius:50%;border:2px solid rgba(179,0,0,.4);}
 .footer-logo span{font-family:Cinzel;color:var(--gold);font-size:14px;letter-spacing:3px;}
@@ -506,6 +524,21 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   }
   nav ul.open{display:flex;}
   .hamburger{display:flex;}
+  /* Profile dropdown in mobile: inline instead of absolute overlay */
+  #navProfile{position:relative !important;}
+  #navProfile .profile-btn{
+    width:100%;padding:14px 18px;
+    background:var(--dark-card);border:1px solid var(--border);border-left:3px solid var(--red);
+    border-radius:0;justify-content:flex-start;
+  }
+  #navProfile .profile-dropdown{
+    position:static;width:100%;box-shadow:none;
+    border:1px solid var(--border);border-top:none;
+    margin-top:-1px;
+  }
+  #navProfile .profile-dropdown button{
+    padding:14px 24px;font-size:13px;letter-spacing:1px;
+  }
   .about,.reviews-wrap{grid-template-columns:1fr;gap:40px;}
   .gallery{grid-template-columns:1fr;}
   .hero h2{font-size:clamp(28px, 6vw, 38px);}
@@ -549,6 +582,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <div class="profile-dropdown" id="profileDropdown">
         <button onclick="openProfileModal()">My Profile</button>
         <button onclick="openMyBookings()">My Bookings</button>
+        <button id="adminListToggle" style="display:none;" onclick="toggleAdminOnBarberList()">Show Me on Barber List</button>
         <button id="staffBtn" style="display:none;" onclick="window.location.href='dashboard.html'">Staff Dashboard</button>
         <button onclick="handleLogout()">Logout</button>
       </div>
@@ -696,12 +730,18 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <p>Luxury grooming and precision cuts in Welland, Ontario. Every client leaves sharper than they came.</p>
     </div>
     <div class="footer-col">
-      <h4>Quick Links</h4>
-      <ul>
-        <li><a href="#services-sec">Services</a></li>
-        <li><a href="#barbers-sec">Barbers</a></li>
-        <li><a href="#" onclick="showGalleryPage(); return false;">Gallery</a></li>
-      </ul>
+      <h4>Follow Us</h4>
+      <div class="social-links">
+        <a href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/" target="_blank" rel="noopener" aria-label="TikTok">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.48V13a8.28 8.28 0 005.58 2.17V11.7a4.83 4.83 0 01-3.77-1.24V6.69h3.77z"/></svg>
+        </a>
+      </div>
     </div>
 
   </div>
@@ -1049,6 +1089,15 @@ auth.onAuthStateChanged(async u => {
     else { avatar.style.display = "none"; }
     dispName.textContent = (userProfile.displayName || u.displayName || u.email || "").split(" ")[0];
     document.getElementById("staffBtn").style.display = (userRole === "admin" || userRole === "barber") ? "block" : "none";
+    /* Admin barber-list toggle button */
+    const adminToggleBtn = document.getElementById("adminListToggle");
+    if(userRole === "admin" && myBarberId){
+      adminToggleBtn.style.display = "block";
+      const adminBarber = barbers.find(b => b.uid === ADMIN_UID);
+      updateAdminToggleLabel(adminBarber ? adminBarber.active !== false : false);
+    } else {
+      adminToggleBtn.style.display = "none";
+    }
     closeModal("authModal");
     loadUserBookings();
     renderReviews();
@@ -1061,6 +1110,21 @@ auth.onAuthStateChanged(async u => {
 });
 
 function handleLogout(){ auth.signOut(); }
+
+/* Admin toggle: show/hide self on barber list */
+function updateAdminToggleLabel(isActive){
+  const btn = document.getElementById("adminListToggle");
+  if(btn) btn.textContent = isActive ? "Hide Me from Barber List" : "Show Me on Barber List";
+}
+async function toggleAdminOnBarberList(){
+  document.getElementById("profileDropdown").classList.remove("open");
+  if(!myBarberId || userRole !== "admin") return;
+  const barber = barbers.find(b => b.id === myBarberId);
+  if(!barber) return;
+  const nowActive = barber.active !== false;
+  await db.collection("barbers").doc(myBarberId).update({ active: !nowActive });
+  updateAdminToggleLabel(!nowActive);
+}
 
 function openAuthModal(){ document.getElementById("authModal").classList.add("open"); }
 function switchAuthTab(tab, btn){
@@ -1193,6 +1257,11 @@ const HERO_IMAGES = [
 db.collection("barbers").where("active","==",true).onSnapshot(snap => {
   barbers = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderBarbers();
+  /* Refresh admin toggle label — admin may have toggled off, so check all barbers */
+  if(userRole === "admin" && myBarberId){
+    const adminBarber = barbers.find(b => b.uid === ADMIN_UID);
+    updateAdminToggleLabel(!!adminBarber);
+  }
 });
 db.collection("unavailableDays").onSnapshot(snap => {
   const all = snap.docs.map(d => ({id:d.id, ...d.data()}));
@@ -1237,6 +1306,7 @@ function isOnVacation(barberId, dateStr){
 
 /* =========================================================
    RENDER: BARBERS (no hasMenu gate — all active barbers show)
+   Admin's barber profile always appears first.
 ========================================================= */
 function renderBarbers(){
   const grid = document.getElementById("barbersGrid");
@@ -1244,7 +1314,13 @@ function renderBarbers(){
     grid.innerHTML = '<div class="gallery-empty" style="width:100%;text-align:center;">No barbers listed yet.</div>';
     return;
   }
-  grid.innerHTML = barbers.map(b => {
+  /* Sort: admin barber first (matched by ADMIN_UID), rest keep original order */
+  const sorted = [...barbers].sort((a, b) => {
+    const aIsAdmin = a.uid === ADMIN_UID ? 0 : 1;
+    const bIsAdmin = b.uid === ADMIN_UID ? 0 : 1;
+    return aIsAdmin - bIsAdmin;
+  });
+  grid.innerHTML = sorted.map(b => {
     const vac = getActiveVacation(b.id);
     let vacHtml = "";
     if(vac && vac.showReturnDate){
@@ -1429,16 +1505,16 @@ const ALL_PRIMARY = [...HAIRCUTS,"svc_cut_beard","svc_hot_towel_haircut","svc_pe
 const SERVICE_CONFLICTS = {
   svc_mens_haircut:      [...HAIRCUTS.filter(x=>x!=="svc_mens_haircut"), "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
   svc_senior:            [...HAIRCUTS.filter(x=>x!=="svc_senior"),       "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
-  svc_basic_kids:        [...HAIRCUTS.filter(x=>x!=="svc_basic_kids"),   "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
-  svc_kids_fade:         [...HAIRCUTS.filter(x=>x!=="svc_kids_fade"),    "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
-  svc_youth:             [...HAIRCUTS.filter(x=>x!=="svc_youth"),        "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
-  svc_beard_trim:        ["svc_cut_beard","svc_signature"],
-  svc_hot_towel:         ["svc_hot_towel_haircut","svc_signature"],
+  svc_basic_kids:        [...HAIRCUTS.filter(x=>x!=="svc_basic_kids"),   "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature","svc_beard_trim","svc_hot_towel","svc_facial"],
+  svc_kids_fade:         [...HAIRCUTS.filter(x=>x!=="svc_kids_fade"),    "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature","svc_beard_trim","svc_hot_towel","svc_facial"],
+  svc_youth:             [...HAIRCUTS.filter(x=>x!=="svc_youth"),        "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature","svc_beard_trim","svc_hot_towel","svc_facial"],
+  svc_beard_trim:        ["svc_cut_beard","svc_signature","svc_basic_kids","svc_kids_fade","svc_youth"],
+  svc_hot_towel:         ["svc_hot_towel_haircut","svc_signature","svc_basic_kids","svc_kids_fade","svc_youth"],
   svc_cut_beard:         [...HAIRCUTS,"svc_beard_trim","svc_hot_towel_haircut","svc_perm","svc_signature"],
   svc_hot_towel_haircut: [...HAIRCUTS,"svc_hot_towel","svc_cut_beard","svc_perm","svc_signature"],
   svc_perm:              [...HAIRCUTS,"svc_cut_beard","svc_hot_towel_haircut","svc_signature"],
   svc_signature:         ["svc_mens_haircut","svc_beard_trim","svc_cut_beard","svc_hot_towel","svc_hot_towel_haircut","svc_senior","svc_basic_kids","svc_kids_fade","svc_youth","svc_facial","svc_perm"],
-  svc_facial:            ["svc_signature"]
+  svc_facial:            ["svc_signature","svc_basic_kids","svc_kids_fade","svc_youth"]
 };
 
 function toggleService(id){
