@@ -13,156 +13,128 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
+:root{
+  --gold:#c8a84e;--red:#b30000;--red-bright:#e60000;--blue:#2f6bff;
+  --dark:#050505;--dark-card:#0a0a0a;--dark-panel:#111;
+  --text:#f5f7ff;--text-dim:#bbb;--text-muted:#888;--border:rgba(255,255,255,.08);
+}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#050505;color:#f5f7ff;font-family:Poppins,sans-serif;min-height:100vh;}
+body{background:var(--dark);color:var(--text);font-family:Poppins,sans-serif;min-height:100vh;}
 
 /* ---------- ACCESS GUARD ---------- */
 #guard{
-  position:fixed;inset:0;background:#050505;z-index:99999;
+  position:fixed;inset:0;background:var(--dark);z-index:99999;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;
 }
 #guard.hidden{display:none;}
 #guard h1{font-family:Cinzel;letter-spacing:4px;font-size:22px;}
-#guard.denied h1{color:#e60000;letter-spacing:6px;}
+#guard.denied h1{color:var(--red-bright);letter-spacing:6px;}
 .dots{display:flex;gap:10px;}
-.dots span{
-  width:10px;height:10px;border-radius:50%;background:#b30000;
-  animation:pulse 1.4s infinite ease-in-out;
-}
+.dots span{width:10px;height:10px;border-radius:50%;background:var(--red);animation:pulse 1.4s infinite ease-in-out;}
 .dots span:nth-child(2){animation-delay:.2s;}
 .dots span:nth-child(3){animation-delay:.4s;}
-@keyframes pulse{
-  0%,80%,100%{opacity:.2;transform:scale(.8);}
-  40%{opacity:1;transform:scale(1.2);}
-}
+@keyframes pulse{0%,80%,100%{opacity:.2;transform:scale(.8);}40%{opacity:1;transform:scale(1.2);}}
 
 /* ---------- HEADER ---------- */
 header{
   padding:20px 40px;background:rgba(0,0,0,.5);backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(255,255,255,.05);
+  border-bottom:1px solid var(--border);
   display:flex;justify-content:space-between;align-items:center;
   position:sticky;top:0;z-index:100;
 }
 header h1{font-family:Cinzel;letter-spacing:3px;font-size:22px;}
 .user-info{display:flex;align-items:center;gap:16px;font-size:14px;}
-.role-badge{
-  background:#b30000;padding:4px 12px;border-radius:50px;font-size:11px;
-  letter-spacing:2px;text-transform:uppercase;
-}
+.role-badge{background:var(--red);padding:4px 12px;border-radius:50px;font-size:11px;letter-spacing:2px;text-transform:uppercase;}
 .role-badge.barber{background:#3a3a3a;}
-.logout{
-  background:transparent;border:1px solid #b30000;color:#e60000;
-  padding:8px 20px;border-radius:50px;font-family:Poppins;cursor:pointer;font-size:13px;
-  transition:.3s;
-}
-.logout:hover{background:#b30000;color:white;}
+.logout{background:transparent;border:1px solid var(--red);color:var(--red-bright);padding:8px 20px;border-radius:50px;font-family:Poppins;cursor:pointer;font-size:13px;transition:.3s;}
+.logout:hover{background:var(--red);color:white;}
 
 /* ---------- NAV ---------- */
-.dash-nav{
-  padding:20px 40px;display:flex;gap:12px;flex-wrap:wrap;
-  border-bottom:1px solid rgba(255,255,255,.05);
-}
+.dash-nav{padding:20px 40px;display:flex;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);}
 .dash-nav button{
-  background:#111;border:1px solid #b30000;color:#e60000;
+  background:var(--dark-panel);border:1px solid var(--red);color:var(--red-bright);
   padding:12px 22px;border-radius:50px;font-family:Poppins;cursor:pointer;font-size:13px;
   letter-spacing:1px;transition:.3s;
 }
-.dash-nav button:hover,.dash-nav button.active{background:#b30000;color:white;}
+.dash-nav button:hover,.dash-nav button.active{background:var(--red);color:white;}
 
 /* ---------- LAYOUT ---------- */
 main{padding:40px;}
-.panel{
-  background:#111;border:1px solid rgba(255,255,255,.08);border-radius:20px;
-  padding:32px;margin-bottom:24px;
-}
+.panel{background:var(--dark-panel);border:1px solid var(--border);border-radius:20px;padding:32px;margin-bottom:24px;}
 .panel h2{font-family:Cinzel;letter-spacing:2px;margin-bottom:24px;font-size:24px;}
-.panel h3{font-family:Cinzel;letter-spacing:1px;font-size:18px;margin-bottom:14px;color:#e60000;}
+.panel h3{font-family:Cinzel;letter-spacing:1px;font-size:18px;margin-bottom:14px;color:var(--red-bright);}
 .section{display:none;}
 .section.active{display:block;}
 
 /* ---------- FORM ---------- */
 .field{margin-bottom:16px;}
-label{display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+label{display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
 input,select,textarea{
-  width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;
+  width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;
   padding:12px 14px;border-radius:10px;font-family:Poppins;font-size:14px;
 }
-input:focus,select:focus,textarea:focus{outline:none;border-color:#b30000;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.btn{
-  background:#b30000;color:white;border:none;padding:12px 24px;border-radius:50px;
-  cursor:pointer;font-family:Poppins;font-size:13px;letter-spacing:1px;transition:.3s;
-}
-.btn:hover{background:#e60000;}
-.btn.ghost{background:transparent;border:1px solid #b30000;color:#e60000;}
-.btn.ghost:hover{background:#b30000;color:white;}
+.btn{background:var(--red);color:white;border:none;padding:12px 24px;border-radius:50px;cursor:pointer;font-family:Poppins;font-size:13px;letter-spacing:1px;transition:.3s;}
+.btn:hover{background:var(--red-bright);}
+.btn.ghost{background:transparent;border:1px solid var(--red);color:var(--red-bright);}
+.btn.ghost:hover{background:var(--red);color:white;}
 .btn.danger{background:#4d0a0a;}
 .btn.danger:hover{background:#7a0000;}
 .btn.small{padding:8px 16px;font-size:12px;}
 
 /* ---------- SEARCH ---------- */
-.search-row{
-  display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;
-}
+.search-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
 .search-row input,.search-row select{max-width:280px;}
 .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
 .chip-row .chip{
-  background:#0a0a0a;border:1px solid rgba(255,255,255,.12);color:#bbb;
+  background:var(--dark-card);border:1px solid var(--border);color:var(--text-dim);
   padding:8px 18px;border-radius:50px;cursor:pointer;font-family:Poppins;
   font-size:12px;letter-spacing:1px;transition:.3s;
 }
-.chip-row .chip:hover{border-color:#b30000;color:#e60000;}
-.chip-row .chip.active{background:#b30000;border-color:#b30000;color:white;}
+.chip-row .chip:hover{border-color:var(--red);color:var(--red-bright);}
+.chip-row .chip.active{background:var(--red);border-color:var(--red);color:white;}
 
 /* ---------- CALENDAR ---------- */
-.cal{background:#050505;border:1px solid rgba(255,255,255,.08);border-radius:15px;padding:16px;max-width:420px;}
+.cal{background:var(--dark);border:1px solid var(--border);border-radius:15px;padding:16px;max-width:420px;}
 .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .cal-head .cal-title{font-family:Cinzel;letter-spacing:2px;font-size:14px;}
 .cal-head button{
-  background:#111;border:1px solid rgba(255,255,255,.12);color:#e60000;
+  background:var(--dark-panel);border:1px solid var(--border);color:var(--red-bright);
   width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;transition:.3s;
 }
-.cal-head button:hover{border-color:#b30000;}
+.cal-head button:hover{border-color:var(--red);}
 .cal-head button:disabled{opacity:.25;cursor:not-allowed;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
 .cal-dow{text-align:center;color:#666;font-size:10px;letter-spacing:1px;padding:4px 0;text-transform:uppercase;}
 .cal-day{
   aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;
-  font-size:13px;cursor:pointer;background:#0a0a0a;border:1px solid transparent;transition:.2s;position:relative;
+  font-size:13px;cursor:pointer;background:var(--dark-card);border:1px solid transparent;transition:.2s;position:relative;
 }
-.cal-day:hover{border-color:#b30000;}
+.cal-day:hover{border-color:var(--red);}
 .cal-day.blank{background:transparent;cursor:default;border:none;}
 .cal-day.muted{opacity:.25;cursor:not-allowed;background:transparent;}
 .cal-day.muted:hover{border-color:transparent;}
-.cal-day.selected{background:#b30000;color:white;border-color:#b30000;}
-.cal-day.marked::after{
-  content:"";position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:#e60000;
-}
+.cal-day.selected{background:var(--red);color:white;border-color:var(--red);}
+.cal-day.marked::after{content:"";position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--red-bright);}
 .cal-day.selected.marked::after{background:white;}
 
 /* ---------- BOOKING CARDS ---------- */
-.group-title{
-  font-family:Cinzel;font-size:14px;letter-spacing:3px;color:#888;
-  margin:24px 0 12px;text-transform:uppercase;
-}
-.group-title .cnt{color:#e60000;margin-left:8px;}
+.group-title{font-family:Cinzel;font-size:14px;letter-spacing:3px;color:var(--text-muted);margin:24px 0 12px;text-transform:uppercase;}
+.group-title .cnt{color:var(--red-bright);margin-left:8px;}
 .bcard{
-  background:#0a0a0a;border-left:3px solid #b30000;border-radius:12px;
+  background:var(--dark-card);border-left:3px solid var(--red);border-radius:12px;
   padding:20px;margin-bottom:12px;transition:.3s;
-  border-top:1px solid rgba(255,255,255,.04);
-  border-right:1px solid rgba(255,255,255,.04);
-  border-bottom:1px solid rgba(255,255,255,.04);
+  border-top:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);
 }
 .bcard.cancelled{border-left-color:#666;opacity:.65;}
-.bcard.highlight{box-shadow:0 0 0 2px #e60000, 0 0 40px rgba(255,0,0,.4);}
-.bcard .top{
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;
-}
-.bcard .bnum{font-family:Cinzel;color:#e60000;letter-spacing:1px;font-size:15px;}
+.bcard.highlight{box-shadow:0 0 0 2px var(--red-bright), 0 0 40px rgba(255,0,0,.4);}
+.bcard .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.bcard .bnum{font-family:Cinzel;color:var(--red-bright);letter-spacing:1px;font-size:15px;}
 .bcard .name{font-size:16px;margin:6px 0;}
-.bcard .info-row{color:#bbb;font-size:13px;margin:3px 0;}
+.bcard .info-row{color:var(--text-dim);font-size:13px;margin:3px 0;}
 .bcard .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
-.bcard .barber-tag{background:#1a1a1a;padding:3px 10px;border-radius:20px;font-size:11px;color:#bbb;letter-spacing:1px;}
+.bcard .barber-tag{background:#1a1a1a;padding:3px 10px;border-radius:20px;font-size:11px;color:var(--text-dim);letter-spacing:1px;}
 .badge{padding:3px 10px;border-radius:20px;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 .b-active{background:#0a4d0a;color:#7fff7f;}
 .b-cancel{background:#4d0a0a;color:#ff8080;}
@@ -172,123 +144,90 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#b30000;}
 
 /* ---------- STATS ---------- */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;}
-.stat{
-  background:#0a0a0a;border:1px solid rgba(255,255,255,.05);border-radius:15px;
-  padding:28px;text-align:center;
-}
-.stat .lbl{color:#888;font-size:11px;letter-spacing:2px;text-transform:uppercase;}
-.stat .val{font-family:Cinzel;font-size:44px;color:#e60000;margin-top:8px;letter-spacing:1px;}
+.stat{background:var(--dark-card);border:1px solid rgba(255,255,255,.05);border-radius:15px;padding:28px;text-align:center;}
+.stat .lbl{color:var(--text-muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;}
+.stat .val{font-family:Cinzel;font-size:44px;color:var(--red-bright);margin-top:8px;letter-spacing:1px;}
 .stat .sub{color:#666;font-size:12px;margin-top:4px;}
 
 /* ---------- TABLE ---------- */
 table{width:100%;border-collapse:collapse;margin-top:12px;}
-th,td{padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
-th{color:#888;letter-spacing:1px;font-weight:500;text-transform:uppercase;font-size:11px;cursor:pointer;}
-th:hover{color:#e60000;}
+th,td{padding:12px;text-align:left;border-bottom:1px solid var(--border);font-size:13px;}
+th{color:var(--text-muted);letter-spacing:1px;font-weight:500;text-transform:uppercase;font-size:11px;cursor:pointer;}
+th:hover{color:var(--red-bright);}
 td{color:#ddd;}
 
 /* ---------- UPLOAD ---------- */
-.drop-zone{
-  border:2px dashed rgba(255,255,255,.15);border-radius:15px;padding:40px;
-  text-align:center;cursor:pointer;transition:.3s;color:#888;
-}
-.drop-zone:hover,.drop-zone.drag{border-color:#b30000;background:rgba(179,0,0,.05);}
+.drop-zone{border:2px dashed rgba(255,255,255,.15);border-radius:15px;padding:40px;text-align:center;cursor:pointer;transition:.3s;color:var(--text-muted);}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--red);background:rgba(179,0,0,.05);}
 .preview{max-width:200px;border-radius:10px;margin-top:14px;display:none;}
 .preview.on{display:inline-block;}
-.progress{
-  height:6px;background:#050505;border-radius:3px;overflow:hidden;margin-top:12px;display:none;
-}
+.progress{height:6px;background:var(--dark);border-radius:3px;overflow:hidden;margin-top:12px;display:none;}
 .progress.on{display:block;}
-.progress-bar{height:100%;background:#b30000;width:0%;transition:.2s;}
+.progress-bar{height:100%;background:var(--red);width:0%;transition:.2s;}
 
 /* ---------- BARBER LIST ---------- */
-.barber-item{
-  background:#0a0a0a;padding:16px;border-radius:12px;margin-bottom:10px;
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-}
+.barber-item{background:var(--dark-card);padding:16px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .barber-item .meta{flex:1;}
 .barber-item .meta strong{font-family:Cinzel;letter-spacing:1px;font-size:15px;}
-.barber-item .meta small{color:#888;display:block;font-size:12px;margin-top:2px;}
+.barber-item .meta small{color:var(--text-muted);display:block;font-size:12px;margin-top:2px;}
 
 /* ---------- GALLERY GRID ---------- */
 .gal-cat{margin-bottom:24px;}
-.gal-cat h4{font-family:Cinzel;letter-spacing:2px;color:#bbb;margin-bottom:12px;font-size:14px;text-transform:uppercase;}
+.gal-cat h4{font-family:Cinzel;letter-spacing:2px;color:var(--text-dim);margin-bottom:12px;font-size:14px;text-transform:uppercase;}
 .gal-cat .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.gal-item{
-  position:relative;border-radius:12px;overflow:hidden;background:#050505;cursor:grab;
-  border:1px solid rgba(255,255,255,.05);
-}
+.gal-item{position:relative;border-radius:12px;overflow:hidden;background:var(--dark);cursor:grab;border:1px solid rgba(255,255,255,.05);}
 .gal-item.dragging{opacity:.3;}
 .gal-item img{width:100%;height:180px;object-fit:cover;display:block;}
-.gal-item .rm{
-  position:absolute;top:8px;right:8px;background:#b30000;color:white;
-  border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;
-}
+.gal-item .rm{position:absolute;top:8px;right:8px;background:var(--red);color:white;border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;}
 
-/* ---------- MENU EDITOR ---------- */
-.menu-cat{
-  background:#0a0a0a;border:1px solid rgba(255,255,255,.05);border-radius:15px;
-  padding:20px;margin-bottom:16px;
+/* ---------- SHOP MENU (read-only) ---------- */
+.menu-readonly-row{
+  display:flex;justify-content:space-between;align-items:center;padding:14px 16px;
+  background:var(--dark-card);border-radius:10px;margin-bottom:8px;border:1px solid var(--border);
 }
-.menu-cat-head{display:flex;gap:10px;align-items:center;margin-bottom:14px;}
-.menu-cat-head input.icon{width:60px;text-align:center;}
-.menu-cat-head input.title{flex:1;font-family:Cinzel;letter-spacing:2px;}
-.menu-item-row{
-  display:grid;grid-template-columns:1fr 120px auto auto auto;gap:8px;align-items:center;
-  padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);
-}
-.menu-item-row input{padding:8px 10px;font-size:13px;}
-.menu-item-row label{margin:0;font-size:10px;letter-spacing:1px;color:#888;display:flex;align-items:center;gap:4px;white-space:nowrap;}
-.menu-item-row label input{width:auto;}
-.menu-item-row .rm-item{
-  background:transparent;border:1px solid #4d0a0a;color:#e60000;padding:6px 10px;
-  border-radius:8px;cursor:pointer;font-size:11px;
-}
-.menu-item-row .rm-item:hover{background:#4d0a0a;color:white;}
-@media(max-width:900px){
-  .menu-item-row{grid-template-columns:1fr 1fr;gap:6px;}
-}
+.menu-readonly-row .svc-name{font-size:14px;}
+.menu-readonly-row .svc-note{color:var(--text-muted);font-size:11px;margin-top:2px;}
+.menu-readonly-row .svc-price{font-family:Cinzel;font-size:16px;color:var(--red-bright);white-space:nowrap;}
+.menu-readonly-row .svc-dur{color:var(--text-muted);font-size:11px;margin-left:12px;}
 
 /* ---------- UNAVAILABLE LIST ---------- */
 .unavail-item{
-  background:#0a0a0a;padding:14px 18px;border-radius:10px;margin-bottom:8px;
+  background:var(--dark-card);padding:14px 18px;border-radius:10px;margin-bottom:8px;
   display:flex;justify-content:space-between;align-items:center;
 }
 .unavail-item .info{color:#ddd;font-size:13px;}
-.unavail-item small{color:#888;display:block;margin-top:3px;}
+.unavail-item small{color:var(--text-muted);display:block;margin-top:3px;}
+
+/* ---------- VACATION ITEM ---------- */
+.vacation-item{
+  background:var(--dark-card);padding:16px 18px;border-radius:10px;margin-bottom:8px;
+  border-left:3px solid var(--blue);display:flex;justify-content:space-between;align-items:center;
+}
+.vacation-item .info{color:#ddd;font-size:13px;}
+.vacation-item small{color:var(--text-muted);display:block;margin-top:3px;}
 
 /* ---------- TOAST ---------- */
 .toast{
   position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
-  background:#111;border-top:2px solid #b30000;padding:14px 28px;border-radius:10px;
+  background:var(--dark-panel);border-top:2px solid var(--red);padding:14px 28px;border-radius:10px;
   z-index:9999;font-size:14px;opacity:0;pointer-events:none;transition:.3s;
   box-shadow:0 20px 40px rgba(0,0,0,.5);
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(-10px);}
 .toast.green{border-top-color:#0a8f0a;}
-.toast.red{border-top-color:#e60000;}
+.toast.red{border-top-color:var(--red-bright);}
 
 /* ---------- MODAL ---------- */
-.backdrop{
-  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;
-  display:none;align-items:center;justify-content:center;padding:20px;
-}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px;}
 .backdrop.open{display:flex;}
-.modal{
-  background:#111;border-top:3px solid #b30000;border-radius:20px;padding:32px;
-  max-width:500px;width:100%;max-height:85vh;overflow-y:auto;
-}
+.modal{background:var(--dark-panel);border-top:3px solid var(--red);border-radius:20px;padding:32px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;}
 .modal h3{font-family:Cinzel;letter-spacing:2px;margin-bottom:16px;font-size:22px;}
-.modal p{color:#bbb;margin-bottom:20px;line-height:1.6;font-size:14px;}
+.modal p{color:var(--text-dim);margin-bottom:20px;line-height:1.6;font-size:14px;}
 .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
-.radio-opt{
-  display:flex;align-items:center;gap:12px;padding:14px 16px;background:#050505;
-  border-radius:10px;margin-bottom:8px;cursor:pointer;border:1px solid transparent;
-}
+.radio-opt{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--dark);border-radius:10px;margin-bottom:8px;cursor:pointer;border:1px solid transparent;}
 .radio-opt:hover{border-color:rgba(255,255,255,.1);}
 .radio-opt input{width:auto;}
 
-/* ---------- CATEGORY / STATUS ---------- */
 @media(max-width:900px){
   header{padding:16px 20px;}
   main{padding:20px;}
@@ -309,23 +248,21 @@ td{color:#ddd;}
   </div>
   <div id="guardLogin" style="display:none;max-width:420px;width:100%;">
     <h1 style="font-family:Cinzel;letter-spacing:4px;font-size:22px;margin-bottom:8px;">STAFF LOGIN</h1>
-    <p style="color:#888;font-size:13px;margin-bottom:28px;">Sign in with your staff account</p>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:28px;">Sign in with your staff account</p>
     <div style="margin-bottom:16px;">
-      <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Email</label>
-      <input type="email" id="dashLoginEmail" placeholder="you@email.com" style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;font-family:Poppins;font-size:14px;">
+      <label>Email</label>
+      <input type="email" id="dashLoginEmail" placeholder="you@email.com">
     </div>
     <div style="margin-bottom:20px;">
-      <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Password</label>
-      <input type="password" id="dashLoginPass" placeholder="Your password" style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;font-family:Poppins;font-size:14px;">
+      <label>Password</label>
+      <input type="password" id="dashLoginPass" placeholder="Your password">
     </div>
     <button class="btn" style="width:100%;" onclick="dashEmailLogin()">Sign In</button>
     <div style="display:flex;align-items:center;gap:14px;margin:20px 0;color:#666;font-size:12px;letter-spacing:2px;">
       <span style="flex:1;height:1px;background:rgba(255,255,255,.1);"></span>OR<span style="flex:1;height:1px;background:rgba(255,255,255,.1);"></span>
     </div>
-    <button class="btn ghost" style="width:100%;" onclick="dashGoogleLogin()">
-      Continue with Google
-    </button>
-    <p style="text-align:center;margin-top:20px;"><a href="index.html" style="color:#888;font-size:13px;">← Back to main site</a></p>
+    <button class="btn ghost" style="width:100%;" onclick="dashGoogleLogin()">Continue with Google</button>
+    <p style="text-align:center;margin-top:20px;"><a href="index.html" style="color:var(--text-muted);font-size:13px;">← Back to main site</a></p>
   </div>
 </div>
 
@@ -344,7 +281,7 @@ td{color:#ddd;}
 
 <main id="mainArea" style="display:none;">
 
-  <!-- MY RESERVATIONS / ALL RESERVATIONS -->
+  <!-- RESERVATIONS -->
   <section class="section active" id="sec-reservations">
     <div class="panel">
       <h2 id="reservationsTitle">My Reservations</h2>
@@ -357,10 +294,12 @@ td{color:#ddd;}
     </div>
   </section>
 
-  <!-- UNAVAILABLE DAYS -->
+  <!-- UNAVAILABLE DAYS + VACATION -->
   <section class="section" id="sec-unavail">
     <div class="panel">
       <h2 id="unavailTitle">My Unavailable Days</h2>
+
+      <!-- Single day unavailable -->
       <div class="field">
         <label>Pick a Date <span style="color:#666;text-transform:none;letter-spacing:0;">(red dots = already marked unavailable)</span></label>
         <div class="cal" id="uaCalendar"></div>
@@ -368,19 +307,12 @@ td{color:#ddd;}
       </div>
       <div class="field">
         <label style="display:flex;align-items:center;gap:8px;">
-          <input type="checkbox" id="uaAllDay" checked style="width:auto;" onchange="toggleUaTimes()">
-          All Day
+          <input type="checkbox" id="uaAllDay" checked style="width:auto;" onchange="toggleUaTimes()"> All Day
         </label>
       </div>
       <div class="two-col" id="uaTimes" style="display:none;">
-        <div class="field">
-          <label>Start Time</label>
-          <input type="time" id="uaStart">
-        </div>
-        <div class="field">
-          <label>End Time</label>
-          <input type="time" id="uaEnd">
-        </div>
+        <div class="field"><label>Start Time</label><input type="time" id="uaStart"></div>
+        <div class="field"><label>End Time</label><input type="time" id="uaEnd"></div>
       </div>
       <div id="uaScopeWrap" style="display:none;">
         <div class="field">
@@ -395,6 +327,36 @@ td{color:#ddd;}
 
       <h3 style="margin-top:32px;">Current Unavailable Days</h3>
       <div id="unavailList"></div>
+
+      <!-- VACATION / AWAY -->
+      <h3 style="margin-top:40px;color:var(--blue);">Vacation / Away</h3>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">Block a range of dates. Vacation days cannot be booked. You can optionally let clients see when you'll be back.</p>
+      <div class="two-col">
+        <div class="field"><label>Start Date</label><input type="date" id="vacStart"></div>
+        <div class="field"><label>End Date</label><input type="date" id="vacEnd"></div>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="vacShowReturn" checked style="width:auto;"> Let clients see when I'm back
+        </label>
+      </div>
+      <div class="field">
+        <label>Custom Message <span style="color:#666;text-transform:none;letter-spacing:0;">(optional, max 80 chars)</span></label>
+        <input type="text" id="vacMessage" placeholder="e.g. Family trip, back soon!" maxlength="80">
+      </div>
+      <div id="vacScopeWrap" style="display:none;">
+        <div class="field">
+          <label>Applies To</label>
+          <select id="vacScope">
+            <option value="self">Just me</option>
+            <option value="global">All barbers (shop closure)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="addVacation()">Add Vacation</button>
+
+      <h3 style="margin-top:24px;">Current Vacations</h3>
+      <div id="vacationList"></div>
     </div>
   </section>
 
@@ -444,34 +406,23 @@ td{color:#ddd;}
     </div>
   </section>
 
-  <!-- MY MENU / PRICING -->
+  <!-- SHOP MENU (read-only) -->
   <section class="section" id="sec-menu">
     <div class="panel">
-      <h2 id="menuTitle">My Menu</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:16px;">All prices are in CAD. Clients pick ONE cut from a category (Adults, Kids, etc.), then stack on anything from your "Extras" categories (eyebrow, hot towel…). Mark a category as <strong>Extras</strong> to make its items optional add-ons. "Included" marks freebies bundled with a category (e.g. premium perks); "From (+)" means starting price. Saving your first menu lists you as a barber on the booking page — until then you stay hidden.</p>
-
-      <div id="menuEditor"></div>
-
-      <button class="btn ghost small" onclick="addMenuCategory()" style="margin-top:12px;">+ Add Category</button>
-      <button class="btn" onclick="saveMenu()" style="margin-top:12px;margin-left:8px;">Save Menu</button>
-      <button class="btn ghost small" onclick="loadTemplate()" style="margin-top:12px;margin-left:8px;">Reset to Template</button>
+      <h2 id="menuTitle">Shop Menu</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">This is the standard menu for the entire shop. All barbers offer the same services at the same prices. Prices are set shop-wide and cannot be changed here.</p>
+      <div id="menuReadonly"></div>
     </div>
   </section>
 
-  <!-- ADMIN: BARBER MANAGEMENT -->
+  <!-- BARBER MANAGEMENT (admin) -->
   <section class="section" id="sec-barbers">
     <div class="panel">
       <h2>Barber Management</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:20px;">Add a barber with just their name and email. When they sign in with that email they're linked automatically and can set up their own profile, menu, and photos from their side.</p>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Add a barber with just their name and email. When they sign in with that email they're linked automatically. New barbers appear on the booking page immediately — no menu setup needed.</p>
       <div class="two-col">
-        <div class="field">
-          <label>Name</label>
-          <input type="text" id="bmName" placeholder="Full name">
-        </div>
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="bmEmail" placeholder="barber@email.com">
-        </div>
+        <div class="field"><label>Name</label><input type="text" id="bmName" placeholder="Full name"></div>
+        <div class="field"><label>Email</label><input type="email" id="bmEmail" placeholder="barber@email.com"></div>
       </div>
       <button class="btn" onclick="saveBarber()">Save Barber</button>
       <button class="btn ghost" onclick="resetBarberForm()" style="margin-left:8px;">Cancel Edit</button>
@@ -483,8 +434,7 @@ td{color:#ddd;}
       </div>
       <div id="barbersList" style="margin-top:14px;"></div>
 
-      <!-- Revenue panel (per barber or all) -->
-      <div id="revPanel" style="display:none;margin-top:28px;border-top:1px solid rgba(255,255,255,.08);padding-top:24px;">
+      <div id="revPanel" style="display:none;margin-top:28px;border-top:1px solid var(--border);padding-top:24px;">
         <h3 id="revPanelTitle">Revenue</h3>
         <div class="stat-grid">
           <div class="stat"><div class="lbl">Today</div><div class="val" id="revToday">$0</div><div class="sub" id="revTodayN">0 bookings</div></div>
@@ -496,7 +446,7 @@ td{color:#ddd;}
         <div class="search-row">
           <input type="date" id="rangeStart"> <input type="date" id="rangeEnd">
           <button class="btn small" onclick="renderRevenue()">Apply</button>
-          <span id="rangeResult" style="color:#e60000;font-family:Cinzel;font-size:18px;"></span>
+          <span id="rangeResult" style="color:var(--red-bright);font-family:Cinzel;font-size:18px;"></span>
         </div>
         <div id="revTableWrap"></div>
       </div>
@@ -507,16 +457,10 @@ td{color:#ddd;}
   <section class="section" id="sec-profile">
     <div class="panel">
       <h2>My Profile</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:20px;">This is how you appear to clients on the booking page.</p>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">This is how you appear to clients on the booking page.</p>
       <div class="two-col">
-        <div class="field">
-          <label>Display Name</label>
-          <input type="text" id="ppName" placeholder="Name shown to clients">
-        </div>
-        <div class="field">
-          <label>Specialty</label>
-          <input type="text" id="ppSpecialty" placeholder="e.g. Master Fade Specialist">
-        </div>
+        <div class="field"><label>Display Name</label><input type="text" id="ppName" placeholder="Name shown to clients"></div>
+        <div class="field"><label>Specialty</label><input type="text" id="ppSpecialty" placeholder="e.g. Master Fade Specialist"></div>
       </div>
       <div class="field">
         <label>Profile Photo</label>
@@ -535,7 +479,7 @@ td{color:#ddd;}
   <section class="section" id="sec-clients">
     <div class="panel">
       <h2 id="clientsTitle">Clients</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:20px;" id="clientsDesc">Users who have booked appointments.</p>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;" id="clientsDesc">Users who have booked appointments.</p>
       <div id="clientsList"></div>
     </div>
   </section>
@@ -579,8 +523,24 @@ const provider = new firebase.auth.GoogleAuthProvider();
 ========================================================= */
 const ADMIN_UID = "b44tKAz3gtR0AK4eNLOIgcgEpoD3";
 const SLOT_MINUTES = 35;
+const CURRENCY = "$";
 
-/* Shop info & hours are hardcoded — edit here (and in index.html) to change them. */
+/* Universal shop menu — same as index.html */
+const SHOP_SERVICES = [
+  { id:"svc_mens_haircut",      name:"Men's Haircut",             price:32,  duration:35,  note:"" },
+  { id:"svc_beard_trim",        name:"Beard Trim",                price:28,  duration:25,  note:"" },
+  { id:"svc_cut_beard",         name:"Hair Cut & Beard Trim",     price:47,  duration:50,  note:"" },
+  { id:"svc_hot_towel",         name:"Hot Towel Shave",           price:32,  duration:35,  note:"" },
+  { id:"svc_hot_towel_haircut", name:"Hot Towel Shave & Haircut", price:72,  duration:60,  note:"" },
+  { id:"svc_senior",            name:"Senior Haircut",            price:29,  duration:35,  note:"65+ Years" },
+  { id:"svc_basic_kids",        name:"Basic Kids Haircut",        price:23,  duration:25,  note:"Under 11 Years" },
+  { id:"svc_kids_fade",         name:"Kids Fade Haircut",         price:25,  duration:30,  note:"Under 11 Years" },
+  { id:"svc_youth",             name:"Youth Haircut",             price:28,  duration:30,  note:"12 Years – 16 Years" },
+  { id:"svc_facial",            name:"Men's Facial",              price:40,  duration:40,  note:"" },
+  { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" },
+  { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" }
+];
+
 const SHOP = {
   name: "Stunna's Unique Barbering",
   phone: "(647) 707 7600",
@@ -596,19 +556,20 @@ const SHOP = {
     Sunday:    { open:"09:00", close:"19:00", closed:true }
   }
 };
-const CURRENCY = "$";
-function fmtMoney(n){ return CURRENCY + Number(n||0).toLocaleString("en-CA"); }
+
+function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2); }
 
 let currentUser = null;
-let role = null;            // "admin" | "barber"
-let myBarberId = null;      // set for barbers
+let role = null;
+let myBarberId = null;
 let barbers = [];
 let bookings = [];
 let unavailable = [];
+let vacations = [];
 let gallery = [];
 let currentSection = "reservations";
-let resBarberFilter = "";   // admin reservations filter ("" = all barbers)
-let revBarberId = null;     // revenue panel scope (null = all barbers)
+let resBarberFilter = "";
+let revBarberId = null;
 
 /* =========================================================
    ACCESS GUARD
@@ -632,9 +593,6 @@ auth.onAuthStateChanged(async u => {
     return;
   }
   currentUser = u;
-
-  // Determine role. Barbers are matched by UID first; on their very first
-  // sign-in they're matched by email and the account is linked (uid claimed).
   try{
     let snap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
     if(snap.empty && u.email){
@@ -646,18 +604,10 @@ auth.onAuthStateChanged(async u => {
     }
     if(!snap.empty) myBarberId = snap.docs[0].id;
 
-    if(u.uid === ADMIN_UID){
-      role = "admin";
-      initApp();
-    } else if(myBarberId){
-      role = "barber";
-      initApp();
-    } else {
-      denyAccess("You do not have staff access.");
-    }
-  }catch(e){
-    denyAccess("Access check failed: " + e.message);
-  }
+    if(u.uid === ADMIN_UID){ role = "admin"; initApp(); }
+    else if(myBarberId){ role = "barber"; initApp(); }
+    else { denyAccess("You do not have staff access."); }
+  }catch(e){ denyAccess("Access check failed: " + e.message); }
 });
 
 function denyAccess(reason){
@@ -666,7 +616,7 @@ function denyAccess(reason){
   document.getElementById("guardLoading").style.display = "block";
   document.getElementById("guardLogin").style.display = "none";
   document.getElementById("guardTitle").textContent = "ACCESS DENIED";
-  document.getElementById("guardDots").innerHTML = `<p style="color:#888;font-size:13px;">${reason}</p><p style="margin-top:16px;"><a href="index.html" style="color:#e60000;">← Back to main site</a></p>`;
+  document.getElementById("guardDots").innerHTML = `<p style="color:var(--text-muted);font-size:13px;">${reason}</p><p style="margin-top:16px;"><a href="index.html" style="color:var(--red-bright);">← Back to main site</a></p>`;
   auth.signOut();
 }
 
@@ -684,6 +634,7 @@ function initApp(){
   setupUploads();
   setupSearch();
   renderUaCalendar();
+  renderMenuReadonly();
 }
 function doLogout(){ auth.signOut().then(() => window.location.href = "index.html"); }
 
@@ -693,15 +644,13 @@ function doLogout(){ auth.signOut().then(() => window.location.href = "index.htm
 function buildNav(){
   const items = [
     { id:"reservations", label: role === "admin" ? "All Reservations" : "My Reservations" },
-    { id:"menu",         label:"My Menu" },
+    { id:"menu",         label:"Shop Menu" },
     { id:"unavail",      label: role === "admin" ? "Unavailable Days" : "My Unavailable Days" },
     { id:"gallery",      label: role === "admin" ? "Gallery" : "My Gallery" },
     { id:"earnings",     label:"My Earnings" },
     { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" }
   ];
   if(role === "admin") items.splice(5, 0, { id:"barbers", label:"Barbers" });
-  // Admin's name & photo come from their profile on the main site;
-  // barbers manage theirs here.
   if(role === "barber") items.push({ id:"profile", label:"My Profile" });
 
   document.getElementById("dashNav").innerHTML = items.map(i =>
@@ -712,15 +661,15 @@ function buildNav(){
   document.getElementById("unavailTitle").textContent = role === "admin" ? "Unavailable Days" : "My Unavailable Days";
   document.getElementById("galleryTitle").textContent = role === "admin" ? "Gallery" : "My Gallery";
   document.getElementById("earningsTitle").textContent = "My Earnings";
-  document.getElementById("menuTitle").textContent = "My Menu";
+  document.getElementById("menuTitle").textContent = "Shop Menu";
   document.getElementById("clientsTitle").textContent = role === "admin" ? "Clients" : "My Clients";
   document.getElementById("clientsDesc").textContent = role === "admin"
-    ? "Everyone who has booked at the shop."
-    : "Everyone who has booked with you.";
+    ? "Everyone who has booked at the shop." : "Everyone who has booked with you.";
   if(role === "admin"){
     document.getElementById("barberChips").style.display = "flex";
     document.getElementById("uaScopeWrap").style.display = "";
     document.getElementById("galTargetWrap").style.display = "";
+    document.getElementById("vacScopeWrap").style.display = "";
   }
 }
 function showSection(id){
@@ -729,7 +678,6 @@ function showSection(id){
   document.getElementById("sec-" + id).classList.add("active");
   document.querySelectorAll(".dash-nav button").forEach(b => b.classList.toggle("active", b.dataset.sec === id));
   if(id === "earnings") renderEarnings();
-  if(id === "menu") loadMenuForEdit();
   if(id === "clients") renderClients();
   if(id === "profile") loadMyProfile();
   if(id === "barbers") renderBarbersList();
@@ -746,8 +694,6 @@ function attachListeners(){
     renderReservations();
     if(currentSection === "barbers") renderRevenue();
   });
-  // Barbers only listen to their own bookings (matches security rules);
-  // admin listens shop-wide.
   const bookingsQuery = role === "barber"
     ? db.collection("bookings").where("barberId","==",myBarberId)
     : db.collection("bookings");
@@ -759,14 +705,36 @@ function attachListeners(){
     if(currentSection === "barbers") renderRevenue();
   });
   db.collection("unavailableDays").onSnapshot(snap => {
-    unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    const all = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    unavailable = all.filter(u => u.type !== "vacation");
+    vacations = all.filter(u => u.type === "vacation");
     renderUnavailable();
+    renderVacations();
     renderUaCalendar();
   });
   db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
     gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderGallery();
   });
+}
+
+/* =========================================================
+   SHOP MENU — READ-ONLY DISPLAY
+========================================================= */
+function renderMenuReadonly(){
+  const wrap = document.getElementById("menuReadonly");
+  wrap.innerHTML = SHOP_SERVICES.map(s => `
+    <div class="menu-readonly-row">
+      <div>
+        <div class="svc-name">${esc(s.name)}</div>
+        ${s.note ? `<div class="svc-note">${esc(s.note)}</div>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;">
+        <span class="svc-price">${fmtMoney(s.price)}</span>
+        <span class="svc-dur">${s.duration} min</span>
+      </div>
+    </div>
+  `).join("");
 }
 
 /* =========================================================
@@ -781,11 +749,7 @@ function renderBarberChips(){
     `<button class="chip ${resBarberFilter===b.id?'active':''}" onclick="setBarberChip('${b.id}')">${esc(b.name)}</button>`
   ).join("");
 }
-function setBarberChip(id){
-  resBarberFilter = id;
-  renderBarberChips();
-  renderReservations();
-}
+function setBarberChip(id){ resBarberFilter = id; renderBarberChips(); renderReservations(); }
 
 function renderReservations(){
   const list = document.getElementById("reservationsList");
@@ -800,7 +764,6 @@ function renderReservations(){
       (b.bookingNumber||"").toLowerCase().includes(search)
     );
   }
-
   const today = new Date(); today.setHours(0,0,0,0);
   const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
   const dayAfter = new Date(tomorrow); dayAfter.setDate(dayAfter.getDate()+1);
@@ -813,10 +776,7 @@ function renderReservations(){
     else if(d > today) groups.Upcoming.push(b);
     else groups.Past.push(b);
   });
-  Object.keys(groups).forEach(k => {
-    groups[k].sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
-  });
-
+  Object.keys(groups).forEach(k => groups[k].sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time)));
   let html = "";
   ["Today","Tomorrow","Upcoming","Past"].forEach(g => {
     if(!groups[g].length) return;
@@ -836,15 +796,15 @@ function bookingCard(b, isToday){
         <span class="bnum">#${b.bookingNumber || ""}</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${role === "admin" ? `<span class="barber-tag">${esc(barberName)}</span>` : ""}
-          <span class="badge ${cancelled?'b-cancel':completed?'b-comp':b.status==='No-show'?'b-noshow':'b-active'}">${b.status||"Active"}</span>
+          <span class="badge ${cancelled?'b-cancel':completed?'b-comp':b.status==='No-show'?'b-cancel':'b-active'}">${b.status||"Active"}</span>
           <span class="badge ${b.deposit==='Yes'?'b-pay-y':'b-pay-n'}">${b.deposit==='Yes'?'Paid':'Not Paid'}</span>
         </div>
       </div>
       <div class="name"><strong>${esc(b.name)}</strong> — ${esc(b.phone||"")}</div>
       <div class="info-row"><strong>${b.date}</strong> @ ${b.time} · ${b.duration||SLOT_MINUTES} min</div>
       <div class="info-row" style="color:#999;">${esc(b.service||"")}</div>
-      <div class="info-row" style="color:#e60000;font-family:Cinzel;font-size:16px;">${fmtMoney(b.total||0)}${b.fromPrice?"+":""}</div>
-      ${cancelled ? `<div class="info-row" style="color:#888;font-size:11px;margin-top:6px;">Cancelled by ${b.cancelledBy||"—"}</div>` : ""}
+      <div class="info-row" style="color:var(--red-bright);font-family:Cinzel;font-size:16px;">${fmtMoney(b.total||0)}</div>
+      ${cancelled ? `<div class="info-row" style="color:var(--text-muted);font-size:11px;margin-top:6px;">Cancelled by ${b.cancelledBy||"—"}</div>` : ""}
       <div class="actions">
         ${!cancelled ? `<button class="btn small danger" onclick="promptCancel('${b.id}')">Cancel</button>` : ""}
         <button class="btn small ghost" onclick="promptPayment('${b.id}')">Payment</button>
@@ -854,9 +814,6 @@ function bookingCard(b, isToday){
   `;
 }
 
-/* =========================================================
-   BOOKING ACTIONS
-========================================================= */
 function slotRefFor(b){
   if(!b || !b.barberId || !b.date || !b.time) return null;
   return db.collection("slots").doc(b.barberId + "_" + b.date + "_" + String(b.time).replace(/\s/g,""));
@@ -864,10 +821,7 @@ function slotRefFor(b){
 function promptCancel(id){
   openAM("Cancel Booking", "Are you sure? This cannot be undone. The time slot will reopen for booking.", async () => {
     const b = bookings.find(x => x.id === id);
-    await db.collection("bookings").doc(id).update({
-      status: "Cancelled",
-      cancelledBy: role === "admin" ? "admin" : "barber"
-    });
+    await db.collection("bookings").doc(id).update({ status:"Cancelled", cancelledBy: role === "admin" ? "admin" : "barber" });
     const sr = slotRefFor(b);
     if(sr) await sr.delete().catch(() => {});
     toast("Booking cancelled — slot reopened", "red");
@@ -901,23 +855,16 @@ function promptStatus(id){
 
 async function clearPast(){
   openAM("Clear Past Reservations", `
-    <p>Type <strong style="color:#e60000;">CONFIRM</strong> to permanently delete all your past bookings.</p>
+    <p>Type <strong style="color:var(--red-bright);">CONFIRM</strong> to permanently delete all your past bookings.</p>
     <input id="confirmField" placeholder="Type CONFIRM">
   `, async () => {
-    if(document.getElementById("confirmField").value !== "CONFIRM"){
-      toast("You must type CONFIRM exactly", "red");
-      return;
-    }
+    if(document.getElementById("confirmField").value !== "CONFIRM"){ toast("You must type CONFIRM exactly", "red"); return; }
     const today = new Date(); today.setHours(0,0,0,0);
     let scope = bookings;
     if(role === "barber") scope = scope.filter(b => b.barberId === myBarberId);
     const past = scope.filter(b => b.date && new Date(b.date + "T00:00:00") < today);
     const batch = db.batch();
-    past.forEach(b => {
-      batch.delete(db.collection("bookings").doc(b.id));
-      const sr = slotRefFor(b);
-      if(sr) batch.delete(sr);
-    });
+    past.forEach(b => { batch.delete(db.collection("bookings").doc(b.id)); const sr = slotRefFor(b); if(sr) batch.delete(sr); });
     await batch.commit();
     toast(`Deleted ${past.length} past bookings`, "green");
     closeAM();
@@ -934,11 +881,7 @@ function setupSearch(){
     if(!term) return;
     setTimeout(() => {
       const match = document.querySelector(".bcard");
-      if(match){
-        document.querySelectorAll(".bcard").forEach(c => c.classList.remove("highlight"));
-        match.classList.add("highlight");
-        match.scrollIntoView({behavior:"smooth", block:"center"});
-      }
+      if(match){ document.querySelectorAll(".bcard").forEach(c => c.classList.remove("highlight")); match.classList.add("highlight"); match.scrollIntoView({behavior:"smooth", block:"center"}); }
     }, 100);
   });
 }
@@ -947,10 +890,7 @@ function setupSearch(){
    UNAVAILABLE DAYS
 ========================================================= */
 let uaCalMonth = null;
-
-function uaLocalStr(d){
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-}
+function uaLocalStr(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
 function uaCalShift(dir){
   const n = new Date();
   const min = new Date(n.getFullYear(), n.getMonth(), 1);
@@ -963,10 +903,7 @@ function uaCalShift(dir){
 function renderUaCalendar(){
   const wrap = document.getElementById("uaCalendar");
   if(!wrap) return;
-  if(!uaCalMonth){
-    const n = new Date();
-    uaCalMonth = new Date(n.getFullYear(), n.getMonth(), 1);
-  }
+  if(!uaCalMonth){ const n = new Date(); uaCalMonth = new Date(n.getFullYear(), n.getMonth(), 1); }
   const n = new Date();
   const min = new Date(n.getFullYear(), n.getMonth(), 1);
   const max = new Date(n.getFullYear(), n.getMonth() + 3, 1);
@@ -977,10 +914,17 @@ function renderUaCalendar(){
   const todayStr = uaLocalStr(new Date());
   const selected = document.getElementById("uaDate").value;
   const marked = new Set(
-    unavailable
-      .filter(u => role === "admin" || u.barberId === myBarberId || u.barberId === "global")
-      .map(u => u.date)
+    unavailable.filter(u => role === "admin" || u.barberId === myBarberId || u.barberId === "global").map(u => u.date)
   );
+  // Also mark vacation days
+  vacations.filter(v => role === "admin" || v.barberId === myBarberId || v.barberId === "global").forEach(v => {
+    let d = new Date(v.start + "T12:00:00");
+    const end = new Date(v.end + "T12:00:00");
+    while(d <= end){
+      marked.add(uaLocalStr(d));
+      d.setDate(d.getDate() + 1);
+    }
+  });
 
   let html = `
     <div class="cal-head">
@@ -1004,10 +948,7 @@ function renderUaCalendar(){
   }
   wrap.innerHTML = html + "</div>";
 }
-function pickUaDate(dstr){
-  document.getElementById("uaDate").value = dstr;
-  renderUaCalendar();
-}
+function pickUaDate(dstr){ document.getElementById("uaDate").value = dstr; renderUaCalendar(); }
 
 function toggleUaTimes(){
   const allDay = document.getElementById("uaAllDay").checked;
@@ -1019,13 +960,11 @@ async function addUnavailable(){
   const startTime = document.getElementById("uaStart").value;
   const endTime = document.getElementById("uaEnd").value;
   const scope = role === "admin" ? document.getElementById("uaScope").value : "self";
-  // "Just me" blocks only the current person's chair; "All barbers" closes the shop.
   const barberId = scope === "global" ? "global" : (myBarberId || "global");
 
   if(!date) return toast("Pick a date on the calendar", "red");
   if(!allDay && (!startTime || !endTime)) return toast("Enter start and end times", "red");
 
-  // Conflict check against own bookings
   const [sh,sm] = allDay ? [0,0] : parseTime24(startTime);
   const [eh,em] = allDay ? [24,0] : parseTime24(endTime);
   const rangeStart = sh*60+sm, rangeEnd = eh*60+em;
@@ -1039,17 +978,12 @@ async function addUnavailable(){
   });
 
   if(conflicts.length){
-    const list = conflicts.map(b => `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);"><strong>#${b.bookingNumber}</strong> — ${esc(b.name)} @ ${b.time}</div>`).join("");
+    const list = conflicts.map(b => `<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>#${b.bookingNumber}</strong> — ${esc(b.name)} @ ${b.time}</div>`).join("");
     openAM("Booking Conflict", `<p>Cannot add: you have ${conflicts.length} booking(s) in that window.</p>${list}`, () => {
-      closeAM();
-      showSection("reservations");
+      closeAM(); showSection("reservations");
       setTimeout(() => {
         const el = document.getElementById("bk-" + conflicts[0].id);
-        if(el){
-          document.querySelectorAll(".bcard").forEach(c => c.classList.remove("highlight"));
-          el.classList.add("highlight");
-          el.scrollIntoView({behavior:"smooth",block:"center"});
-        }
+        if(el){ document.querySelectorAll(".bcard").forEach(c => c.classList.remove("highlight")); el.classList.add("highlight"); el.scrollIntoView({behavior:"smooth",block:"center"}); }
       }, 300);
     }, "Go to Reservations");
     return;
@@ -1073,10 +1007,7 @@ function renderUnavailable(){
   let mine = unavailable.slice();
   if(role === "barber") mine = mine.filter(u => u.barberId === myBarberId || u.barberId === "global");
   mine.sort((a,b) => (a.date||"").localeCompare(b.date||""));
-  if(!mine.length){
-    list.innerHTML = '<div style="color:#666;padding:20px;">No unavailable days set.</div>';
-    return;
-  }
+  if(!mine.length){ list.innerHTML = '<div style="color:#666;padding:20px;">No unavailable days set.</div>'; return; }
   list.innerHTML = mine.map(u => {
     const scope = u.barberId === "global" ? "SHOP-WIDE" : (barbers.find(b => b.id === u.barberId)?.name || "You");
     const canRemove = role === "admin" || u.barberId !== "global";
@@ -1087,13 +1018,59 @@ function renderUnavailable(){
           <small>${esc(scope)}</small>
         </div>
         ${canRemove ? `<button class="btn small danger" onclick="removeUnavailable('${u.id}')">Remove</button>` : ""}
-      </div>
-    `;
+      </div>`;
   }).join("");
 }
-async function removeUnavailable(id){
-  await db.collection("unavailableDays").doc(id).delete();
-  toast("Removed", "green");
+async function removeUnavailable(id){ await db.collection("unavailableDays").doc(id).delete(); toast("Removed", "green"); }
+
+/* =========================================================
+   VACATION MODE
+========================================================= */
+async function addVacation(){
+  const start = document.getElementById("vacStart").value;
+  const end = document.getElementById("vacEnd").value;
+  const showReturnDate = document.getElementById("vacShowReturn").checked;
+  const message = document.getElementById("vacMessage").value.trim().slice(0, 80);
+  const scope = role === "admin" ? (document.getElementById("vacScope")?.value || "self") : "self";
+  const barberId = scope === "global" ? "global" : (myBarberId || "global");
+
+  if(!start || !end) return toast("Pick start and end dates", "red");
+  if(end < start) return toast("End date must be after start date", "red");
+
+  await db.collection("unavailableDays").add({
+    barberId, start, end, type: "vacation",
+    showReturnDate, message: message || null,
+    allDay: true, date: start,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById("vacStart").value = "";
+  document.getElementById("vacEnd").value = "";
+  document.getElementById("vacMessage").value = "";
+  document.getElementById("vacShowReturn").checked = true;
+  renderUaCalendar();
+  toast("Vacation added", "green");
+}
+
+function renderVacations(){
+  const list = document.getElementById("vacationList");
+  let mine = vacations.slice();
+  if(role === "barber") mine = mine.filter(v => v.barberId === myBarberId || v.barberId === "global");
+  mine.sort((a,b) => (a.start||"").localeCompare(b.start||""));
+  if(!mine.length){ list.innerHTML = '<div style="color:#666;padding:20px;">No vacations set.</div>'; return; }
+  list.innerHTML = mine.map(v => {
+    const scope = v.barberId === "global" ? "SHOP-WIDE" : (barbers.find(b => b.id === v.barberId)?.name || "You");
+    const canRemove = role === "admin" || v.barberId !== "global";
+    return `
+      <div class="vacation-item">
+        <div class="info">
+          <strong>${v.start} → ${v.end}</strong>
+          ${v.showReturnDate ? ' · <span style="color:var(--blue);">Clients see return date</span>' : ''}
+          ${v.message ? `<small style="color:var(--text-dim);">"${esc(v.message)}"</small>` : ''}
+          <small>${esc(scope)}</small>
+        </div>
+        ${canRemove ? `<button class="btn small danger" onclick="removeUnavailable('${v.id}')">Remove</button>` : ""}
+      </div>`;
+  }).join("");
 }
 
 /* =========================================================
@@ -1105,31 +1082,18 @@ function setupUploads(){
   const galInput = document.getElementById("galFile");
   const galDrop = document.getElementById("galDrop");
   const galPrev = document.getElementById("galPreview");
-  galInput.addEventListener("change", e => {
-    galFile = e.target.files[0];
-    if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }
-  });
+  galInput.addEventListener("change", e => { galFile = e.target.files[0]; if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }});
   ["dragenter","dragover"].forEach(ev => galDrop.addEventListener(ev, e => { e.preventDefault(); galDrop.classList.add("drag"); }));
   ["dragleave","drop"].forEach(ev => galDrop.addEventListener(ev, e => { e.preventDefault(); galDrop.classList.remove("drag"); }));
-  galDrop.addEventListener("drop", e => {
-    galFile = e.dataTransfer.files[0];
-    if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }
-  });
+  galDrop.addEventListener("drop", e => { galFile = e.dataTransfer.files[0]; if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }});
 
-  // My Profile photo upload
   const ppInput = document.getElementById("ppFile");
   const ppDrop = document.getElementById("ppDrop");
   const ppPrev = document.getElementById("ppPreview");
-  ppInput.addEventListener("change", e => {
-    ppFile = e.target.files[0];
-    if(ppFile){ ppPrev.src = URL.createObjectURL(ppFile); ppPrev.classList.add("on"); }
-  });
+  ppInput.addEventListener("change", e => { ppFile = e.target.files[0]; if(ppFile){ ppPrev.src = URL.createObjectURL(ppFile); ppPrev.classList.add("on"); }});
   ["dragenter","dragover"].forEach(ev => ppDrop.addEventListener(ev, e => { e.preventDefault(); ppDrop.classList.add("drag"); }));
   ["dragleave","drop"].forEach(ev => ppDrop.addEventListener(ev, e => { e.preventDefault(); ppDrop.classList.remove("drag"); }));
-  ppDrop.addEventListener("drop", e => {
-    ppFile = e.dataTransfer.files[0];
-    if(ppFile){ ppPrev.src = URL.createObjectURL(ppFile); ppPrev.classList.add("on"); }
-  });
+  ppDrop.addEventListener("drop", e => { ppFile = e.dataTransfer.files[0]; if(ppFile){ ppPrev.src = URL.createObjectURL(ppFile); ppPrev.classList.add("on"); }});
 }
 
 async function uploadGalleryPhoto(){
@@ -1141,12 +1105,8 @@ async function uploadGalleryPhoto(){
       try{ await ensureMyBarberDoc(); }
       catch(e){ return toast("Could not create your barber profile: " + e.message, "red"); }
       barberId = myBarberId;
-    } else {
-      barberId = "shop"; // homepage website gallery
-    }
-  } else {
-    barberId = myBarberId;
-  }
+    } else { barberId = "shop"; }
+  } else { barberId = myBarberId; }
   const path = `gallery/${barberId}/${Date.now()}_${galFile.name}`;
   const ref = storage.ref(path);
   const task = ref.put(galFile);
@@ -1167,8 +1127,7 @@ async function uploadGalleryPhoto(){
       document.getElementById("galPreview").classList.remove("on");
       document.getElementById("galCategory").value = "";
       galFile = null;
-      wrap.classList.remove("on");
-      bar.style.width = "0%";
+      wrap.classList.remove("on"); bar.style.width = "0%";
     }
   );
 }
@@ -1177,54 +1136,29 @@ function renderGallery(){
   const list = document.getElementById("galList");
   let mine = gallery.slice();
   if(role === "barber") mine = mine.filter(g => g.barberId === myBarberId);
-  if(!mine.length){
-    list.innerHTML = '<div style="color:#666;padding:20px;">No photos yet. Your gallery shows on your Book Now card as "View Barber\'s Gallery".</div>';
-    return;
-  }
+  if(!mine.length){ list.innerHTML = '<div style="color:#666;padding:20px;">No photos yet.</div>'; return; }
   const ownerName = bid =>
     (bid === "shop" || bid === "admin") ? "Website Gallery"
     : bid === myBarberId ? "My Gallery"
     : (barbers.find(b => b.id === bid)?.name || "Unknown") + "'s Gallery";
   const byCat = {};
-  mine.forEach(g => {
-    const c = g.category || "General";
-    const key = role === "admin" ? ownerName(g.barberId) + " — " + c : c;
-    (byCat[key] = byCat[key] || []).push(g);
-  });
+  mine.forEach(g => { const c = g.category || "General"; const key = role === "admin" ? ownerName(g.barberId) + " — " + c : c; (byCat[key] = byCat[key] || []).push(g); });
   list.innerHTML = Object.keys(byCat).map(cat => {
     const items = byCat[cat].sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
-    return `
-      <div class="gal-cat">
-        <h4>${esc(cat)}</h4>
-        <div class="grid" data-cat="${esc(cat)}">
-          ${items.map(g => `
-            <div class="gal-item" draggable="true" data-id="${g.id}">
-              <img src="${g.url}">
-              <button class="rm" onclick="removePhoto('${g.id}')">×</button>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    `;
+    return `<div class="gal-cat"><h4>${esc(cat)}</h4><div class="grid" data-cat="${esc(cat)}">
+      ${items.map(g => `<div class="gal-item" draggable="true" data-id="${g.id}"><img src="${g.url}"><button class="rm" onclick="removePhoto('${g.id}')">×</button></div>`).join("")}
+    </div></div>`;
   }).join("");
   attachDragDrop();
 }
 async function removePhoto(id){
-  openAM("Remove Photo", "Delete this photo permanently?", async () => {
-    await db.collection("gallery").doc(id).delete();
-    toast("Photo removed", "green");
-    closeAM();
-  });
+  openAM("Remove Photo", "Delete this photo permanently?", async () => { await db.collection("gallery").doc(id).delete(); toast("Photo removed", "green"); closeAM(); });
 }
 function attachDragDrop(){
   let dragged = null;
   document.querySelectorAll(".gal-item").forEach(el => {
-    el.addEventListener("dragstart", e => { dragged = el; el.classList.add("dragging"); });
-    el.addEventListener("dragend", async e => {
-      el.classList.remove("dragging");
-      if(dragged) await commitOrder(el.parentElement);
-      dragged = null;
-    });
+    el.addEventListener("dragstart", () => { dragged = el; el.classList.add("dragging"); });
+    el.addEventListener("dragend", async () => { el.classList.remove("dragging"); if(dragged) await commitOrder(el.parentElement); dragged = null; });
     el.addEventListener("dragover", e => {
       e.preventDefault();
       if(!dragged || dragged === el) return;
@@ -1234,37 +1168,20 @@ function attachDragDrop(){
       const before = e.clientY < rect.top + rect.height/2;
       grid.insertBefore(dragged, before ? el : el.nextSibling);
     });
-    // touch fallback: long-press then move
     let touchStart = null;
-    el.addEventListener("touchstart", e => {
-      touchStart = Date.now();
-      setTimeout(() => { if(Date.now() - touchStart >= 400) dragged = el; }, 400);
-    });
+    el.addEventListener("touchstart", () => { touchStart = Date.now(); setTimeout(() => { if(Date.now() - touchStart >= 400) dragged = el; }, 400); });
     el.addEventListener("touchmove", e => {
-      if(!dragged) return;
-      e.preventDefault();
-      const t = e.touches[0];
-      const target = document.elementFromPoint(t.clientX, t.clientY);
-      const item = target?.closest(".gal-item");
-      if(item && item !== dragged && item.parentElement === dragged.parentElement){
-        const rect = item.getBoundingClientRect();
-        const before = t.clientY < rect.top + rect.height/2;
-        item.parentElement.insertBefore(dragged, before ? item : item.nextSibling);
-      }
+      if(!dragged) return; e.preventDefault();
+      const t = e.touches[0]; const target = document.elementFromPoint(t.clientX, t.clientY); const item = target?.closest(".gal-item");
+      if(item && item !== dragged && item.parentElement === dragged.parentElement){ const rect = item.getBoundingClientRect(); const before = t.clientY < rect.top + rect.height/2; item.parentElement.insertBefore(dragged, before ? item : item.nextSibling); }
     }, {passive:false});
-    el.addEventListener("touchend", async () => {
-      if(dragged) await commitOrder(dragged.parentElement);
-      dragged = null; touchStart = null;
-    });
+    el.addEventListener("touchend", async () => { if(dragged) await commitOrder(dragged.parentElement); dragged = null; touchStart = null; });
   });
 }
 async function commitOrder(grid){
   const batch = db.batch();
-  [...grid.children].forEach((el, i) => {
-    batch.update(db.collection("gallery").doc(el.dataset.id), { sortOrder: i + 1 });
-  });
-  await batch.commit();
-  toast("Order saved", "green");
+  [...grid.children].forEach((el, i) => { batch.update(db.collection("gallery").doc(el.dataset.id), { sortOrder: i + 1 }); });
+  await batch.commit(); toast("Order saved", "green");
 }
 
 /* =========================================================
@@ -1274,12 +1191,10 @@ async function saveBarber(){
   const name = document.getElementById("bmName").value.trim();
   const email = document.getElementById("bmEmail").value.trim().toLowerCase();
   const editId = document.getElementById("bmEditId").value;
-
   if(!name || !email) return toast("Name and email are required", "red");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast("Enter a valid email address", "red");
   const dup = barbers.find(b => (b.email||"").toLowerCase() === email && b.id !== editId);
   if(dup) return toast("A barber with that email already exists", "red");
-
   try{
     if(editId){
       await db.collection("barbers").doc(editId).update({ name, email });
@@ -1290,12 +1205,10 @@ async function saveBarber(){
         specialty: "", photoURL: null, menu: [],
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      toast("Barber added — they can now sign in with that email", "green");
+      toast("Barber added — they now appear on the booking page", "green");
     }
     resetBarberForm();
-  }catch(e){
-    toast("Save failed: " + e.message, "red");
-  }
+  }catch(e){ toast("Save failed: " + e.message, "red"); }
 }
 function resetBarberForm(){
   document.getElementById("bmName").value = "";
@@ -1319,7 +1232,7 @@ function removeBarber(id){
   const b = barbers.find(x => x.id === id);
   if(!b) return;
   openAM("Remove Barber",
-    `<p>Permanently remove <strong style="color:#e60000;">${esc(b.name)}</strong>?</p>
+    `<p>Permanently remove <strong style="color:var(--red-bright);">${esc(b.name)}</strong>?</p>
      <p>Their gallery photos and unavailable days are deleted, and they lose staff access. Past bookings stay in history so revenue records are kept.</p>`,
     async () => {
       try{
@@ -1334,9 +1247,7 @@ function removeBarber(id){
         await batch.commit();
         if(revBarberId === id) document.getElementById("revPanel").style.display = "none";
         toast("Barber removed", "green");
-      }catch(e){
-        toast("Remove failed: " + e.message, "red");
-      }
+      }catch(e){ toast("Remove failed: " + e.message, "red"); }
       closeAM();
     }, "Remove");
 }
@@ -1345,18 +1256,18 @@ function renderBarbersList(){
   const list = document.getElementById("barbersList");
   if(!list) return;
   if(!barbers.length){
-    list.innerHTML = '<div style="color:#666;padding:20px;">No barbers yet. Add one above — or save your own menu in "My Menu" to appear as a barber yourself.</div>';
+    list.innerHTML = '<div style="color:#666;padding:20px;">No barbers yet. Add one above.</div>';
     return;
   }
   list.innerHTML = barbers.map(b => `
     <div class="barber-item">
       <div class="meta">
-        <strong>${esc(b.name)}${b.id === myBarberId ? ' <span style="color:#888;font-size:11px;letter-spacing:1px;">(YOU)</span>' : ''}</strong>
+        <strong>${esc(b.name)}${b.id === myBarberId ? ' <span style="color:var(--text-muted);font-size:11px;letter-spacing:1px;">(YOU)</span>' : ''}</strong>
         <small>${esc(b.email||"")}</small>
         <small>
-          <span style="color:${b.uid?'#7fdfff':'#888'};">${b.uid ? "Linked" : "Awaiting first sign-in"}</span>
+          <span style="color:${b.uid?'#7fdfff':'var(--text-muted)'};">${b.uid ? "Linked" : "Awaiting first sign-in"}</span>
           &nbsp;·&nbsp;
-          <span style="color:${b.active?'#7fff7f':'#888'};">${b.active ? "Active" : "Inactive"}</span>
+          <span style="color:${b.active?'#7fff7f':'var(--text-muted)'};">${b.active ? "Active" : "Inactive"}</span>
         </small>
       </div>
       <button class="btn small ghost" onclick="showRevenue('${b.id}')">Revenue</button>
@@ -1368,119 +1279,84 @@ function renderBarbersList(){
 }
 
 /* =========================================================
-   REVENUE PANEL (inside Barber Management)
+   REVENUE
 ========================================================= */
 function showRevenue(id){
   revBarberId = id;
-  const panel = document.getElementById("revPanel");
-  panel.style.display = "block";
+  document.getElementById("revPanel").style.display = "block";
   document.getElementById("rangeStart").value = "";
   document.getElementById("rangeEnd").value = "";
   renderRevenue();
-  panel.scrollIntoView({ behavior:"smooth", block:"start" });
+  document.getElementById("revPanel").scrollIntoView({ behavior:"smooth", block:"start" });
 }
 function renderRevenue(){
   const panel = document.getElementById("revPanel");
   if(!panel || panel.style.display === "none") return;
-  const title = revBarberId
-    ? (barbers.find(b => b.id === revBarberId)?.name || "Barber")
-    : "All Barbers";
+  const title = revBarberId ? (barbers.find(b => b.id === revBarberId)?.name || "Barber") : "All Barbers";
   document.getElementById("revPanelTitle").textContent = "Revenue — " + title;
-
   let done = bookings.filter(b => b.status === "Completed");
   if(revBarberId) done = done.filter(b => b.barberId === revBarberId);
-
   const today = new Date(); today.setHours(0,0,0,0);
   const wkStart = new Date(today); wkStart.setDate(wkStart.getDate() - today.getDay());
   const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
   const localStr = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
   const sum = arr => arr.reduce((s,b) => s + (b.total||0), 0);
-  const setStat = (id, arr) => {
-    document.getElementById(id).textContent = fmtMoney(sum(arr));
-    document.getElementById(id + "N").textContent = arr.length + " booking" + (arr.length===1?"":"s");
-  };
+  const setStat = (id, arr) => { document.getElementById(id).textContent = fmtMoney(sum(arr)); document.getElementById(id + "N").textContent = arr.length + " booking" + (arr.length===1?"":"s"); };
   setStat("revToday", done.filter(b => b.date === localStr(today)));
-  setStat("revWeek",  done.filter(b => b.date && new Date(b.date + "T00:00:00") >= wkStart));
+  setStat("revWeek", done.filter(b => b.date && new Date(b.date + "T00:00:00") >= wkStart));
   setStat("revMonth", done.filter(b => b.date && new Date(b.date + "T00:00:00") >= mStart));
   setStat("revAll", done);
-
   const start = document.getElementById("rangeStart").value;
   const end = document.getElementById("rangeEnd").value;
   let ranged = done;
   if(start) ranged = ranged.filter(b => b.date >= start);
   if(end) ranged = ranged.filter(b => b.date <= end);
-  document.getElementById("rangeResult").textContent =
-    (start || end) ? fmtMoney(sum(ranged)) + " · " + ranged.length + " booking" + (ranged.length===1?"":"s") : "";
-
+  document.getElementById("rangeResult").textContent = (start || end) ? fmtMoney(sum(ranged)) + " · " + ranged.length + " booking" + (ranged.length===1?"":"s") : "";
   const wrap = document.getElementById("revTableWrap");
   const rangeNote = (start || end) ? " (custom range)" : "";
   if(!revBarberId){
     const perBarber = {};
-    ranged.forEach(b => {
-      const bid = b.barberId || "unknown";
-      if(!perBarber[bid]) perBarber[bid] = { count:0, revenue:0 };
-      perBarber[bid].count++;
-      perBarber[bid].revenue += (b.total || 0);
-    });
-    const rows = Object.entries(perBarber).map(([bid, d]) => ({
-      name: barbers.find(x => x.id === bid)?.name || "Removed barber",
-      count: d.count, revenue: d.revenue
-    })).sort((a,b) => b.revenue - a.revenue);
-    wrap.innerHTML = `
-      <h3 style="margin-top:24px;">Per Barber${rangeNote}</h3>
-      <table>
-        <thead><tr><th>Barber</th><th>Bookings</th><th>Revenue</th></tr></thead>
-        <tbody>${rows.length
-          ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.count}</td><td style="color:#e60000;font-family:Cinzel;">${fmtMoney(r.revenue)}</td></tr>`).join("")
-          : '<tr><td colspan="3" style="color:#666;text-align:center;padding:20px;">No completed bookings.</td></tr>'}</tbody>
-      </table>`;
+    ranged.forEach(b => { const bid = b.barberId || "unknown"; if(!perBarber[bid]) perBarber[bid] = { count:0, revenue:0 }; perBarber[bid].count++; perBarber[bid].revenue += (b.total || 0); });
+    const rows = Object.entries(perBarber).map(([bid, d]) => ({ name: barbers.find(x => x.id === bid)?.name || "Removed barber", count: d.count, revenue: d.revenue })).sort((a,b) => b.revenue - a.revenue);
+    wrap.innerHTML = `<h3 style="margin-top:24px;">Per Barber${rangeNote}</h3><table><thead><tr><th>Barber</th><th>Bookings</th><th>Revenue</th></tr></thead><tbody>${rows.length
+      ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.count}</td><td style="color:var(--red-bright);font-family:Cinzel;">${fmtMoney(r.revenue)}</td></tr>`).join("")
+      : '<tr><td colspan="3" style="color:#666;text-align:center;padding:20px;">No completed bookings.</td></tr>'}</tbody></table>`;
   } else {
     const recent = ranged.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
-    wrap.innerHTML = `
-      <h3 style="margin-top:24px;">Completed Bookings${rangeNote}</h3>
-      ${recent.length ? recent.map(b => `
-        <div class="unavail-item">
-          <div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
-          <div style="color:#e60000;font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}${b.fromPrice?"+":""}</div>
-        </div>`).join("") : '<div style="color:#666;padding:20px;">No completed bookings.</div>'}`;
+    wrap.innerHTML = `<h3 style="margin-top:24px;">Completed Bookings${rangeNote}</h3>${recent.length ? recent.map(b => `
+      <div class="unavail-item"><div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
+      <div style="color:var(--red-bright);font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}</div></div>`).join("") : '<div style="color:#666;padding:20px;">No completed bookings.</div>'}`;
   }
 }
 
 /* =========================================================
-   MY EARNINGS — always personal (admin included)
+   EARNINGS
 ========================================================= */
 function renderEarnings(){
-  const scope = myBarberId
-    ? bookings.filter(b => b.barberId === myBarberId && b.status === "Completed")
-    : [];
+  const scope = myBarberId ? bookings.filter(b => b.barberId === myBarberId && b.status === "Completed") : [];
   const today = new Date(); today.setHours(0,0,0,0);
   const wkStart = new Date(today); wkStart.setDate(wkStart.getDate() - today.getDay());
   const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
-
   const isSame = (d, ref) => d.toDateString() === ref.toDateString();
   const sum = arr => arr.reduce((s,b) => s + (b.total||0), 0);
   const todaysBk = scope.filter(b => b.date && isSame(new Date(b.date + "T00:00:00"), today));
-  const weekBk   = scope.filter(b => b.date && new Date(b.date + "T00:00:00") >= wkStart);
-  const monthBk  = scope.filter(b => b.date && new Date(b.date + "T00:00:00") >= mStart);
-
+  const weekBk = scope.filter(b => b.date && new Date(b.date + "T00:00:00") >= wkStart);
+  const monthBk = scope.filter(b => b.date && new Date(b.date + "T00:00:00") >= mStart);
   document.getElementById("earnToday").textContent = fmtMoney(sum(todaysBk));
-  document.getElementById("earnWeek").textContent  = fmtMoney(sum(weekBk));
+  document.getElementById("earnWeek").textContent = fmtMoney(sum(weekBk));
   document.getElementById("earnMonth").textContent = fmtMoney(sum(monthBk));
-
   const list = scope.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
   const emptyMsg = !myBarberId && role === "admin"
-    ? 'You are not set up as a barber yet — save your menu in "My Menu" to create your barber profile and start tracking your own cuts.'
+    ? 'You are not set up as a barber yet — your profile will be created when an admin adds you.'
     : 'No completed cuts yet. Mark bookings as Completed to see them here.';
   document.getElementById("earnBreakdown").innerHTML = list.length ? list.map(b => `
-    <div class="unavail-item">
-      <div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
-      <div style="color:#e60000;font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}${b.fromPrice?"+":""}</div>
-    </div>
+    <div class="unavail-item"><div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
+    <div style="color:var(--red-bright);font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}</div></div>
   `).join("") : `<div style="color:#666;padding:20px;">${emptyMsg}</div>`;
 }
 
 /* =========================================================
-   MY PROFILE (staff — how you appear on the booking page)
+   MY PROFILE
 ========================================================= */
 async function ensureMyBarberDoc(){
   if(myBarberId) return;
@@ -1527,23 +1403,14 @@ async function saveMyProfile(){
       task.on("state_changed",
         snap => { bar.style.width = ((snap.bytesTransferred/snap.totalBytes)*100) + "%"; },
         err => { toast("Photo upload failed: " + err.message, "red"); wrap.classList.remove("on"); },
-        async () => {
-          const url = await task.snapshot.ref.getDownloadURL();
-          wrap.classList.remove("on");
-          bar.style.width = "0%";
-          await finish(url);
-        }
+        async () => { const url = await task.snapshot.ref.getDownloadURL(); wrap.classList.remove("on"); bar.style.width = "0%"; await finish(url); }
       );
-    } else {
-      await finish(null);
-    }
-  }catch(e){
-    toast("Save failed: " + e.message, "red");
-  }
+    } else { await finish(null); }
+  }catch(e){ toast("Save failed: " + e.message, "red"); }
 }
 
 /* =========================================================
-   CLIENTS — shop-wide for admin, own clients for barbers
+   CLIENTS
 ========================================================= */
 function renderClients(){
   const clientMap = {};
@@ -1553,191 +1420,21 @@ function renderClients(){
     if(!clientMap[b.uid]) clientMap[b.uid] = { name: b.name || "—", email: b.userEmail || "", phone: b.phone || "", count: 0, spent: 0 };
     clientMap[b.uid].count++;
     if(b.status !== "Cancelled") clientMap[b.uid].spent += (b.total || 0);
-    // Keep latest name/phone
     if(b.name) clientMap[b.uid].name = b.name;
     if(b.phone) clientMap[b.uid].phone = b.phone;
     if(b.userEmail) clientMap[b.uid].email = b.userEmail;
   });
   const clients = Object.values(clientMap).sort((a,b) => b.spent - a.spent);
   const list = document.getElementById("clientsList");
-  if(!clients.length){
-    list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">No clients yet — they appear here after their first booking.</div>';
-    return;
-  }
-  list.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;">
-      <thead><tr style="border-bottom:1px solid rgba(255,255,255,.1);">
-        <th style="text-align:left;padding:10px;color:#888;font-size:12px;letter-spacing:1px;">NAME</th>
-        <th style="text-align:left;padding:10px;color:#888;font-size:12px;letter-spacing:1px;">EMAIL</th>
-        <th style="text-align:left;padding:10px;color:#888;font-size:12px;letter-spacing:1px;">PHONE</th>
-        <th style="text-align:center;padding:10px;color:#888;font-size:12px;letter-spacing:1px;">BOOKINGS</th>
-        <th style="text-align:right;padding:10px;color:#888;font-size:12px;letter-spacing:1px;">TOTAL SPENT</th>
-      </tr></thead>
-      <tbody>
-        ${clients.map(c => `<tr style="border-bottom:1px solid rgba(255,255,255,.05);">
-          <td style="padding:12px 10px;">${esc(c.name)}</td>
-          <td style="padding:12px 10px;color:#bbb;font-size:13px;">${esc(c.email)}</td>
-          <td style="padding:12px 10px;color:#bbb;font-size:13px;">${esc(c.phone)}</td>
-          <td style="padding:12px 10px;text-align:center;">${c.count}</td>
-          <td style="padding:12px 10px;text-align:right;color:#e60000;font-family:Cinzel;">${fmtMoney(c.spent)}</td>
-        </tr>`).join("")}
-      </tbody>
-    </table>`;
-}
-
-/* =========================================================
-   MENU EDITOR
-========================================================= */
-let editingMenu = [];           // in-memory copy of MY menu
-
-function loadMenuForEdit(){
-  const b = barbers.find(x => x.id === myBarberId);
-  if(b?.menu && b.menu.length){
-    editingMenu = JSON.parse(JSON.stringify(b.menu));
-  } else {
-    // Never start from a blank page — the shop template is the baseline;
-    // adjust prices / add categories, then Save.
-    editingMenu = SAMPLE_MENU();
-  }
-  renderMenuEditor();
-}
-
-function renderMenuEditor(){
-  const wrap = document.getElementById("menuEditor");
-  if(!editingMenu.length){
-    wrap.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">Menu is empty — hit "Reset to Template" to start from the shop template.</div>';
-    return;
-  }
-  wrap.innerHTML = editingMenu.map((cat, ci) => `
-    <div class="menu-cat">
-      <div class="menu-cat-head">
-        <input class="icon" placeholder="✂" value="${esc(cat.icon||"")}" oninput="updateCat(${ci},'icon',this.value)">
-        <input class="title" placeholder="Category title" value="${esc(cat.title||"")}" oninput="updateCat(${ci},'title',this.value)">
-        <label style="margin:0;font-size:10px;letter-spacing:1px;color:#888;display:flex;align-items:center;gap:5px;white-space:nowrap;" title="Extras are optional add-ons clients can stack on top of one chosen cut">
-          <input type="checkbox" style="width:auto;" ${cat.kind==='extras'?'checked':''} onchange="updateCat(${ci},'kind',this.checked?'extras':'main')"> Extras
-        </label>
-        <button class="btn small danger" onclick="removeCat(${ci})">Delete</button>
-      </div>
-      <div>
-        ${(cat.items||[]).map((it, ii) => `
-          <div class="menu-item-row">
-            <input placeholder="Service name" value="${esc(it.name||"")}" oninput="updateItem(${ci},${ii},'name',this.value)">
-            <input type="number" placeholder="Price" value="${it.price||""}" oninput="updateItem(${ci},${ii},'price',this.value)" ${it.included?'disabled':''} style="max-width:90px;">
-            <input type="number" placeholder="Min" value="${it.duration||""}" oninput="updateItem(${ci},${ii},'duration',this.value)" style="max-width:70px;" title="Duration in minutes">
-            <label><input type="checkbox" ${it.included?'checked':''} onchange="updateItem(${ci},${ii},'included',this.checked)"> Included</label>
-            <label><input type="checkbox" ${it.fromPrice?'checked':''} onchange="updateItem(${ci},${ii},'fromPrice',this.checked)"> From (+)</label>
-            <button class="rm-item" onclick="removeItem(${ci},${ii})">Remove</button>
-          </div>
-        `).join("")}
-      </div>
-      <button class="btn ghost small" onclick="addItem(${ci})" style="margin-top:10px;">+ Add Item</button>
-    </div>
-  `).join("");
-}
-
-function updateCat(ci, key, val){ editingMenu[ci][key] = val; }
-function updateItem(ci, ii, key, val){
-  if(key === "price" || key === "duration") val = parseFloat(val) || 0;
-  editingMenu[ci].items[ii][key] = val;
-  if(key === "included" && val) editingMenu[ci].items[ii].price = 0;
-  if(key === "included") renderMenuEditor();
-}
-function addMenuCategory(){
-  editingMenu.push({ id: "c" + Date.now(), title: "New Category", icon: "", items: [] });
-  renderMenuEditor();
-}
-function removeCat(ci){
-  openAM("Remove Category", "Delete this category and all its items?", () => {
-    editingMenu.splice(ci, 1);
-    renderMenuEditor();
-    closeAM();
-  });
-}
-function addItem(ci){
-  editingMenu[ci].items = editingMenu[ci].items || [];
-  editingMenu[ci].items.push({ id: "i" + Date.now() + Math.floor(Math.random()*1000), name: "", price: 0, duration: 35, included: false, fromPrice: false });
-  renderMenuEditor();
-}
-function removeItem(ci, ii){
-  editingMenu[ci].items.splice(ii, 1);
-  renderMenuEditor();
-}
-
-async function saveMenu(){
-  // Ensure every category and item has an id
-  editingMenu.forEach(cat => {
-    if(!cat.id) cat.id = "c" + Date.now() + Math.floor(Math.random()*1000);
-    (cat.items||[]).forEach(it => {
-      if(!it.id) it.id = "i" + Date.now() + Math.floor(Math.random()*1000);
-      it.price = Number(it.price) || 0;
-      it.duration = Number(it.duration) || 35;
-    });
-  });
-  try{
-    const isNew = !myBarberId;
-    await ensureMyBarberDoc(); // admin's first save creates their barber profile
-    await db.collection("barbers").doc(myBarberId).update({ menu: editingMenu });
-    toast(isNew ? "Menu saved — you now appear as a barber on the site" : "Menu saved", "green");
-  }catch(e){
-    toast("Save failed: " + e.message, "red");
-  }
-}
-
-function loadTemplate(){
-  openAM("Reset to Template", "Replace your current menu with the shop template (CAD pricing)? Your unsaved changes will be lost.", () => {
-    editingMenu = SAMPLE_MENU();
-    renderMenuEditor();
-    closeAM();
-    toast("Template loaded — adjust prices and hit Save", "green");
-  });
-}
-
-function SAMPLE_MENU(){
-  const mkId = () => "i" + Date.now() + Math.floor(Math.random()*100000);
-  const cut = (name, price, duration, fromPrice) =>
-    ({ id: mkId(), name, price, duration: duration || 40, included: false, fromPrice: !!fromPrice });
-  const inc = name =>
-    ({ id: mkId(), name, price: 0, duration: 0, included: true, fromPrice: false });
-  return [
-    { id:"cat_reg_adult", title:"REGULAR — ADULTS 18+", icon:"✂", kind:"main",
-      items: [
-        cut("All Round Fade",35), cut("Taper Fade",35), cut("Low Fade",35),
-        cut("Skin Fade",40), cut("One Level",30,35), cut("Bald Cut",30,30),
-        cut("Buzz Cut",25,30), cut("Mohawk",40,45), cut("Flat Top",40,45),
-        cut("Big Chop",35,45), cut("Ladies Cut",45,45), cut("Trim & Shave",40,45)
-      ]
-    },
-    { id:"cat_prem_adult", title:"PREMIUM — ADULTS 18+", icon:"⭐", kind:"main",
-      items: [
-        cut("All Round Fade",50,60), cut("Taper Fade",50,60), cut("Low Fade",50,60),
-        cut("Skin Fade",55,60), cut("Mohawk",55,65), cut("Flat Top",55,65),
-        cut("Big Chop",50,65), cut("Ladies Cut",60,65),
-        inc("Eyebrow Shape Up"), inc("Eyebrow Tint"), inc("Warm Towel"), inc("Petty Facial")
-      ]
-    },
-    { id:"cat_bigkids", title:"BIG KIDS 7–17", icon:"✂", kind:"main",
-      items: [
-        cut("All Round Fade",30,35), cut("Taper Fade",30,35), cut("Low Fade",30,35),
-        cut("Skin Fade",32,35), cut("One Level",28,30), cut("Bald Cut",25,30),
-        cut("Buzz Cut",22,25), cut("Mohawk",32,40), cut("Big Chop",30,40),
-        cut("School Boy Trim",25,30)
-      ]
-    },
-    { id:"cat_kids", title:"KIDS 3–6", icon:"👦", kind:"main",
-      items: [
-        cut("All Round Fade",25,30,true), cut("Taper Fade",25,30,true),
-        cut("One Level",22,25,true), cut("Bald Cut",20,25,true),
-        cut("Buzz Cut",20,25,true), cut("Mohawk",28,35,true),
-        cut("School Boy Trim",22,25,true)
-      ]
-    },
-    { id:"cat_extras", title:"OPTIONAL EXTRAS", icon:"➕", kind:"extras",
-      items: [
-        cut("Eyebrow",10,5), cut("Line Up",10,10), cut("Beard Line Up",12,10),
-        cut("Hot Towel",5,5), cut("Custom Design",5,10,true)
-      ]
-    }
-  ];
+  if(!clients.length){ list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">No clients yet.</div>'; return; }
+  list.innerHTML = `<table><thead><tr>
+    <th>Name</th><th>Email</th><th>Phone</th><th style="text-align:center;">Bookings</th><th style="text-align:right;">Total Spent</th>
+  </tr></thead><tbody>
+    ${clients.map(c => `<tr>
+      <td>${esc(c.name)}</td><td style="color:var(--text-dim);font-size:13px;">${esc(c.email)}</td>
+      <td style="color:var(--text-dim);font-size:13px;">${esc(c.phone)}</td><td style="text-align:center;">${c.count}</td>
+      <td style="text-align:right;color:var(--red-bright);font-family:Cinzel;">${fmtMoney(c.spent)}</td>
+    </tr>`).join("")}</tbody></table>`;
 }
 
 /* =========================================================
@@ -1752,9 +1449,7 @@ function openAM(title, bodyHTML, onConfirm, confirmLabel){
   document.getElementById("actionModal").classList.add("open");
 }
 function closeAM(){ document.getElementById("actionModal").classList.remove("open"); }
-document.getElementById("actionModal").addEventListener("click", e => {
-  if(e.target.id === "actionModal") closeAM();
-});
+document.getElementById("actionModal").addEventListener("click", e => { if(e.target.id === "actionModal") closeAM(); });
 
 /* =========================================================
    TOAST
@@ -1787,109 +1482,5 @@ function parseTimeAmPm(str){
   return [h,mm];
 }
 </script>
-
-<!-- Suggested Firestore rules (commented, for reference) -->
-<!--
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function isSignedIn() { return request.auth != null; }
-    function isAdmin() { return isSignedIn() && request.auth.uid == "b44tKAz3gtR0AK4eNLOIgcgEpoD3"; }
-    function isBarber(barberId) {
-      return isSignedIn() && get(/databases/$(database)/documents/barbers/$(barberId)).data.uid == request.auth.uid;
-    }
-
-    match /barbers/{barberId} {
-      allow read: if true;
-      allow create, delete: if isAdmin();
-      // Admin edits anything; a barber edits their own doc (name, specialty,
-      // photoURL, menu); a signed-in user may CLAIM an unclaimed doc whose
-      // email matches their auth email by setting uid (first sign-in link).
-      allow update: if isAdmin()
-                    || isBarber(barberId)
-                    || (isSignedIn()
-                        && resource.data.uid == null
-                        && resource.data.email == request.auth.token.email
-                        && request.resource.data.uid == request.auth.uid);
-    }
-    match /bookings/{bookingId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid) || isBarber(resource.data.barberId);
-      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow update: if isAdmin()
-                    || isBarber(resource.data.barberId)
-                    || (isSignedIn() && resource.data.uid == request.auth.uid
-                        && request.resource.data.status == "Cancelled"
-                        && request.resource.data.cancelledBy == "client");
-      allow delete: if isAdmin() || isBarber(resource.data.barberId);
-    }
-    match /slots/{slotId} {
-      allow read: if true;
-      allow create: if isSignedIn();
-      // Freed when a booking is cancelled — by admin, the barber, or the client who booked.
-      allow delete: if isSignedIn();
-    }
-    match /gallery/{docId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin() || isBarber(request.resource.data.barberId) || isBarber(resource.data.barberId);
-    }
-    match /reviews/{docId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow delete: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
-    }
-    match /unavailableDays/{docId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin()
-                                    || isBarber(request.resource.data.barberId)
-                                    || isBarber(resource.data.barberId);
-    }
-    match /users/{uid} {
-      allow read, write: if isSignedIn() && request.auth.uid == uid;
-    }
-  }
-}
--->
-<!--
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function isSignedIn() { return request.auth != null; }
-    function isAdmin() { return isSignedIn() && request.auth.uid == "REPLACE_WITH_ADMIN_UID"; }
-    function isBarber(barberId) {
-      return isSignedIn() && get(/databases/$(database)/documents/barbers/$(barberId)).data.uid == request.auth.uid;
-    }
-
-    match /barbers/{barberId} {
-      allow read: if true;
-      allow write: if isAdmin();
-      allow update: if isBarber(barberId);
-    }
-    match /bookings/{bookingId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid) || isBarber(resource.data.barberId);
-      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow update: if isAdmin()
-                    || isBarber(resource.data.barberId)
-                    || (isSignedIn() && resource.data.uid == request.auth.uid
-                        && request.resource.data.status == "Cancelled"
-                        && request.resource.data.cancelledBy == "client");
-      allow delete: if isAdmin() || isBarber(resource.data.barberId);
-    }
-    match /gallery/{docId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin() || isBarber(request.resource.data.barberId) || isBarber(resource.data.barberId);
-    }
-    match /reviews/{docId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow delete: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
-    }
-    match /unavailableDays/{docId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin()
-                                    || isBarber(request.resource.data.barberId)
-                                    || isBarber(resource.data.barberId);
-    }
-  }
-}
--->
-
 </body>
 </html>

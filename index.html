@@ -23,28 +23,67 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth;}
-body{background:#050505;color:#f5f7ff;font-family:Poppins,sans-serif;}
+/* ============ CSS VARIABLES ============ */
+:root{
+  --gold:#c8a84e;
+  --gold-dim:rgba(200,168,78,.25);
+  --blue:#2f6bff;
+  --blue-glow:#00c2ff;
+  --red:#b30000;
+  --red-bright:#e60000;
+  --dark:#050505;
+  --dark-card:#0a0a0a;
+  --dark-panel:#111;
+  --text:#f5f7ff;
+  --text-dim:#bbb;
+  --text-muted:#888;
+  --text-accent:#c9d8ff;
+  --border:rgba(255,255,255,.08);
+  --border-light:rgba(255,255,255,.12);
+}
 
-/* ---------- NAV ---------- */
+*{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:Poppins,sans-serif;}
+
+/* ============ REVEAL ANIMATIONS ============ */
+.reveal{
+  opacity:0;transform:translateY(24px);
+  transition:opacity .65s ease-out,transform .65s ease-out;
+}
+.reveal.visible{opacity:1;transform:translateY(0);}
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none;}
+}
+
+/* ============ NAV ============ */
 nav{
   position:fixed;top:0;left:0;width:100%;
   padding:18px 60px;display:flex;justify-content:space-between;align-items:center;
   background:rgba(0,0,0,.4);backdrop-filter:blur(20px);z-index:999;
 }
+nav .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--gold);}
 nav .logo img{height:48px;display:block;border-radius:50%;border:2px solid rgba(179,0,0,.6);box-shadow:0 0 12px rgba(179,0,0,.4);}
+nav .logo-text{font-family:Cinzel;font-size:16px;letter-spacing:3px;color:var(--gold);}
 nav ul{display:flex;gap:32px;list-style:none;align-items:center;}
 nav a,nav button.link{
   color:white;text-decoration:none;transition:.3s;background:none;border:none;
   font-family:Poppins;font-size:15px;cursor:pointer;
 }
-nav a:hover,nav button.link:hover{color:#d60000;}
+nav a:hover,nav button.link:hover{color:var(--red-bright);}
 .hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;}
 .hamburger span{width:26px;height:2px;background:white;transition:.3s;}
 
-/* ---------- HERO ---------- */
+/* nav book button (appears on scroll) */
+.nav-book{
+  display:none;padding:8px 20px;background:var(--red);color:white;border:none;
+  font-family:Poppins;font-size:13px;letter-spacing:1px;cursor:pointer;transition:.3s;
+}
+.nav-book:hover{background:var(--red-bright);}
+.nav-book.show{display:block;}
+
+/* ============ HERO ============ */
 .hero{
-  height:100vh;position:relative;overflow:hidden;background:#050505;
+  height:100vh;position:relative;overflow:hidden;background:var(--dark);
   display:flex;justify-content:center;align-items:center;text-align:center;
 }
 .hero .hero-bg{
@@ -52,168 +91,52 @@ nav a:hover,nav button.link:hover{color:#d60000;}
   opacity:0;transition:opacity 1.8s ease;
 }
 .hero .hero-bg.on{opacity:1;}
-.hero::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.75);}
+.hero::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.72);}
 .hero > div{position:relative;z-index:2;}
 .hero h2{font-size:70px;font-family:Cinzel;letter-spacing:2px;}
-.hero p{margin-top:20px;font-size:20px;color:#c9d8ff;opacity:.9;}
+.hero p{margin-top:20px;font-size:20px;color:var(--text-accent);opacity:.9;}
 
-/* ---------- BUTTONS ---------- */
+/* ============ HERO BUTTONS — matching gold outline style ============ */
+.hero-buttons{display:flex;flex-wrap:wrap;gap:16px;margin-top:40px;}
+.hero-cta,.find-us-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:18px 40px;border:2px solid var(--gold);color:var(--gold);
+  background:transparent;text-decoration:none;font-family:Poppins;font-size:14px;
+  letter-spacing:2px;text-transform:uppercase;transition:all .3s;cursor:pointer;
+  border-radius:0;
+}
+.hero-cta:hover,.find-us-btn:hover{background:var(--gold);color:var(--dark);box-shadow:0 0 20px rgba(212,175,55,.3);}
+.find-us-btn svg{flex-shrink:0;}
+
+/* ============ BUTTONS ============ */
 .btn{
-  margin-top:40px;display:inline-block;padding:18px 45px;background:#b30000;
+  margin-top:40px;display:inline-block;padding:18px 45px;background:var(--red);
   border-radius:50px;color:white;text-decoration:none;transition:.4s;
   border:none;font-family:Poppins;font-size:16px;cursor:pointer;letter-spacing:1px;
 }
-.btn:hover{background:#e60000;transform:translateY(-5px);}
+.btn:hover{background:var(--red-bright);transform:translateY(-5px);}
 .btn.small{padding:12px 28px;font-size:14px;margin-top:20px;}
-.btn.ghost{background:transparent;border:1px solid #b30000;color:#e60000;}
-.btn.ghost:hover{background:#b30000;color:white;}
+.btn.ghost{background:transparent;border:1px solid var(--red);color:var(--red-bright);}
+.btn.ghost:hover{background:var(--red);color:white;}
 
-
-/* ---------- BOOKING MODAL ELEMENTS ---------- */
-.time-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px;}
-.time-slot{
-  background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:10px;
-  border-radius:8px;cursor:pointer;transition:.2s;text-align:center;font-size:14px;
-}
-.time-slot:hover{border-color:#b30000;}
-.time-slot.selected{background:#b30000;border-color:#b30000;}
-.time-slot:disabled{opacity:.25;cursor:not-allowed;}
-.time-empty{color:#666;padding:10px 0;font-size:14px;}
-.services-picker{
-  background:#050505;border-radius:15px;padding:20px;border:1px solid rgba(255,255,255,.08);
-}
-.services-picker h4{font-family:Cinzel;letter-spacing:2px;font-size:13px;color:#e60000;margin:0 0 14px;text-transform:uppercase;}
-.svc-row{
-  display:flex;justify-content:space-between;align-items:center;padding:14px 16px;
-  background:#0a0a0a;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s;
-  border:1px solid transparent;
-}
-.svc-row:hover{background:#131313;}
-.svc-row.selected{border-color:#b30000;background:#180505;}
-.svc-row .check{
-  width:22px;height:22px;border:2px solid #444;border-radius:5px;display:flex;
-  align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0;
-}
-.svc-row.selected .check{background:#b30000;border-color:#b30000;}
-.svc-row .lbl{flex:1;padding:0 14px;font-size:14px;}
-.svc-row .prc{color:#e60000;font-family:Cinzel;font-size:16px;}
-.svc-row.included{cursor:default;opacity:.75;}
-.svc-row.included:hover{background:#0a0a0a;}
-.svc-row.included .check{visibility:hidden;}
-.summary-bar{
-  padding:18px;background:#050505;border-radius:10px;
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
-  border:1px solid rgba(255,255,255,.08);
-}
-.summary-bar .chips{display:flex;flex-wrap:wrap;gap:6px;}
-.summary-bar .chip{background:#1a1a1a;padding:5px 12px;border-radius:50px;font-size:12px;color:#ddd;}
-.summary-bar .total{font-family:Cinzel;font-size:26px;color:#e60000;letter-spacing:1px;}
-.svc-row.radio .check{border-radius:50%;}
-.cat-chips{display:flex;gap:8px;flex-wrap:wrap;}
-.cat-chips .chip{
-  background:#0a0a0a;border:1px solid rgba(255,255,255,.12);color:#bbb;
-  padding:9px 18px;border-radius:50px;cursor:pointer;font-family:Poppins;
-  font-size:12px;letter-spacing:1px;transition:.3s;
-}
-.cat-chips .chip:hover{border-color:#b30000;color:#e60000;}
-.cat-chips .chip.active{background:#b30000;border-color:#b30000;color:white;}
-
-/* ---------- CALENDAR ---------- */
-.cal{background:#050505;border:1px solid rgba(255,255,255,.08);border-radius:15px;padding:16px;}
-.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.cal-head .cal-title{font-family:Cinzel;letter-spacing:2px;font-size:14px;}
-.cal-head button{
-  background:#111;border:1px solid rgba(255,255,255,.12);color:#e60000;
-  width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;transition:.3s;
-}
-.cal-head button:hover{border-color:#b30000;}
-.cal-head button:disabled{opacity:.25;cursor:not-allowed;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-.cal-dow{text-align:center;color:#666;font-size:10px;letter-spacing:1px;padding:4px 0;text-transform:uppercase;}
-.cal-day{
-  aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;
-  font-size:13px;cursor:pointer;background:#0a0a0a;border:1px solid transparent;transition:.2s;
-}
-.cal-day:hover{border-color:#b30000;}
-.cal-day.blank{background:transparent;cursor:default;border:none;}
-.cal-day.muted{opacity:.25;cursor:not-allowed;background:transparent;}
-.cal-day.muted:hover{border-color:transparent;}
-.cal-day.full{
-  color:#777;background:#160707;cursor:not-allowed;text-decoration:line-through;
-  border:1px solid rgba(230,0,0,.25);
-}
-.cal-day.full:hover{border-color:rgba(230,0,0,.25);}
-.cal-day.selected{background:#b30000;color:white;border-color:#b30000;}
-
-
-/* ---------- PROFILE DROPDOWN ---------- */
-.profile-btn{
-  display:flex;align-items:center;gap:8px;background:none;border:none;
-  color:white;cursor:pointer;font-family:Poppins;font-size:14px;padding:4px;
-}
-.profile-btn img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid rgba(179,0,0,.5);}
-.profile-dropdown{
-  display:none;position:absolute;top:calc(100% + 10px);right:0;
-  background:#111;border:1px solid rgba(255,255,255,.1);min-width:200px;
-  box-shadow:0 15px 40px rgba(0,0,0,.7);z-index:1000;
-}
-.profile-dropdown.open{display:block;}
-.profile-dropdown button{
-  display:block;width:100%;text-align:left;padding:14px 20px;
-  background:none;border:none;border-bottom:1px solid rgba(255,255,255,.05);
-  color:#ddd;font-family:Poppins;font-size:14px;cursor:pointer;transition:.2s;
-}
-.profile-dropdown button:hover{background:#1a0505;color:#fff;}
-.profile-dropdown button:last-child{border-bottom:none;color:#e60000;}
-
-/* ---------- AUTH MODAL ---------- */
-.auth-modal{max-width:440px;}
-.auth-tabs{display:flex;margin-bottom:24px;border-bottom:2px solid rgba(255,255,255,.1);}
-.auth-tabs button{
-  flex:1;padding:14px;background:none;border:none;color:#888;font-family:Poppins;
-  font-size:14px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:.3s;
-  border-bottom:2px solid transparent;margin-bottom:-2px;
-}
-.auth-tabs button.active{color:white;border-bottom-color:#b30000;}
-.auth-field{margin-bottom:16px;}
-.auth-field label{display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
-.auth-field input{
-  width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;
-  padding:14px 16px;font-family:Poppins;font-size:14px;
-}
-.auth-field input:focus{outline:none;border-color:#b30000;}
-.auth-divider{display:flex;align-items:center;gap:14px;margin:20px 0;color:#666;font-size:12px;letter-spacing:2px;}
-.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.1);}
-.btn-google{
-  width:100%;padding:14px;background:#111;border:1px solid rgba(255,255,255,.1);
-  color:white;font-family:Poppins;font-size:14px;cursor:pointer;transition:.3s;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-}
-.btn-google:hover{background:#1a1a1a;border-color:#b30000;}
-.forgot-link{background:none;border:none;color:#e60000;font-size:12px;cursor:pointer;margin-top:4px;font-family:Poppins;}
-
-/* ---------- PROFILE MODAL ---------- */
-.profile-avatar-wrap{text-align:center;margin-bottom:24px;}
-.profile-avatar-wrap img{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid rgba(179,0,0,.5);cursor:pointer;}
-.profile-avatar-wrap p{color:#888;font-size:11px;margin-top:8px;}
-.initial-avatar{
-  width:32px;height:32px;border-radius:50%;background:#b30000;
-  display:flex;align-items:center;justify-content:center;
-  font-family:Cinzel;font-size:14px;color:white;border:2px solid rgba(179,0,0,.5);
-}
-
-/* ---------- SECTIONS ---------- */
+/* ============ SECTIONS ============ */
 section{padding:120px 8%;}
 .title{font-size:50px;font-family:Cinzel;text-align:center;margin-bottom:70px;letter-spacing:2px;}
-.title::after{content:"";display:block;width:70px;height:3px;margin:22px auto 0;background:linear-gradient(90deg,#b30000,#3b6fd4);border-radius:2px;}
+.title::after{content:"";display:block;width:70px;height:3px;margin:22px auto 0;background:linear-gradient(90deg,var(--red),var(--blue));border-radius:2px;}
 .subtitle{text-align:center;margin-top:-50px;margin-bottom:60px;color:#9db4e8;font-size:16px;}
 
-/* ---------- ABOUT ---------- */
-.about{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
-.about img{width:100%;border-radius:20px;}
-.about p{line-height:2;color:#ddd;font-size:17px;}
+/* ============ HOW IT WORKS ============ */
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;max-width:900px;margin:0 auto;}
+.step-card{text-align:center;padding:40px 24px;position:relative;}
+.step-num{
+  font-family:Cinzel;font-size:64px;color:var(--blue);opacity:.2;
+  position:absolute;top:0;left:50%;transform:translateX(-50%);line-height:1;
+}
+.step-icon{font-size:36px;margin-bottom:20px;display:block;}
+.step-card h3{font-family:Cinzel;font-size:18px;margin-bottom:10px;letter-spacing:1px;}
+.step-card p{color:var(--text-dim);font-size:14px;line-height:1.7;}
 
-/* ---------- BARBERS ---------- */
+/* ============ BARBERS ============ */
 .barbers{display:flex;flex-wrap:wrap;justify-content:center;gap:50px;}
 .barber-profile{
   display:flex;flex-direction:column;align-items:center;text-align:center;
@@ -227,112 +150,330 @@ section{padding:120px 8%;}
   transition:.4s;
 }
 .barber-profile:hover .barber-avatar{
-  border-color:#e60000;
+  border-color:var(--red-bright);
   box-shadow:0 0 35px rgba(230,0,0,.55), 0 0 80px rgba(179,0,0,.2);
 }
-.barber-profile h3{
-  font-family:Cinzel;font-size:20px;letter-spacing:1px;margin-top:18px;
-}
-.barber-profile .specialty{color:#bbb;font-size:13px;margin-top:6px;min-height:20px;}
+.barber-profile h3{font-family:Cinzel;font-size:20px;letter-spacing:1px;margin-top:18px;}
+.barber-profile .specialty{color:var(--text-dim);font-size:13px;margin-top:6px;min-height:20px;}
 .barber-profile .btn-book{
-  margin-top:16px;padding:12px 32px;background:#b30000;color:white;
+  margin-top:16px;padding:12px 32px;background:var(--red);color:white;
   border:none;font-family:Poppins;font-size:13px;letter-spacing:2px;
   text-transform:uppercase;cursor:pointer;transition:.3s;
 }
-.barber-profile .btn-book:hover{
-  background:#e60000;
-  box-shadow:0 0 20px rgba(230,0,0,.5);
+.barber-profile .btn-book:hover{background:var(--red-bright);box-shadow:0 0 20px rgba(230,0,0,.5);}
+.vacation-badge{
+  margin-top:10px;padding:6px 14px;background:rgba(47,107,255,.15);
+  border:1px solid rgba(47,107,255,.3);color:var(--blue-glow);
+  font-size:11px;letter-spacing:1px;display:inline-block;
 }
 
+/* ============ SERVICES & PRICING ============ */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1100px;margin:0 auto;}
+.price-card{
+  background:var(--dark-card);border:1px solid var(--border);padding:24px 28px;
+  display:flex;justify-content:space-between;align-items:center;transition:.3s;
+}
+.price-card:hover{border-color:var(--red);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.price-card .svc-info h4{font-family:Cinzel;font-size:15px;letter-spacing:1px;margin-bottom:4px;}
+.price-card .svc-info .note{color:var(--text-muted);font-size:12px;}
+.price-card .svc-price{font-family:Cinzel;font-size:22px;color:var(--red-bright);white-space:nowrap;}
 
-/* ---------- GALLERY ---------- */
+/* ============ GALLERY ============ */
 .gallery-filter{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-bottom:40px;}
 .gallery-filter button{
-  padding:8px 20px;border-radius:50px;background:transparent;border:1px solid rgba(255,255,255,.15);
-  color:#bbb;font-family:Poppins;cursor:pointer;transition:.3s;font-size:13px;letter-spacing:1px;
+  padding:8px 20px;border-radius:50px;background:transparent;border:1px solid var(--border-light);
+  color:var(--text-dim);font-family:Poppins;cursor:pointer;transition:.3s;font-size:13px;letter-spacing:1px;
 }
-.gallery-filter button.active,.gallery-filter button:hover{
-  background:#b30000;color:white;border-color:#b30000;
-}
+.gallery-filter button.active,.gallery-filter button:hover{background:var(--red);color:white;border-color:var(--red);}
 .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
 .gallery img{width:100%;height:350px;object-fit:cover;border-radius:15px;transition:.3s;cursor:pointer;}
 .gallery img:hover{transform:scale(1.02);box-shadow:0 20px 40px rgba(255,0,0,.2);}
 .gallery-empty{grid-column:1/-1;text-align:center;color:#666;padding:40px;}
 
-/* ---------- REVIEWS ---------- */
+/* lightbox */
+.lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;
+  display:none;align-items:center;justify-content:center;cursor:pointer;
+}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;}
+.lightbox .lb-close{
+  position:absolute;top:20px;right:30px;color:white;font-size:36px;
+  background:none;border:none;cursor:pointer;z-index:10;
+}
+
+/* ============ VALUES ============ */
+.values-section{position:relative;overflow:hidden;}
+.values-section::before{
+  content:"";position:absolute;inset:0;
+  background:url("https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1800&q=60") center/cover no-repeat;
+  opacity:.06;
+}
+.values-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;position:relative;max-width:1100px;margin:0 auto;}
+.value-card{
+  background:rgba(17,17,17,.85);border:1px solid var(--border);padding:40px 28px;
+  text-align:center;transition:.4s;backdrop-filter:blur(10px);
+}
+.value-card:hover{transform:translateY(-6px);border-color:var(--gold-dim);box-shadow:0 20px 40px rgba(0,0,0,.4);}
+.value-icon{font-size:36px;margin-bottom:18px;display:block;}
+.value-card h3{font-family:Cinzel;font-size:17px;letter-spacing:2px;margin-bottom:12px;color:var(--gold);}
+.value-card p{color:var(--text-dim);font-size:14px;line-height:1.7;}
+
+/* ============ STATS STRIP ============ */
+.stats-strip{
+  background:var(--dark-panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:60px 8%;
+}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;text-align:center;max-width:900px;margin:0 auto;}
+.stat-item .stat-num{font-family:Cinzel;font-size:48px;color:var(--red-bright);letter-spacing:1px;}
+.stat-item .stat-label{color:var(--text-muted);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-top:6px;}
+
+/* ============ ABOUT ============ */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.about img{width:100%;border-radius:20px;object-fit:cover;}
+.about p{line-height:2;color:#ddd;font-size:17px;}
+
+/* ============ REVIEWS ============ */
 .reviews-wrap{display:grid;grid-template-columns:1fr 1.5fr;gap:50px;}
-.review-form{background:#111;padding:40px;border-radius:20px;border:1px solid rgba(255,255,255,.08);}
+.review-form{background:var(--dark-panel);padding:40px;border-radius:20px;border:1px solid var(--border);}
 .review-form h3{font-family:Cinzel;margin-bottom:24px;font-size:22px;letter-spacing:1px;}
 .review-form input,.review-form textarea{
-  width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;
+  width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;
   padding:14px 16px;border-radius:10px;font-family:Poppins;margin-bottom:16px;font-size:14px;
 }
 .review-form textarea{resize:vertical;min-height:100px;}
-.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#b30000;}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:var(--red);}
 .star-picker{display:flex;gap:8px;margin-bottom:20px;font-size:28px;cursor:pointer;}
 .star-picker span{color:#333;transition:.2s;}
-.star-picker span.on{color:#e60000;}
+.star-picker span.on{color:var(--red-bright);}
 .reviews-list{display:flex;flex-direction:column;gap:20px;max-height:600px;overflow-y:auto;padding-right:8px;}
 .reviews-list::-webkit-scrollbar{width:6px;}
-.reviews-list::-webkit-scrollbar-thumb{background:#b30000;border-radius:3px;}
+.reviews-list::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px;}
 .review{
-  background:#111;padding:24px 28px;border-radius:15px;border-left:3px solid #b30000;
-  border-top:1px solid rgba(255,255,255,.05);border-right:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);
+  background:var(--dark-panel);padding:24px 28px;border-radius:15px;border-left:3px solid var(--red);
+  border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);
 }
 .review .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .review .name{font-family:Cinzel;font-size:16px;letter-spacing:1px;}
-.review .stars{color:#e60000;letter-spacing:2px;}
+.review .stars{color:var(--red-bright);letter-spacing:2px;}
 .review .comment{color:#ddd;line-height:1.6;font-size:14px;}
 .review .meta{color:#666;font-size:12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;}
-.review .del{background:none;border:none;color:#e60000;cursor:pointer;font-size:12px;}
+.review .del{background:none;border:none;color:var(--red-bright);cursor:pointer;font-size:12px;}
 
+/* ============ FAQ ============ */
+.faq-list{max-width:800px;margin:0 auto;}
+.faq-item{border-bottom:1px solid var(--border);overflow:hidden;}
+.faq-q{
+  width:100%;text-align:left;padding:22px 0;background:none;border:none;color:var(--text);
+  font-family:Poppins;font-size:16px;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;transition:.3s;
+}
+.faq-q:hover{color:var(--red-bright);}
+.faq-q .arrow{transition:transform .3s;font-size:12px;color:var(--text-muted);}
+.faq-item.open .faq-q .arrow{transform:rotate(180deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease;color:var(--text-dim);font-size:14px;line-height:1.8;}
+.faq-item.open .faq-a{max-height:300px;padding-bottom:20px;}
 
-/* ---------- FOOTER ---------- */
-footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-top:1px solid rgba(255,255,255,.08);font-size:13px;letter-spacing:1px;}
+/* ============ HOURS & LOCATION ============ */
+.location-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;max-width:1000px;margin:0 auto;}
+.hours-list{list-style:none;}
+.hours-list li{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.hours-list li .day{color:var(--text-dim);}
+.hours-list li .time{color:var(--text);font-weight:500;}
+.map-placeholder{
+  background:var(--dark-card);border:1px solid var(--border);border-radius:15px;
+  height:100%;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px;text-align:center;gap:20px;
+}
+.map-placeholder .addr{color:var(--text-dim);font-size:15px;line-height:1.8;}
 
+/* ============ FOOTER ============ */
+footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30px;}
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;}
+.footer-col h4{font-family:Cinzel;font-size:14px;letter-spacing:2px;margin-bottom:18px;color:var(--gold);}
+.footer-col p,.footer-col a{color:var(--text-muted);font-size:13px;text-decoration:none;line-height:2;}
+.footer-col a:hover{color:var(--red-bright);}
+.footer-col ul{list-style:none;}
+.footer-col ul li a{display:block;padding:2px 0;}
+.footer-bottom{text-align:center;border-top:1px solid var(--border);padding-top:24px;color:#555;font-size:12px;letter-spacing:1px;}
+.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.footer-logo img{height:40px;border-radius:50%;border:2px solid rgba(179,0,0,.4);}
+.footer-logo span{font-family:Cinzel;color:var(--gold);font-size:14px;letter-spacing:3px;}
 
+/* ============ BOOKING MODAL ============ */
+.time-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px;}
+.time-slot{
+  background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:10px;
+  border-radius:8px;cursor:pointer;transition:.2s;text-align:center;font-size:14px;
+}
+.time-slot:hover{border-color:var(--red);}
+.time-slot.selected{background:var(--red);border-color:var(--red);}
+.time-slot:disabled{opacity:.25;cursor:not-allowed;}
+.time-empty{color:#666;padding:10px 0;font-size:14px;}
+.services-picker{
+  background:var(--dark);border-radius:15px;padding:20px;border:1px solid var(--border);
+}
+.services-picker h4{font-family:Cinzel;letter-spacing:2px;font-size:13px;color:var(--red-bright);margin:0 0 14px;text-transform:uppercase;}
+.svc-row{
+  display:flex;justify-content:space-between;align-items:center;padding:14px 16px;
+  background:var(--dark-card);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s;
+  border:1px solid transparent;
+}
+.svc-row:hover{background:#131313;}
+.svc-row.selected{border-color:var(--red);background:#180505;}
+.svc-row .check{
+  width:22px;height:22px;border:2px solid #444;border-radius:5px;display:flex;
+  align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0;
+}
+.svc-row.selected .check{background:var(--red);border-color:var(--red);}
+.svc-row .lbl{flex:1;padding:0 14px;font-size:14px;}
+.svc-row .lbl .svc-note{display:block;font-size:11px;color:var(--text-muted);margin-top:2px;}
+.svc-row .prc{color:var(--red-bright);font-family:Cinzel;font-size:16px;}
+.summary-bar{
+  padding:18px;background:var(--dark);border-radius:10px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  border:1px solid var(--border);
+}
+.summary-bar .chips{display:flex;flex-wrap:wrap;gap:6px;}
+.summary-bar .chip{background:#1a1a1a;padding:5px 12px;border-radius:50px;font-size:12px;color:#ddd;}
+.summary-bar .total{font-family:Cinzel;font-size:26px;color:var(--red-bright);letter-spacing:1px;}
 
-/* ---------- MODAL ---------- */
+/* ============ CALENDAR ============ */
+.cal{background:var(--dark);border:1px solid var(--border);border-radius:15px;padding:16px;}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.cal-head .cal-title{font-family:Cinzel;letter-spacing:2px;font-size:14px;}
+.cal-head button{
+  background:var(--dark-panel);border:1px solid var(--border-light);color:var(--red-bright);
+  width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;transition:.3s;
+}
+.cal-head button:hover{border-color:var(--red);}
+.cal-head button:disabled{opacity:.25;cursor:not-allowed;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-dow{text-align:center;color:#666;font-size:10px;letter-spacing:1px;padding:4px 0;text-transform:uppercase;}
+.cal-day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;
+  font-size:13px;cursor:pointer;background:var(--dark-card);border:1px solid transparent;transition:.2s;
+}
+.cal-day:hover{border-color:var(--red);}
+.cal-day.blank{background:transparent;cursor:default;border:none;}
+.cal-day.muted{opacity:.25;cursor:not-allowed;background:transparent;}
+.cal-day.muted:hover{border-color:transparent;}
+.cal-day.full{
+  color:#777;background:#160707;cursor:not-allowed;text-decoration:line-through;
+  border:1px solid rgba(230,0,0,.25);
+}
+.cal-day.full:hover{border-color:rgba(230,0,0,.25);}
+.cal-day.selected{background:var(--red);color:white;border-color:var(--red);}
+
+/* ============ PROFILE DROPDOWN ============ */
+.profile-btn{
+  display:flex;align-items:center;gap:8px;background:none;border:none;
+  color:white;cursor:pointer;font-family:Poppins;font-size:14px;padding:4px;
+}
+.profile-btn img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid rgba(179,0,0,.5);}
+.profile-dropdown{
+  display:none;position:absolute;top:calc(100% + 10px);right:0;
+  background:var(--dark-panel);border:1px solid rgba(255,255,255,.1);min-width:200px;
+  box-shadow:0 15px 40px rgba(0,0,0,.7);z-index:1000;
+}
+.profile-dropdown.open{display:block;}
+.profile-dropdown button{
+  display:block;width:100%;text-align:left;padding:14px 20px;
+  background:none;border:none;border-bottom:1px solid rgba(255,255,255,.05);
+  color:#ddd;font-family:Poppins;font-size:14px;cursor:pointer;transition:.2s;
+}
+.profile-dropdown button:hover{background:#1a0505;color:#fff;}
+.profile-dropdown button:last-child{border-bottom:none;color:var(--red-bright);}
+
+/* ============ AUTH MODAL ============ */
+.auth-modal{max-width:440px;}
+.auth-tabs{display:flex;margin-bottom:24px;border-bottom:2px solid rgba(255,255,255,.1);}
+.auth-tabs button{
+  flex:1;padding:14px;background:none;border:none;color:var(--text-muted);font-family:Poppins;
+  font-size:14px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:.3s;
+  border-bottom:2px solid transparent;margin-bottom:-2px;
+}
+.auth-tabs button.active{color:white;border-bottom-color:var(--red);}
+.auth-field{margin-bottom:16px;}
+.auth-field label{display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.auth-field input{
+  width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;
+  padding:14px 16px;font-family:Poppins;font-size:14px;
+}
+.auth-field input:focus{outline:none;border-color:var(--red);}
+.auth-divider{display:flex;align-items:center;gap:14px;margin:20px 0;color:#666;font-size:12px;letter-spacing:2px;}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.1);}
+.btn-google{
+  width:100%;padding:14px;background:var(--dark-panel);border:1px solid rgba(255,255,255,.1);
+  color:white;font-family:Poppins;font-size:14px;cursor:pointer;transition:.3s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn-google:hover{background:#1a1a1a;border-color:var(--red);}
+.forgot-link{background:none;border:none;color:var(--red-bright);font-size:12px;cursor:pointer;margin-top:4px;font-family:Poppins;}
+
+/* ============ PROFILE MODAL ============ */
+.profile-avatar-wrap{text-align:center;margin-bottom:24px;}
+.profile-avatar-wrap img{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid rgba(179,0,0,.5);cursor:pointer;}
+.profile-avatar-wrap p{color:var(--text-muted);font-size:11px;margin-top:8px;}
+.initial-avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-family:Cinzel;font-size:14px;color:white;border:2px solid rgba(179,0,0,.5);
+}
+
+/* ============ MODAL ============ */
 .modal-backdrop{
   position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;
   display:none;align-items:center;justify-content:center;padding:20px;
 }
 .modal-backdrop.open{display:flex;}
 .modal{
-  background:#111;border-top:3px solid #b30000;border-radius:20px;padding:40px;
+  background:var(--dark-panel);border-top:3px solid var(--red);border-radius:20px;padding:40px;
   max-width:600px;width:100%;max-height:90vh;overflow-y:auto;
 }
 .modal h3{font-family:Cinzel;font-size:26px;letter-spacing:2px;margin-bottom:20px;}
 .modal .close{
-  position:absolute;top:20px;right:24px;background:none;border:none;color:#888;
+  position:absolute;top:20px;right:24px;background:none;border:none;color:var(--text-muted);
   font-size:28px;cursor:pointer;
 }
 .modal-wrap{position:relative;max-width:600px;width:100%;}
 .check-icon{
-  width:70px;height:70px;background:#b30000;border-radius:50%;margin:0 auto 20px;
+  width:70px;height:70px;background:var(--red);border-radius:50%;margin:0 auto 20px;
   display:flex;align-items:center;justify-content:center;font-size:36px;color:white;
 }
-.booking-line{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;}
-.booking-line .k{color:#888;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+.booking-line{padding:12px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+.booking-line .k{color:var(--text-muted);font-size:13px;letter-spacing:1px;text-transform:uppercase;}
 .booking-line .v{color:white;font-weight:500;}
-.pay-note{margin-top:20px;padding:16px;background:#050505;border-radius:10px;color:#bbb;font-size:13px;line-height:1.6;border-left:3px solid #b30000;}
+.pay-note{margin-top:20px;padding:16px;background:var(--dark);border-radius:10px;color:var(--text-dim);font-size:13px;line-height:1.6;border-left:3px solid var(--red);}
 
-/* ---------- MY BOOKINGS ---------- */
-.mybk{background:#0a0a0a;padding:20px;border-radius:12px;margin-bottom:12px;border-left:3px solid #b30000;}
+/* ============ MY BOOKINGS ============ */
+.mybk{background:var(--dark-card);padding:20px;border-radius:12px;margin-bottom:12px;border-left:3px solid var(--red);}
 .mybk.cancelled{border-left-color:#666;opacity:.7;}
 .mybk .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.mybk .bnum{font-family:Cinzel;color:#e60000;letter-spacing:1px;}
+.mybk .bnum{font-family:Cinzel;color:var(--red-bright);letter-spacing:1px;}
 .mybk .badge{padding:3px 10px;border-radius:20px;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 .badge.active{background:#0a4d0a;color:#7fff7f;}
 .badge.cancelled{background:#4d0a0a;color:#ff8080;}
 .badge.pay-yes{background:#0a4d0a;color:#7fff7f;}
 .badge.pay-no{background:#4d0a0a;color:#ff8080;}
-.mybk .info-line{color:#bbb;font-size:14px;margin:4px 0;}
+.mybk .info-line{color:var(--text-dim);font-size:14px;margin:4px 0;}
 
-/* ---------- MOBILE ---------- */
+/* ============ STICKY MOBILE CTA ============ */
+.sticky-cta{
+  position:fixed;bottom:24px;right:24px;z-index:998;
+  padding:14px 28px;background:var(--red);color:white;border:none;
+  font-family:Poppins;font-size:14px;letter-spacing:1px;cursor:pointer;
+  box-shadow:0 8px 30px rgba(179,0,0,.5);transition:.3s;display:none;
+  border-radius:50px;
+}
+.sticky-cta.show{display:block;}
+.sticky-cta:hover{background:var(--red-bright);transform:translateY(-3px);}
+
+/* ============ MOBILE ============ */
 @media(max-width:900px){
   nav{padding:14px 20px;}
   nav .logo img{height:38px;}
+  nav .logo-text{display:none;}
   nav ul{
     display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;
     background:rgba(0,0,0,.97);padding:20px;gap:8px;align-items:stretch;
@@ -341,26 +482,35 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
   nav ul li{width:100%;}
   nav ul a,nav ul button.link{
     display:block;width:100%;text-align:left;padding:14px 18px;
-    background:#0a0a0a;border:1px solid rgba(255,255,255,.08);border-left:3px solid #b30000;
-    border-radius:0;font-size:14px;letter-spacing:2px;text-transform:uppercase;
-    transition:.3s;
+    background:var(--dark-card);border:1px solid var(--border);border-left:3px solid var(--red);
+    border-radius:0;font-size:14px;letter-spacing:2px;text-transform:uppercase;transition:.3s;
   }
   nav ul a:hover,nav ul button.link:hover{
-    background:#180505;color:#fff;border-color:#e60000;
+    background:#180505;color:#fff;border-color:var(--red-bright);
     box-shadow:0 0 18px rgba(230,0,0,.45), inset 0 0 12px rgba(179,0,0,.15);
   }
   nav ul.open{display:flex;}
   .hamburger{display:flex;}
   .about,.reviews-wrap{grid-template-columns:1fr;gap:40px;}
-  
-  .services{grid-template-columns:1fr 1fr;}
   .gallery{grid-template-columns:1fr;}
   .hero h2{font-size:38px;}
   .hero p{font-size:16px;}
+  .hero-buttons{flex-direction:row;gap:10px;margin-top:28px;}
+  .hero-cta,.find-us-btn{padding:12px 18px;font-size:11px;letter-spacing:1px;}
   .title{font-size:34px;}
   section{padding:80px 6%;}
-  .booking-panel{padding:28px;}
-  .two-col{grid-template-columns:1fr;}
+  .steps-grid{grid-template-columns:1fr;}
+  .values-grid{grid-template-columns:1fr 1fr;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .pricing-grid{grid-template-columns:1fr;}
+  .location-grid{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .nav-book{display:none !important;}
+}
+@media(max-width:600px){
+  .values-grid{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .footer-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -368,13 +518,17 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
 <body>
 
 <nav>
-  <a class="logo" href="#home"><img src="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03" alt="Stunna's Unique Barbering"></a>
+  <a class="logo" href="#home">
+    <img src="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03" alt="Stunna's Unique Barbering">
+    <span class="logo-text">STUNNA'S</span>
+  </a>
   <ul id="navlist">
     <li><a href="#home">Home</a></li>
     <li><a href="#barbers-sec">Barbers</a></li>
+    <li><a href="#services-sec">Services</a></li>
     <li><a href="#gallery-sec">Gallery</a></li>
     <li><a href="#reviews-sec">Reviews</a></li>
-
+    <li><button class="nav-book" id="navBookBtn" onclick="document.getElementById('barbers-sec').scrollIntoView({behavior:'smooth'})">Book Now</button></li>
     <li id="navLogin"><button class="link" id="authBtn" onclick="openAuthModal()">Login</button></li>
     <li id="navProfile" style="display:none;position:relative;">
       <button class="profile-btn" onclick="toggleProfileMenu()">
@@ -395,34 +549,86 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
   </button>
 </nav>
 
+<!-- HERO -->
 <header class="hero" id="home">
   <div>
     <h2>STUNNA'S UNIQUE BARBERING</h2>
     <p>Luxury Grooming. Precision Cuts. Premium Experience.</p>
-    <a class="btn" href="#barbers-sec">Book Appointment</a>
+    <div class="hero-buttons">
+      <a class="hero-cta" href="#barbers-sec">Book Appointment</a>
+      <a class="find-us-btn" href="https://www.google.com/maps/search/?api=1&query=626+E+Main+St+Welland+ON+L3B+3Y2" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        FIND US NOW
+      </a>
+    </div>
   </div>
 </header>
 
+<!-- HOW IT WORKS -->
+<section id="how-sec">
+  <h2 class="title reveal">How It Works</h2>
+  <div class="steps-grid">
+    <div class="step-card reveal">
+      <span class="step-num">01</span>
+      <span class="step-icon">💈</span>
+      <h3>Pick Your Barber</h3>
+      <p>Browse our team, check their gallery, and choose the stylist who fits your vibe.</p>
+    </div>
+    <div class="step-card reveal">
+      <span class="step-num">02</span>
+      <span class="step-icon">✂️</span>
+      <h3>Choose Your Service</h3>
+      <p>From classic cuts to hot towel shaves — select one or stack a few. Prices are upfront.</p>
+    </div>
+    <div class="step-card reveal">
+      <span class="step-num">03</span>
+      <span class="step-icon">📅</span>
+      <h3>Lock Your Time</h3>
+      <p>Pick a date and time that works for you. Show up, sit down, walk out looking sharp.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BARBERS -->
 <section id="barbers-sec">
-  <h2 class="title">Choose Your Barber</h2>
+  <h2 class="title reveal">Choose Your Barber</h2>
   <div class="barbers" id="barbersGrid">
     <div class="gallery-empty" style="grid-column:1/-1;">Loading barbers…</div>
   </div>
 </section>
 
+<!-- SERVICES & PRICING -->
+<section id="services-sec" style="background:var(--dark-card);">
+  <h2 class="title reveal">Services & Pricing</h2>
+  <p class="subtitle reveal">Men's Grooming Services — All prices in CAD</p>
+  <div class="pricing-grid" id="pricingGrid"></div>
+</section>
+
+<!-- GALLERY -->
 <section id="gallery-sec">
-  <h2 class="title">Gallery</h2>
+  <h2 class="title reveal">Gallery</h2>
   <div class="gallery-filter" id="galleryFilter"></div>
   <div class="gallery" id="galleryGrid">
     <div class="gallery-empty">Loading photos…</div>
   </div>
 </section>
 
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stats-grid">
+    <div class="stat-item reveal"><div class="stat-num" data-target="5">0</div><div class="stat-label">Years Strong</div></div>
+    <div class="stat-item reveal"><div class="stat-num" data-target="12000">0</div><div class="stat-label">Cuts & Counting</div></div>
+    <div class="stat-item reveal"><div class="stat-num" data-target="500">0</div><div class="stat-label">5-Star Reviews</div></div>
+    <div class="stat-item reveal"><div class="stat-num" data-target="6">0</div><div class="stat-label">Skilled Barbers</div></div>
+  </div>
+</div>
+
+<!-- OUR SHOP -->
 <section id="our-shop">
-  <h2 class="title">Our Shop</h2>
+  <h2 class="title reveal">Our Shop</h2>
   <div class="about">
-    <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1200&q=80">
-    <div>
+    <img class="reveal" src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1200&q=80" alt="Stunna's Barbershop interior" loading="lazy">
+    <div class="reveal">
       <p>
         Located in Welland, Ontario, Stunna's Unique Barbering offers premium fades, beard grooming, luxury hot towel shaves, and modern styling in a relaxed upscale atmosphere. Every chair is a craftsman's station — every client leaves sharper than they came.
       </p>
@@ -430,12 +636,38 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
   </div>
 </section>
 
+<!-- VALUES -->
+<section class="values-section" id="values-sec">
+  <h2 class="title reveal" style="position:relative;">What Drives Us</h2>
+  <div class="values-grid">
+    <div class="value-card reveal">
+      <span class="value-icon">✂️</span>
+      <h3>The Craft</h3>
+      <p>Every blade stroke is deliberate. We don't rush cuts — we engineer them. Precision isn't a promise, it's the minimum.</p>
+    </div>
+    <div class="value-card reveal">
+      <span class="value-icon">🔁</span>
+      <h3>Every Chair, Every Time</h3>
+      <p>Walk into any seat at any location and get the same caliber of work. Our standards don't flex — they follow you.</p>
+    </div>
+    <div class="value-card reveal">
+      <span class="value-icon">⏱️</span>
+      <h3>Your Time Matters</h3>
+      <p>We respect your schedule as much as your style. On time, on point, with zero wasted minutes in between.</p>
+    </div>
+    <div class="value-card reveal">
+      <span class="value-icon">🤝</span>
+      <h3>More Than a Shop</h3>
+      <p>This is where conversations happen and regulars become family. Everyone walks in known, everyone walks out valued.</p>
+    </div>
+  </div>
+</section>
 
-
+<!-- REVIEWS -->
 <section id="reviews-sec">
-  <h2 class="title">Reviews</h2>
+  <h2 class="title reveal">Reviews</h2>
   <div class="reviews-wrap">
-    <div class="review-form">
+    <div class="review-form reveal">
       <h3>Leave a Review</h3>
       <input type="text" id="rvName" placeholder="Your name">
       <div class="star-picker" id="rvStars">
@@ -443,27 +675,112 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
       </div>
       <textarea id="rvComment" placeholder="Tell us about your experience…"></textarea>
       <button class="btn small" onclick="submitReview()">Post Review</button>
-      <p style="color:#888;font-size:12px;margin-top:12px;">Google sign-in required.</p>
+      <p style="color:var(--text-muted);font-size:12px;margin-top:12px;">Google sign-in required.</p>
     </div>
-    <div class="reviews-list" id="reviewsList">
+    <div class="reviews-list reveal" id="reviewsList">
       <div style="color:#666;text-align:center;padding:20px;">Loading reviews…</div>
     </div>
   </div>
 </section>
 
-<footer>
-  <div style="margin-bottom:24px;">
-    <span style="color:#e60000;font-family:Cinzel;font-size:18px;letter-spacing:4px;">STUNNA'S UNIQUE BARBERING</span>
+<!-- FAQ -->
+<section id="faq-sec" style="background:var(--dark-card);">
+  <h2 class="title reveal">Common Questions</h2>
+  <div class="faq-list">
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Do you accept walk-ins?<span class="arrow">▼</span></button>
+      <div class="faq-a">We're a booking-first shop to keep your wait time at zero. That said, if a chair opens up, walk-ins are welcome — just know that booked clients always get priority.</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">What payment methods do you accept?<span class="arrow">▼</span></button>
+      <div class="faq-a">Cash, debit, and Interac e-Transfer. No deposit is required when booking — payment is collected in-shop after your service.</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">What's your cancellation policy?<span class="arrow">▼</span></button>
+      <div class="faq-a">You can cancel any booking up to 2 hours before your appointment time, directly from "My Bookings" in your account. After that window, the booking is locked.</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">What if I'm running late?<span class="arrow">▼</span></button>
+      <div class="faq-a">We hold your slot for 10 minutes. After that, it may be released to the next person. If you know you'll be late, give us a call so we can work something out.</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Do you cut kids' hair?<span class="arrow">▼</span></button>
+      <div class="faq-a">Absolutely. We have dedicated pricing for kids under 11 and youth ages 12–16. Our barbers are experienced with younger clients and keep the experience relaxed and fun.</div>
+    </div>
   </div>
-  <p style="margin-bottom:10px;font-size:14px;color:#ccc;"><span style="color:#e60000;font-weight:600;">Phone:</span> (647) 707 7600</p>
-  <p style="margin-bottom:10px;font-size:14px;color:#ccc;"><span style="color:#e60000;font-weight:600;">Email:</span> stunnauniquebarbering@gmail.com</p>
-  <p style="margin-bottom:10px;font-size:14px;color:#ccc;"><span style="color:#e60000;font-weight:600;">Location:</span> 626 E Main St, Welland, ON L3B 3Y2</p>
-  <p style="margin-bottom:10px;font-size:14px;color:#ccc;"><span style="color:#e60000;font-weight:600;">Hours:</span> Mon–Sat: 9 AM – 7 PM · Sunday: Closed</p>
-  <div style="width:60px;height:2px;background:linear-gradient(90deg,#b30000,#333);margin:22px auto;border-radius:1px;"></div>
-  <p style="font-size:12px;">© 2026 Stunna's Unique Barbering</p>
+</section>
+
+<!-- HOURS & LOCATION -->
+<section id="location-sec">
+  <h2 class="title reveal">Hours & Location</h2>
+  <div class="location-grid">
+    <div class="reveal">
+      <ul class="hours-list">
+        <li><span class="day">Monday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+        <li><span class="day">Tuesday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+        <li><span class="day">Wednesday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+        <li><span class="day">Thursday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+        <li><span class="day">Friday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+        <li><span class="day">Saturday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+        <li><span class="day">Sunday</span><span class="time" style="color:var(--red-bright);">Closed</span></li>
+      </ul>
+    </div>
+    <div class="map-placeholder reveal">
+      <div class="addr">
+        <strong style="color:var(--gold);font-family:Cinzel;letter-spacing:2px;font-size:16px;">STUNNA'S UNIQUE BARBERING</strong><br><br>
+        626 E Main St, Welland, ON L3B 3Y2<br>
+        (647) 707 7600<br>
+        stunnauniquebarbering@gmail.com
+      </div>
+      <a class="btn small" href="https://maps.google.com/?q=626+E+Main+St,+Welland,+ON+L3B+3Y2" target="_blank" rel="noopener">Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-logo">
+        <img src="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03" alt="Logo">
+        <span>STUNNA'S</span>
+      </div>
+      <p>Luxury grooming and precision cuts in Welland, Ontario. Every client leaves sharper than they came.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#services-sec">Services</a></li>
+        <li><a href="#barbers-sec">Barbers</a></li>
+        <li><a href="#gallery-sec">Gallery</a></li>
+        <li><a href="#reviews-sec">Reviews</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <p>(647) 707 7600</p>
+      <p>stunnauniquebarbering@gmail.com</p>
+      <p>626 E Main St, Welland, ON L3B 3Y2</p>
+    </div>
+    <div class="footer-col">
+      <h4>Hours</h4>
+      <p>Mon – Sat: 9 AM – 7 PM</p>
+      <p style="color:var(--red-bright);">Sunday: Closed</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 Stunna's Unique Barbering. All rights reserved.
+  </div>
 </footer>
 
+<!-- STICKY MOBILE BOOK CTA -->
+<button class="sticky-cta" id="stickyCta" onclick="document.getElementById('barbers-sec').scrollIntoView({behavior:'smooth'})">Book Now</button>
 
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lb-close" aria-label="Close lightbox">×</button>
+  <img id="lbImg" src="" alt="Gallery photo">
+</div>
 
 <!-- Auth Modal -->
 <div class="modal-backdrop" id="authModal">
@@ -471,22 +788,17 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
     <div class="modal auth-modal">
       <button class="close" onclick="closeModal('authModal')">×</button>
       <h3 style="text-align:center;margin-bottom:4px;">Welcome</h3>
-      <p style="text-align:center;color:#888;font-size:13px;margin-bottom:24px;">Sign in to book appointments</p>
-
+      <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:24px;">Sign in to book appointments</p>
       <div class="auth-tabs">
         <button class="active" onclick="switchAuthTab('login',this)">Sign In</button>
         <button onclick="switchAuthTab('signup',this)">Create Account</button>
       </div>
-
-      <!-- Login form -->
       <div id="authLogin">
         <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@email.com"></div>
         <div class="auth-field"><label>Password</label><input type="password" id="loginPass" placeholder="Your password"></div>
         <button class="forgot-link" onclick="forgotPassword()">Forgot password?</button>
         <button class="btn" style="width:100%;margin-top:16px;" onclick="emailLogin()">Sign In</button>
       </div>
-
-      <!-- Signup form -->
       <div id="authSignup" style="display:none;">
         <div class="auth-field"><label>Display Name</label><input type="text" id="signupName" placeholder="Your name"></div>
         <div class="auth-field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@email.com"></div>
@@ -494,7 +806,6 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
         <div class="auth-field"><label>Confirm Password</label><input type="password" id="signupPass2" placeholder="Confirm password"></div>
         <button class="btn" style="width:100%;margin-top:16px;" onclick="emailSignup()">Create Account</button>
       </div>
-
       <div class="auth-divider">OR</div>
       <button class="btn-google" onclick="googleSignIn()">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#34A853" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.1 24.1 0 0 0 0 21.56l7.98-6.19z"/><path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
@@ -531,45 +842,36 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
       <div style="text-align:center;margin-bottom:24px;">
         <img id="bbAvatar" class="barber-avatar" style="width:100px;height:100px;margin:0 auto;">
         <h3 style="font-family:Cinzel;margin-top:14px;" id="bbName"></h3>
-        <p style="color:#bbb;font-size:13px;" id="bbSpecialty"></p>
+        <p style="color:var(--text-dim);font-size:13px;" id="bbSpecialty"></p>
+        <div id="bbVacationNotice" style="display:none;margin-top:10px;"></div>
         <button class="btn ghost small" id="bbGalleryBtn" style="display:none;margin-top:12px;" onclick="openBarberGallery()">View Barber's Gallery</button>
       </div>
 
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Name</label>
-        <input type="text" id="bkName" placeholder="Full name" style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Name</label>
+        <input type="text" id="bkName" placeholder="Full name" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
-        <input type="tel" id="bkPhone" placeholder="(647) 000-0000" maxlength="14" style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
-      </div>
-
-      <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">1 · Choose a Category</label>
-        <div class="cat-chips" id="catChips"><span style="color:#666;font-size:13px;">Loading menu…</span></div>
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
+        <input type="tel" id="bkPhone" placeholder="(647) 000-0000" maxlength="14" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
 
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">2 · Choose Your Cut (pick one)</label>
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Select Service — Men's Grooming</label>
         <div class="services-picker" id="menuPicker">
-          <div style="color:#666;font-size:13px;padding:10px 0;">Loading menu…</div>
+          <div style="color:#666;font-size:13px;padding:10px 0;">Loading services…</div>
         </div>
       </div>
 
-      <div class="field" id="extrasWrap" style="margin-bottom:18px;display:none;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">3 · Optional Extras</label>
-        <div class="services-picker" id="extrasPicker"></div>
-      </div>
-
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">4 · Pick a Date</label>
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Pick a Date</label>
         <div class="cal" id="bkCalendar"></div>
         <input type="hidden" id="bkDate">
         <p style="color:#666;font-size:11px;margin-top:8px;">Crossed-out dates are fully booked.</p>
       </div>
 
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">5 · Pick a Time</label>
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Pick a Time</label>
         <div class="time-grid" id="bkTimes">
           <div class="time-empty">Pick a date to see available times.</div>
         </div>
@@ -578,8 +880,8 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;align-items:end;">
         <div class="field">
-          <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Estimated Duration</label>
-          <input type="text" id="bkDuration" value="35 min" readonly style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:#888;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+          <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Estimated Duration</label>
+          <input type="text" id="bkDuration" value="35 min" readonly style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:var(--text-muted);padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
         </div>
         <div></div>
       </div>
@@ -591,7 +893,7 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
 
       <input type="hidden" id="bkBarber">
       <button class="btn" style="width:100%;margin-top:8px;" onclick="submitBooking()">Confirm Booking</button>
-      <p style="text-align:center;color:#888;margin-top:14px;font-size:12px;">You'll be asked to sign in with Google to confirm.</p>
+      <p style="text-align:center;color:var(--text-muted);margin-top:14px;font-size:12px;">You'll be asked to sign in with Google to confirm.</p>
     </div>
   </div>
 </div>
@@ -615,7 +917,7 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
       <h3 style="text-align:center;">Booking Confirmed</h3>
       <div id="successBody"></div>
       <div class="pay-note">
-        <strong style="color:#e60000;">Payment:</strong> No deposit required. Payment is due in-shop at the time of your appointment (cash, debit, or Interac e-Transfer).
+        <strong style="color:var(--red-bright);">Payment:</strong> No deposit required. Payment is due in-shop at the time of your appointment (cash, debit, or Interac e-Transfer).
       </div>
       <button class="btn" style="width:100%;margin-top:20px;" onclick="closeModal('successModal')">Done</button>
     </div>
@@ -628,7 +930,7 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
     <div class="modal">
       <button class="close" onclick="closeModal('myBookingsModal')">×</button>
       <h3>My Bookings</h3>
-      <div id="myBookingsList"><div style="color:#888;">Loading…</div></div>
+      <div id="myBookingsList"><div style="color:var(--text-muted);">Loading…</div></div>
     </div>
   </div>
 </div>
@@ -652,13 +954,27 @@ const storage = firebase.storage();
 const provider = new firebase.auth.GoogleAuthProvider();
 
 /* =========================================================
-   CONSTANTS
+   CONSTANTS — UNIVERSAL SERVICE MENU
 ========================================================= */
 const ADMIN_UID = "b44tKAz3gtR0AK4eNLOIgcgEpoD3";
 const SLOT_MINUTES = 35;
-const CURRENCY = "$";  // Canadian Dollars
+const CURRENCY = "$";
 
-/* Shop info & hours are hardcoded — edit here (and in dashboard.html) to change them. */
+const SHOP_SERVICES = [
+  { id:"svc_mens_haircut",      name:"Men's Haircut",             price:32,  duration:35,  note:"" },
+  { id:"svc_beard_trim",        name:"Beard Trim",                price:28,  duration:25,  note:"" },
+  { id:"svc_cut_beard",         name:"Hair Cut & Beard Trim",     price:47,  duration:50,  note:"" },
+  { id:"svc_hot_towel",         name:"Hot Towel Shave",           price:32,  duration:35,  note:"" },
+  { id:"svc_hot_towel_haircut", name:"Hot Towel Shave & Haircut", price:72,  duration:60,  note:"" },
+  { id:"svc_senior",            name:"Senior Haircut",            price:29,  duration:35,  note:"65+ Years" },
+  { id:"svc_basic_kids",        name:"Basic Kids Haircut",        price:23,  duration:25,  note:"Under 11 Years" },
+  { id:"svc_kids_fade",         name:"Kids Fade Haircut",         price:25,  duration:30,  note:"Under 11 Years" },
+  { id:"svc_youth",             name:"Youth Haircut",             price:28,  duration:30,  note:"12 Years – 16 Years" },
+  { id:"svc_facial",            name:"Men's Facial",              price:40,  duration:40,  note:"" },
+  { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" },
+  { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" }
+];
+
 const SHOP = {
   name: "Stunna's Unique Barbering",
   phone: "(647) 707 7600",
@@ -681,36 +997,121 @@ const SHOP = {
 let currentUser = null;
 let barbers = [];
 let unavailable = [];
+let vacations = [];
 let reviews = [];
 let gallery = [];
-let selectedCategoryId = null;      // which age-group tab is open
-let selectedMainKey = null;         // ONE cut, "catId:itemId"
-let selectedExtras = new Set();     // optional add-ons
-let myBarberId = null;              // set when the signed-in user is staff
+let selectedServices = new Set();
+let myBarberId = null;
 let selectedRating = 0;
 let galleryCategory = "All";
+
+/* =========================================================
+   SCROLL REVEAL
+========================================================= */
+(function initReveal(){
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        const el = e.target;
+        const siblings = el.parentElement ? [...el.parentElement.children].filter(c => c.classList.contains('reveal')) : [];
+        const idx = siblings.indexOf(el);
+        const delay = idx >= 0 ? idx * 70 : 0;
+        setTimeout(() => el.classList.add('visible'), delay);
+        obs.unobserve(el);
+      }
+    });
+  }, { threshold:0.15 });
+  // Initial elements
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  // Re-observe dynamically added .reveal elements
+  window._revealObserver = obs;
+})();
+
+/* =========================================================
+   STICKY CTA & NAV BOOK BUTTON
+========================================================= */
+(function initSticky(){
+  const hero = document.getElementById("home");
+  const stickyCta = document.getElementById("stickyCta");
+  const navBook = document.getElementById("navBookBtn");
+  const obs = new IntersectionObserver(([e]) => {
+    const past = !e.isIntersecting;
+    stickyCta.classList.toggle("show", past);
+    navBook.classList.toggle("show", past);
+  }, { threshold:0 });
+  obs.observe(hero);
+})();
+
+/* =========================================================
+   STATS COUNT-UP
+========================================================= */
+(function initCountUp(){
+  const nums = document.querySelectorAll('.stat-num[data-target]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(!e.isIntersecting) return;
+      const el = e.target;
+      const target = parseInt(el.dataset.target);
+      let current = 0;
+      const step = Math.max(1, Math.floor(target / 60));
+      const timer = setInterval(() => {
+        current += step;
+        if(current >= target){ current = target; clearInterval(timer); }
+        el.textContent = current.toLocaleString();
+      }, 25);
+      obs.unobserve(el);
+    });
+  }, { threshold:0.5 });
+  nums.forEach(n => obs.observe(n));
+})();
+
+/* =========================================================
+   PRICING GRID (public display)
+========================================================= */
+(function renderPricingGrid(){
+  const grid = document.getElementById("pricingGrid");
+  grid.innerHTML = SHOP_SERVICES.map(s => `
+    <div class="price-card reveal">
+      <div class="svc-info">
+        <h4>${s.name}</h4>
+        ${s.note ? `<span class="note">${s.note}</span>` : ''}
+      </div>
+      <div class="svc-price">${CURRENCY}${s.price.toFixed(2)}</div>
+    </div>
+  `).join("");
+  // observe new reveals
+  grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
+})();
+
+/* =========================================================
+   LIGHTBOX
+========================================================= */
+function openLightbox(src){
+  document.getElementById("lbImg").src = src;
+  document.getElementById("lightbox").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeLightbox(){
+  document.getElementById("lightbox").classList.remove("open");
+  document.body.style.overflow = "";
+}
 
 /* =========================================================
    AUTH
 ========================================================= */
 let userProfile = null;
-let userRole = null; // "admin" | "barber" | "client"
+let userRole = null;
 
 auth.onAuthStateChanged(async u => {
   currentUser = u;
   if(u){
-    // Create / load user profile
     const uRef = db.collection("users").doc(u.uid);
     const uSnap = await uRef.get();
     if(!uSnap.exists){
       const profile = {
-        uid: u.uid,
-        displayName: u.displayName || "",
-        email: u.email || "",
-        phone: "",
-        photoURL: u.photoURL || "",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        role: "client"
+        uid: u.uid, displayName: u.displayName || "", email: u.email || "",
+        phone: "", photoURL: u.photoURL || "",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(), role: "client"
       };
       await uRef.set(profile);
       userProfile = profile;
@@ -718,8 +1119,6 @@ auth.onAuthStateChanged(async u => {
       userProfile = uSnap.data();
     }
 
-    // Determine role — barbers are matched by UID first; on their very first
-    // sign-in they're matched by email and the account is linked (uid claimed).
     myBarberId = null;
     try{
       let bSnap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
@@ -732,7 +1131,6 @@ auth.onAuthStateChanged(async u => {
       }
       if(!bSnap.empty){
         myBarberId = bSnap.docs[0].id;
-        // Keep the barber card photo in sync with the profile photo
         const bd = bSnap.docs[0].data();
         const photo0 = userProfile.photoURL || u.photoURL || "";
         if(photo0 && !bd.photoURL) await bSnap.docs[0].ref.update({ photoURL: photo0 }).catch(() => {});
@@ -742,30 +1140,20 @@ auth.onAuthStateChanged(async u => {
       userRole = u.uid === ADMIN_UID ? "admin" : "client";
     }
 
-    // Update nav
     document.getElementById("navLogin").style.display = "none";
     document.getElementById("navProfile").style.display = "block";
     const avatar = document.getElementById("navAvatar");
     const dispName = document.getElementById("navDisplayName");
     const photo = userProfile.photoURL || u.photoURL || "";
-    if(photo){
-      avatar.src = photo;
-      avatar.style.display = "block";
-    } else {
-      avatar.style.display = "none";
-    }
+    if(photo){ avatar.src = photo; avatar.style.display = "block"; }
+    else { avatar.style.display = "none"; }
     dispName.textContent = (userProfile.displayName || u.displayName || u.email || "").split(" ")[0];
-
-    // Show staff button for admin/barber
     document.getElementById("staffBtn").style.display = (userRole === "admin" || userRole === "barber") ? "block" : "none";
-
     closeModal("authModal");
     loadUserBookings();
-    renderReviews(); // re-render to show delete buttons
+    renderReviews();
   } else {
-    userProfile = null;
-    userRole = null;
-    bookings = [];
+    userProfile = null; userRole = null; bookings = [];
     document.getElementById("navLogin").style.display = "block";
     document.getElementById("navProfile").style.display = "none";
     renderReviews();
@@ -774,7 +1162,6 @@ auth.onAuthStateChanged(async u => {
 
 function handleLogout(){ auth.signOut(); }
 
-/* ---------- AUTH MODAL ---------- */
 function openAuthModal(){ document.getElementById("authModal").classList.add("open"); }
 function switchAuthTab(tab, btn){
   document.querySelectorAll(".auth-tabs button").forEach(b => b.classList.remove("active"));
@@ -786,11 +1173,8 @@ async function emailLogin(){
   const email = document.getElementById("loginEmail").value.trim();
   const pass = document.getElementById("loginPass").value;
   if(!email || !pass) return Swal.fire({icon:"warning",title:"Missing info",text:"Enter email and password.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  try{
-    await auth.signInWithEmailAndPassword(email, pass);
-  }catch(e){
-    Swal.fire({icon:"error",title:"Sign-in failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }
+  try{ await auth.signInWithEmailAndPassword(email, pass); }
+  catch(e){ Swal.fire({icon:"error",title:"Sign-in failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
 async function emailSignup(){
   const name = document.getElementById("signupName").value.trim();
@@ -805,9 +1189,7 @@ async function emailSignup(){
     await res.user.updateProfile({ displayName: name });
     await res.user.sendEmailVerification();
     Swal.fire({icon:"success",title:"Account created!",text:"Check your email to verify.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }catch(e){
-    Swal.fire({icon:"error",title:"Signup failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }
+  }catch(e){ Swal.fire({icon:"error",title:"Signup failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
 async function googleSignIn(){
   try{ await auth.signInWithPopup(provider); }
@@ -819,27 +1201,19 @@ async function forgotPassword(){
   try{
     await auth.sendPasswordResetEmail(email);
     Swal.fire({icon:"success",title:"Email sent",text:"Check your inbox for a reset link.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }catch(e){
-    Swal.fire({icon:"error",title:"Error",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }
+  }catch(e){ Swal.fire({icon:"error",title:"Error",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
-function toggleProfileMenu(){
-  document.getElementById("profileDropdown").classList.toggle("open");
-}
-// Close dropdown on outside click
+function toggleProfileMenu(){ document.getElementById("profileDropdown").classList.toggle("open"); }
 document.addEventListener("click", e => {
   const dd = document.getElementById("profileDropdown");
-  const btn = e.target.closest(".profile-btn");
-  if(!btn && dd) dd.classList.remove("open");
+  if(!e.target.closest(".profile-btn") && dd) dd.classList.remove("open");
 });
-
 async function requireAuth(){
   if(currentUser) return currentUser;
-  openAuthModal();
-  return null;
+  openAuthModal(); return null;
 }
 
-/* ---------- PROFILE MODAL ---------- */
+/* PROFILE MODAL */
 function openProfileModal(){
   document.getElementById("profileDropdown").classList.remove("open");
   if(!currentUser) return openAuthModal();
@@ -850,7 +1224,6 @@ function openProfileModal(){
   document.getElementById("profAvatar").src = photo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23b30000' width='100' height='100'/%3E%3Ctext x='50' y='58' text-anchor='middle' fill='white' font-size='40' font-family='Cinzel'%3E" + ((userProfile?.displayName||currentUser.displayName||"?")[0]||"?").toUpperCase() + "%3C/text%3E%3C/svg%3E";
   document.getElementById("profileModal").classList.add("open");
 }
-
 document.getElementById("profPhotoFile").addEventListener("change", async e => {
   const file = e.target.files[0];
   if(!file || !currentUser) return;
@@ -864,11 +1237,8 @@ document.getElementById("profPhotoFile").addEventListener("change", async e => {
     document.getElementById("profAvatar").src = url;
     document.getElementById("navAvatar").src = url;
     document.getElementById("navAvatar").style.display = "block";
-  }catch(err){
-    Swal.fire({icon:"error",title:"Upload failed",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }
+  }catch(err){ Swal.fire({icon:"error",title:"Upload failed",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 });
-
 async function saveProfile(){
   if(!currentUser) return;
   const name = document.getElementById("profName").value.trim();
@@ -877,14 +1247,11 @@ async function saveProfile(){
   try{
     await db.collection("users").doc(currentUser.uid).update({ displayName: name, phone });
     if(myBarberId && userRole === "admin") await db.collection("barbers").doc(myBarberId).update({ name }).catch(() => {});
-    userProfile.displayName = name;
-    userProfile.phone = phone;
+    userProfile.displayName = name; userProfile.phone = phone;
     document.getElementById("navDisplayName").textContent = name.split(" ")[0];
     closeModal("profileModal");
     Swal.fire({icon:"success",title:"Profile saved!",timer:1500,showConfirmButton:false,background:"#111",color:"#fff"});
-  }catch(err){
-    Swal.fire({icon:"error",title:"Error",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }
+  }catch(err){ Swal.fire({icon:"error",title:"Error",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
 
 /* =========================================================
@@ -893,7 +1260,8 @@ async function saveProfile(){
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1647140655214-e4a2d914971f?auto=format&fit=crop&w=1800&q=80",
   "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1800&q=80",
-  "https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=1800&q=80"
+  "https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=1800&q=80",
+  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1800&q=80"
 ];
 (function initHero(){
   const hero = document.getElementById("home");
@@ -908,7 +1276,7 @@ const HERO_IMAGES = [
       layers.push(d);
       if(layers.length === 1) d.classList.add("on");
     };
-    probe.src = url; // images that fail to load are simply skipped
+    probe.src = url;
   });
   let idx = 0;
   setInterval(() => {
@@ -927,18 +1295,19 @@ db.collection("barbers").where("active","==",true).onSnapshot(snap => {
   renderBarbers();
 });
 db.collection("unavailableDays").onSnapshot(snap => {
-  unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  const all = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  unavailable = all.filter(u => u.type !== "vacation");
+  vacations = all.filter(u => u.type === "vacation");
+  renderBarbers(); // re-render vacation badges
   renderCal();
   rebuildTimeSlots();
 });
-// Slots collection (public read) for availability blocking
 let slots = [];
 db.collection("slots").onSnapshot(snap => {
   slots = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderCal();
   rebuildTimeSlots();
 });
-// User's own bookings — loaded after auth
 let bookings = [];
 function loadUserBookings(){
   if(!currentUser) { bookings = []; return; }
@@ -956,36 +1325,52 @@ db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
 });
 
 /* =========================================================
-   RENDER: BARBERS
+   VACATION HELPERS
 ========================================================= */
-function hasMenu(b){
-  return Array.isArray(b.menu) && b.menu.some(c => Array.isArray(c.items) && c.items.length);
+function getActiveVacation(barberId){
+  const today = localDateStr(new Date());
+  return vacations.find(v => v.barberId === barberId && v.start <= today && v.end >= today);
 }
-function renderBarbers(){
-  const grid = document.getElementById("barbersGrid");
-  const listed = barbers.filter(hasMenu); // barbers appear once their menu/prices are set
-  if(!listed.length){
-    grid.innerHTML = '<div class="gallery-empty" style="width:100%;text-align:center;">No barbers listed yet.</div>';
-    return;
-  }
-  grid.innerHTML = listed.map(b => `
-    <div class="barber-profile">
-      <img class="barber-avatar" src="${b.photoURL || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80'}" alt="${b.name}">
-      <h3>${b.name || "Barber"}</h3>
-      <p class="specialty">${b.specialty || ""}</p>
-      <button class="btn-book" onclick="openBarberBooking('${b.id}')">BOOK NOW</button>
-    </div>
-  `).join("");
+function isOnVacation(barberId, dateStr){
+  return vacations.some(v => v.barberId === barberId && v.start <= dateStr && v.end >= dateStr);
 }
 
 /* =========================================================
-   RENDER: GALLERY
+   RENDER: BARBERS (no hasMenu gate — all active barbers show)
+========================================================= */
+function renderBarbers(){
+  const grid = document.getElementById("barbersGrid");
+  if(!barbers.length){
+    grid.innerHTML = '<div class="gallery-empty" style="width:100%;text-align:center;">No barbers listed yet.</div>';
+    return;
+  }
+  grid.innerHTML = barbers.map(b => {
+    const vac = getActiveVacation(b.id);
+    let vacHtml = "";
+    if(vac && vac.showReturnDate){
+      const returnDate = new Date(vac.end + "T00:00:00");
+      returnDate.setDate(returnDate.getDate() + 1);
+      const fmtReturn = returnDate.toLocaleDateString("en-CA", { month:"short", day:"numeric" });
+      vacHtml = `<div class="vacation-badge">On vacation — back ${fmtReturn}${vac.message ? ' · ' + esc(vac.message) : ''}</div>`;
+    }
+    return `
+    <div class="barber-profile reveal">
+      <img class="barber-avatar" src="${b.photoURL || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80'}" alt="${esc(b.name)}" loading="lazy">
+      <h3>${esc(b.name || "Barber")}</h3>
+      <p class="specialty">${esc(b.specialty || "")}</p>
+      ${vacHtml}
+      <button class="btn-book" onclick="openBarberBooking('${b.id}')">BOOK NOW</button>
+    </div>`;
+  }).join("");
+  grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
+}
+
+/* =========================================================
+   RENDER: GALLERY (with lightbox)
 ========================================================= */
 function renderGallery(){
   const grid = document.getElementById("galleryGrid");
   const filter = document.getElementById("galleryFilter");
-  // Homepage shows the website gallery only; each barber's own cuts live
-  // behind "View Barber's Gallery" on their booking card.
   const site = gallery.filter(g => g.barberId === "shop" || g.barberId === "admin");
   const cats = ["All", ...new Set(site.map(g => g.category || "General"))];
   filter.innerHTML = cats.map(c =>
@@ -996,7 +1381,7 @@ function renderGallery(){
     grid.innerHTML = '<div class="gallery-empty">No photos yet.</div>';
     return;
   }
-  grid.innerHTML = shown.map(g => `<img src="${g.url}" alt="Gallery photo">`).join("");
+  grid.innerHTML = shown.map(g => `<img src="${g.url}" alt="Gallery photo" loading="lazy" onclick="openLightbox('${g.url}')">`).join("");
 }
 function setGalleryCat(c){ galleryCategory = c; renderGallery(); }
 
@@ -1025,11 +1410,8 @@ function renderReviews(){
 }
 
 /* =========================================================
-   BOOKING FLOW
+   BOOKING FLOW — UNIVERSAL MENU (no categories)
 ========================================================= */
-function openBooking(barberId){
-  openBarberBooking(barberId);
-}
 function openBarberBooking(barberId){
   const barber = barbers.find(b => b.id === barberId);
   if(!barber) return;
@@ -1039,9 +1421,21 @@ function openBarberBooking(barberId){
   document.getElementById("bkBarber").value = barberId;
   document.getElementById("bbGalleryBtn").style.display =
     gallery.some(g => g.barberId === barberId) ? "inline-block" : "none";
-  selectedCategoryId = null;
-  selectedMainKey = null;
-  selectedExtras.clear();
+
+  // Vacation notice in modal
+  const vac = getActiveVacation(barberId);
+  const vacNotice = document.getElementById("bbVacationNotice");
+  if(vac && vac.showReturnDate){
+    const returnDate = new Date(vac.end + "T00:00:00");
+    returnDate.setDate(returnDate.getDate() + 1);
+    const fmtReturn = returnDate.toLocaleDateString("en-CA", { month:"short", day:"numeric" });
+    vacNotice.innerHTML = `<div class="vacation-badge">On vacation — back ${fmtReturn}${vac.message ? ' · ' + esc(vac.message) : ''}</div>`;
+    vacNotice.style.display = "block";
+  } else {
+    vacNotice.style.display = "none";
+  }
+
+  selectedServices.clear();
   buildServicePicker();
   const n = new Date();
   calMonth = new Date(n.getFullYear(), n.getMonth(), 1);
@@ -1049,7 +1443,6 @@ function openBarberBooking(barberId){
   document.getElementById("bkTime").value = "";
   renderCal();
   document.getElementById("bkTimes").innerHTML = '<div class="time-empty">Pick a date to see available times.</div>';
-  // Prefill from profile
   if(userProfile){
     if(userProfile.displayName) document.getElementById("bkName").value = userProfile.displayName;
     if(userProfile.phone) document.getElementById("bkPhone").value = userProfile.phone;
@@ -1061,150 +1454,52 @@ function openBarberGallery(){
   const barber = getSelectedBarber();
   if(!barber) return;
   document.getElementById("bgTitle").textContent = (barber.name || "Barber") + " — Gallery";
-  const photos = gallery
-    .filter(g => g.barberId === barber.id)
-    .sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
+  const photos = gallery.filter(g => g.barberId === barber.id).sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
   document.getElementById("bgGrid").innerHTML = photos.length
-    ? photos.map(g => `<img src="${g.url}" alt="Cut by ${esc(barber.name||'barber')}">`).join("")
+    ? photos.map(g => `<img src="${g.url}" alt="Cut by ${esc(barber.name||'barber')}" onclick="openLightbox('${g.url}')">`).join("")
     : '<div class="gallery-empty">No photos yet.</div>';
   document.getElementById("barberGalleryModal").classList.add("open");
 }
-
-
 
 function getSelectedBarber(){
   const id = document.getElementById("bkBarber")?.value;
   return id ? barbers.find(b => b.id === id) : null;
 }
+function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2); }
 
-function fmtMoney(n){
-  return CURRENCY + Number(n||0).toLocaleString("en-CA");
-}
-
-function catKind(c){
-  // Explicit flag wins; otherwise infer extras from the title (legacy menus)
-  return c.kind || (/extra/i.test(c.title||"") ? "extras" : "main");
-}
+/* Build flat service picker from SHOP_SERVICES */
 function buildServicePicker(){
-  const chipsWrap = document.getElementById("catChips");
   const picker = document.getElementById("menuPicker");
-  const extrasWrap = document.getElementById("extrasWrap");
-  const extrasPicker = document.getElementById("extrasPicker");
-  const barber = getSelectedBarber();
-  if(!barber){
-    chipsWrap.innerHTML = "";
-    picker.innerHTML = '<div style="color:#666;font-size:13px;padding:10px 0;">Select a barber to see their menu.</div>';
-    extrasWrap.style.display = "none";
-    updateSummary();
-    return;
-  }
-  const menu = Array.isArray(barber.menu) ? barber.menu : [];
-  const mains = menu.filter(c => catKind(c) === "main" && (c.items||[]).length);
-  const extras = menu.filter(c => catKind(c) === "extras" && (c.items||[]).length);
-  if(!mains.length){
-    chipsWrap.innerHTML = "";
-    picker.innerHTML = '<div style="color:#666;font-size:13px;padding:10px 0;">This barber hasn\'t set up their menu yet. Please check back soon.</div>';
-    extrasWrap.style.display = "none";
-    updateSummary();
-    return;
-  }
-  if(!selectedCategoryId || !mains.some(c => c.id === selectedCategoryId)) selectedCategoryId = mains[0].id;
-
-  chipsWrap.innerHTML = mains.map(c =>
-    `<button class="chip ${c.id===selectedCategoryId?'active':''}" onclick="pickCategory('${esc(c.id)}')">${esc((c.icon?c.icon+" ":"") + (c.title||"Category"))}</button>`
-  ).join("");
-
-  const cat = mains.find(c => c.id === selectedCategoryId);
-  picker.innerHTML = (cat.items||[]).map(it => {
-    const key = cat.id + ":" + it.id;
-    if(it.included) return `
-      <div class="svc-row included">
-        <div class="check"></div>
-        <div class="lbl">${esc(it.name||"")}</div>
-        <div class="prc"><span style="color:#7fdfff;font-size:11px;letter-spacing:2px;">INCLUDED</span></div>
-      </div>`;
-    const sel = selectedMainKey === key;
+  picker.innerHTML = SHOP_SERVICES.map(svc => {
+    const sel = selectedServices.has(svc.id);
     return `
-      <div class="svc-row radio ${sel?'selected':''}" onclick="pickMain('${esc(key)}')">
+      <div class="svc-row ${sel?'selected':''}" onclick="toggleService('${svc.id}')">
         <div class="check">${sel?"✓":""}</div>
-        <div class="lbl">${esc(it.name||"")}</div>
-        <div class="prc">${it.fromPrice ? fmtMoney(it.price)+"+" : fmtMoney(it.price)}</div>
+        <div class="lbl">${esc(svc.name)}${svc.note ? `<span class="svc-note">${esc(svc.note)}</span>` : ''}</div>
+        <div class="prc">${fmtMoney(svc.price)}</div>
       </div>`;
-  }).join("") || '<div class="time-empty">No services in this category.</div>';
-
-  if(extras.length){
-    extrasWrap.style.display = "block";
-    extrasPicker.innerHTML = extras.map(c =>
-      (c.items||[]).filter(it => !it.included).map(it => {
-        const key = c.id + ":" + it.id;
-        const sel = selectedExtras.has(key);
-        return `
-          <div class="svc-row ${sel?'selected':''}" onclick="toggleExtra('${esc(key)}')">
-            <div class="check">${sel?"✓":""}</div>
-            <div class="lbl">${esc(it.name||"")}</div>
-            <div class="prc">${it.fromPrice ? fmtMoney(it.price)+"+" : fmtMoney(it.price)}</div>
-          </div>`;
-      }).join("")
-    ).join("");
-  } else {
-    extrasWrap.style.display = "none";
-  }
+  }).join("");
   updateSummary();
 }
-
-function pickCategory(id){
-  selectedCategoryId = id;
-  selectedMainKey = null; // switching age group clears the picked cut
-  buildServicePicker();
-  renderCal();
-  rebuildTimeSlots();
-}
-function pickMain(key){
-  selectedMainKey = selectedMainKey === key ? null : key; // one cut only
-  buildServicePicker();
-  renderCal();
-  rebuildTimeSlots();
-}
-function toggleExtra(key){
-  if(selectedExtras.has(key)) selectedExtras.delete(key); else selectedExtras.add(key);
+function toggleService(id){
+  if(selectedServices.has(id)) selectedServices.delete(id); else selectedServices.add(id);
   buildServicePicker();
   renderCal();
   rebuildTimeSlots();
 }
 
-function findMenuItem(menu, key){
-  const [cid, iid] = String(key).split(":");
-  const c = menu.find(x => x.id === cid);
-  if(!c) return null;
-  const it = (c.items||[]).find(x => x.id === iid);
-  if(!it || it.included) return null;
-  return { name: it.name, price: Number(it.price)||0, duration: Number(it.duration)||0, fromPrice: !!it.fromPrice };
-}
 function getSelectedMenuItems(){
-  const barber = getSelectedBarber();
-  if(!barber) return [];
-  const menu = Array.isArray(barber.menu) ? barber.menu : [];
-  const out = [];
-  if(selectedMainKey){
-    const m = findMenuItem(menu, selectedMainKey);
-    if(m) out.push(m);
-  }
-  selectedExtras.forEach(k => {
-    const e = findMenuItem(menu, k);
-    if(e) out.push(e);
-  });
-  return out;
+  return SHOP_SERVICES.filter(s => selectedServices.has(s.id));
 }
 
 function updateSummary(){
   const picked = getSelectedMenuItems();
   const total = picked.reduce((s,i) => s + i.price, 0);
-  const anyFrom = picked.some(i => i.fromPrice);
   const chips = document.getElementById("summaryChips");
   chips.innerHTML = picked.length
-    ? picked.map(i => `<span class="chip">${esc(i.name)}${i.fromPrice?"+":""}</span>`).join("")
+    ? picked.map(i => `<span class="chip">${esc(i.name)}</span>`).join("")
     : '<span style="color:#666;font-size:13px;">No services selected</span>';
-  document.getElementById("summaryTotal").textContent = fmtMoney(total) + (anyFrom ? "+" : "");
+  document.getElementById("summaryTotal").textContent = fmtMoney(total);
   const durEl = document.getElementById("bkDuration");
   if(durEl) durEl.value = getBookingDuration() + " min";
 }
@@ -1222,17 +1517,13 @@ document.getElementById("bkPhone").addEventListener("input", e => {
 /* =========================================================
    BOOKING CALENDAR
 ========================================================= */
-let calMonth = null; // Date pinned to the 1st of the visible month
-
+let calMonth = null;
 function localDateStr(d){
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
 }
 function calBounds(){
   const n = new Date();
-  return {
-    min: new Date(n.getFullYear(), n.getMonth(), 1),
-    max: new Date(n.getFullYear(), n.getMonth() + 2, 1) // book up to ~3 months out
-  };
+  return { min: new Date(n.getFullYear(), n.getMonth(), 1), max: new Date(n.getFullYear(), n.getMonth() + 2, 1) };
 }
 function calShift(dir){
   const { min, max } = calBounds();
@@ -1242,7 +1533,6 @@ function calShift(dir){
   renderCal();
 }
 function dayIsFull(barberId, dstr){
-  // A day is "full" only when not a single start time fits the current booking.
   const hrs = getHoursForDate(dstr);
   if(hrs.closed) return false;
   const dur = getBookingDuration();
@@ -1289,8 +1579,9 @@ function renderCal(){
     const dstr = localDateStr(new Date(y, mo, day));
     const past = dstr < todayStr;
     const closed = getHoursForDate(dstr).closed;
+    const onVac = barberId && isOnVacation(barberId, dstr);
     let cls = "cal-day", click = "";
-    if(past || closed){
+    if(past || closed || onVac){
       cls += " muted";
     } else if(barberId && dayIsFull(barberId, dstr)){
       cls += " full";
@@ -1341,9 +1632,8 @@ function getBookingDuration(){
   const picked = getSelectedMenuItems();
   if(!picked.length) return SLOT_MINUTES;
   const total = picked.reduce((s,i) => s + (i.duration || 0), 0);
-  return Math.max(total, 20) || SLOT_MINUTES; // 20-minute floor
+  return Math.max(total, 20) || SLOT_MINUTES;
 }
-
 function getHoursForDate(dateStr){
   if(!dateStr) return { start:0, end:0, closed:true };
   const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -1354,7 +1644,6 @@ function getHoursForDate(dateStr){
   const [ch,cm] = (h.close||"19:00").split(":").map(Number);
   return { start: oh, startMin: om||0, end: ch, endMin: cm||0, closed: false };
 }
-
 function generateSlots(){
   const date = document.getElementById("bkDate")?.value;
   const hrs = getHoursForDate(date);
@@ -1365,15 +1654,14 @@ function generateSlots(){
   const end = hrs.end * 60 + (hrs.endMin||0);
   while(mins + dur <= end){
     out.push({ h: Math.floor(mins/60), m: mins%60 });
-    mins += 30; // clean half-hour start times; overlaps are filtered by blocked ranges
+    mins += 30;
   }
   return out;
 }
 function getBlockedRanges(barberId, date){
   const ranges = [];
   slots.forEach(s => {
-    if(s.barberId !== barberId) return;
-    if(s.date !== date) return;
+    if(s.barberId !== barberId || s.date !== date) return;
     const [h,m] = parseTime(s.time);
     const start = h*60+m;
     ranges.push([start, start + (s.duration || SLOT_MINUTES)]);
@@ -1386,6 +1674,10 @@ function getBlockedRanges(barberId, date){
     const [eh,em] = parseTime(u.endTime);
     ranges.push([sh*60+sm, eh*60+em]);
   });
+  // Vacation days block all day
+  if(isOnVacation(barberId, date)){
+    ranges.push([0, 24*60]);
+  }
   return ranges;
 }
 function pickTime(t, btn){
@@ -1423,15 +1715,14 @@ async function submitBooking(){
   if(!name || !phone || !barberId || !date || !time){
     return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in every field and pick a time.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
-  if(!selectedMainKey){
-    return Swal.fire({icon:"warning", title:"Choose your cut", text:"Pick one haircut from the menu — extras are optional add-ons.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  if(!selectedServices.size){
+    return Swal.fire({icon:"warning", title:"Choose a service", text:"Pick at least one service from the menu.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
   const picked = getSelectedMenuItems();
 
   const user = await requireAuth();
   if(!user) return;
 
-  // Re-validate slot against latest data (using the real booking duration)
   const [h,m] = parseTime(time);
   const startMin = h*60+m;
   const endMin = startMin + getBookingDuration();
@@ -1441,12 +1732,10 @@ async function submitBooking(){
   }
 
   const total = picked.reduce((s,i) => s + i.price, 0);
-  const anyFrom = picked.some(i => i.fromPrice);
-  const serviceList = picked.map(i => i.name + (i.fromPrice?"+":"")).join(", ");
+  const serviceList = picked.map(i => i.name).join(", ");
   const bookingNumber = "SB" + Date.now().toString(36).toUpperCase().slice(-6);
 
   try{
-    // Double-booking prevention via transaction
     const slotRef = db.collection("slots").doc(barberId + "_" + date + "_" + time.replace(/\s/g,""));
     await db.runTransaction(async tx => {
       const slotSnap = await tx.get(slotRef);
@@ -1454,30 +1743,26 @@ async function submitBooking(){
       const bookingRef = db.collection("bookings").doc();
       tx.set(slotRef, { barberId, date, time, duration: getBookingDuration(), bookingId: bookingRef.id, uid: user.uid, createdAt: new Date().toISOString() });
       tx.set(bookingRef, {
-      barberId, uid:user.uid, userEmail: user.email || "", bookingNumber, name, phone, date, time,
-      service: serviceList, duration: getBookingDuration(), total, fromPrice: anyFrom,
-      deposit: "No", status: "Active", cancelledBy: null,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        barberId, uid:user.uid, userEmail: user.email || "", bookingNumber, name, phone, date, time,
+        service: serviceList, duration: getBookingDuration(), total,
+        deposit: "No", status: "Active", cancelledBy: null,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
     });
 
-    // Success modal
     const barber = barbers.find(b => b.id === barberId);
-    const barberName = barber?.name || "";
     document.getElementById("successBody").innerHTML = `
       <div class="booking-line"><span class="k">Booking #</span><span class="v">${bookingNumber}</span></div>
-      <div class="booking-line"><span class="k">Barber</span><span class="v">${esc(barberName)}</span></div>
+      <div class="booking-line"><span class="k">Barber</span><span class="v">${esc(barber?.name||"")}</span></div>
       <div class="booking-line"><span class="k">Date</span><span class="v">${date}</span></div>
       <div class="booking-line"><span class="k">Time</span><span class="v">${time}</span></div>
       <div class="booking-line"><span class="k">Services</span><span class="v" style="text-align:right;max-width:60%;">${esc(serviceList)}</span></div>
-      <div class="booking-line"><span class="k">Total</span><span class="v" style="color:#e60000;font-family:Cinzel;">${fmtMoney(total)}${anyFrom?"+":""}</span></div>
+      <div class="booking-line"><span class="k">Total</span><span class="v" style="color:var(--red-bright);font-family:Cinzel;">${fmtMoney(total)}</span></div>
     `;
     closeModal('barberBookingModal');
     document.getElementById("successModal").classList.add("open");
 
-    // Reset form
-    selectedMainKey = null;
-    selectedExtras.clear();
+    selectedServices.clear();
     document.getElementById("bkName").value = "";
     document.getElementById("bkPhone").value = "";
     document.getElementById("bkTime").value = "";
@@ -1543,41 +1828,31 @@ async function openMyBookings(){
   if(!user) return;
   const modal = document.getElementById("myBookingsModal");
   modal.classList.add("open");
-  const mine = bookings
-    .filter(b => b.uid === user.uid)
-    .sort((a,b) => (b.date||"").localeCompare(a.date||"") || (b.time||"").localeCompare(a.time||""));
-
+  const mine = bookings.filter(b => b.uid === user.uid).sort((a,b) => (b.date||"").localeCompare(a.date||"") || (b.time||"").localeCompare(a.time||""));
   const now = new Date();
   const todayStr = now.toISOString().slice(0,10);
   const upcoming = mine.filter(b => b.date >= todayStr && b.status !== "Cancelled" && b.status !== "Completed" && b.status !== "No-show");
   const past = mine.filter(b => !upcoming.includes(b)).slice(0,10);
-
   const list = document.getElementById("myBookingsList");
   if(!mine.length){
-    list.innerHTML = '<div style="color:#888;text-align:center;padding:20px;">No bookings yet.</div>';
+    list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:20px;">No bookings yet.</div>';
     return;
   }
-
   function renderBk(b){
     const barber = barbers.find(x => x.id === b.barberId)?.name || "\u2014";
     const cancelled = b.status === "Cancelled";
     const completed = b.status === "Completed";
     const noshow = b.status === "No-show";
     const statusBadge = cancelled ? "cancelled" : completed ? "pay-yes" : noshow ? "cancelled" : "active";
-
     let canCancel = !cancelled && !completed && !noshow;
     if(canCancel && b.date && b.time){
       const [h,m] = parseTime(b.time);
-      const apptTime = new Date(b.date + "T00:00:00");
-      apptTime.setHours(h, m, 0, 0);
-      const hoursUntil = (apptTime - now) / (1000*60*60);
-      if(hoursUntil < 2) canCancel = false;
+      const apptTime = new Date(b.date + "T00:00:00"); apptTime.setHours(h, m, 0, 0);
+      if((apptTime - now) / (1000*60*60) < 2) canCancel = false;
     }
-
     let cancelHtml = "";
     if(canCancel) cancelHtml = '<button class="btn small" style="margin-top:12px;background:#4d0a0a;" onclick="cancelBooking(\'' + b.id + '\')">Cancel Booking</button>';
-    else if(!cancelled && !completed && !noshow) cancelHtml = '<p style="color:#888;font-size:11px;margin-top:8px;">Too late to cancel (within 2 hours)</p>';
-
+    else if(!cancelled && !completed && !noshow) cancelHtml = '<p style="color:var(--text-muted);font-size:11px;margin-top:8px;">Too late to cancel (within 2 hours)</p>';
     return '<div class="mybk ' + (cancelled||noshow?'cancelled':'') + '">'
       + '<div class="row"><span class="bnum">#' + (b.bookingNumber||"") + '</span>'
       + '<span class="badge ' + statusBadge + '">' + (b.status||"Active") + '</span></div>'
@@ -1586,19 +1861,16 @@ async function openMyBookings(){
       + '<div class="info-line" style="color:#999;font-size:13px;">' + esc(b.service||"") + '</div>'
       + '<div class="row" style="margin-top:10px;">'
       + '<span class="badge ' + (b.deposit==='Yes'?'pay-yes':'pay-no') + '">Payment: ' + (b.deposit==='Yes'?'Made':'Not Paid') + '</span>'
-      + '<span style="color:#e60000;font-family:Cinzel;">' + fmtMoney(b.total||0) + (b.fromPrice?"+":"") + '</span>'
-      + '</div>'
-      + cancelHtml
-      + '</div>';
+      + '<span style="color:var(--red-bright);font-family:Cinzel;">' + fmtMoney(b.total||0) + '</span>'
+      + '</div>' + cancelHtml + '</div>';
   }
-
   let html = "";
   if(upcoming.length){
-    html += '<h4 style="font-family:Cinzel;letter-spacing:1px;margin-bottom:12px;color:#e60000;">Upcoming</h4>';
+    html += '<h4 style="font-family:Cinzel;letter-spacing:1px;margin-bottom:12px;color:var(--red-bright);">Upcoming</h4>';
     html += upcoming.map(renderBk).join("");
   }
   if(past.length){
-    html += '<h4 style="font-family:Cinzel;letter-spacing:1px;margin:20px 0 12px;color:#888;">Past</h4>';
+    html += '<h4 style="font-family:Cinzel;letter-spacing:1px;margin:20px 0 12px;color:var(--text-muted);">Past</h4>';
     html += past.map(renderBk).join("");
   }
   list.innerHTML = html;
@@ -1608,26 +1880,19 @@ async function cancelBooking(id){
   if(!b || !currentUser || b.uid !== currentUser.uid) return;
   const res = await Swal.fire({
     icon:"warning", title:"Cancel this booking?", showCancelButton:true,
-    background:"#111", color:"#fff",
-    confirmButtonColor:"#b30000", cancelButtonColor:"#333",
-    confirmButtonText:"Yes, cancel"
+    background:"#111", color:"#fff", confirmButtonColor:"#b30000", cancelButtonColor:"#333", confirmButtonText:"Yes, cancel"
   });
   if(res.isConfirmed){
-    await db.collection("bookings").doc(id).update({
-      status:"Cancelled", cancelledBy:"client"
-    });
-    // Free the reserved time slot so others can book it
+    await db.collection("bookings").doc(id).update({ status:"Cancelled", cancelledBy:"client" });
     if(b.barberId && b.date && b.time){
-      await db.collection("slots")
-        .doc(b.barberId + "_" + b.date + "_" + String(b.time).replace(/\s/g,""))
-        .delete().catch(() => {});
+      await db.collection("slots").doc(b.barberId + "_" + b.date + "_" + String(b.time).replace(/\s/g,"")).delete().catch(() => {});
     }
     openMyBookings();
   }
 }
 
 /* =========================================================
-   MODAL / HELPERS
+   HELPERS
 ========================================================= */
 function closeModal(id){ document.getElementById(id).classList.remove("open"); }
 document.querySelectorAll(".modal-backdrop").forEach(m => {
@@ -1645,8 +1910,6 @@ function relTime(ts){
   if(days < 30) return `${days} day${days>1?"s":""} ago`;
   return d.toLocaleDateString();
 }
-
-/* Close mobile nav on link click */
 document.querySelectorAll("#navlist a, #navlist button").forEach(el => {
   el.addEventListener("click", () => document.getElementById("navlist").classList.remove("open"));
 });
