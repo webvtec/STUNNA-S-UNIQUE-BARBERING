@@ -287,6 +287,8 @@ td{color:#ddd;}
 <header style="display:none;" id="mainHeader">
   <h1>ADMIN</h1>
   <div class="user-info">
+    <span id="userName" style="display:none;"></span>
+    <span class="role-badge" id="roleBadge" style="display:none;">…</span>
     <button class="logout" onclick="doLogout()">Sign Out</button>
   </div>
 </header>
@@ -1572,7 +1574,5 @@ function parseTimeAmPm(str){
   return [h,mm];
 }
 </script>
-<!-- Footer Banner -->
-<div style="position:fixed;bottom:0;left:0;right:0;background-color:#1a1a1a;border-top:2px solid var(--accent);text-align:center;padding:5px 20px;font-family:Bebas Neue,cursive;font-size:13px;letter-spacing:2px;color:#aaa;z-index:1000;"><a href="https://webvtec.com" target="_blank" style="color:#aaa;text-decoration:underline;display:block;width:100%;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">CLICK TO REQUEST YOUR OWN WEBSITE. <span style="color:var(--accent);">webvtec.com</span></a></div>
 </body>
 </html>
