@@ -18,16 +18,19 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth;}
-body{background:#050505;color:white;font-family:Poppins,sans-serif;}
+body{background:#050505;color:#f5f7ff;font-family:Poppins,sans-serif;}
 
 /* ---------- NAV ---------- */
 nav{
-  position:fixed;top:0;left:0;width:100%;
-  padding:25px 80px;display:flex;justify-content:space-between;align-items:center;
-  background:rgba(0,0,0,.4);backdrop-filter:blur(20px);z-index:999;
+  position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  width:min(1200px,calc(100% - 40px));
+  padding:12px 28px;display:flex;justify-content:space-between;align-items:center;
+  background:rgba(5,5,5,.82);backdrop-filter:blur(20px);z-index:999;
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 0 25px rgba(179,0,0,.28), 0 12px 35px rgba(0,0,0,.6);
 }
-nav h1{font-family:Cinzel;font-size:28px;letter-spacing:3px;}
-nav ul{display:flex;gap:32px;list-style:none;align-items:center;}
+nav .logo img{height:52px;display:block;filter:drop-shadow(0 0 10px rgba(179,0,0,.5));}
+nav ul{display:flex;gap:26px;list-style:none;align-items:center;}
 nav a,nav button.link{
   color:white;text-decoration:none;transition:.3s;background:none;border:none;
   font-family:Poppins;font-size:15px;cursor:pointer;
@@ -42,12 +45,12 @@ nav .staff-link{font-size:12px;opacity:.5;letter-spacing:2px;}
   height:100vh;
   background:
     linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.75)),
-    url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1800&q=80");
+    url("https://images.unsplash.com/photo-1585747860019-8661c4869e09?auto=format&fit=crop&w=1800&q=80");
   background-size:cover;background-position:center;
   display:flex;justify-content:center;align-items:center;text-align:center;
 }
 .hero h2{font-size:70px;font-family:Cinzel;letter-spacing:2px;}
-.hero p{margin-top:20px;font-size:20px;opacity:.8;}
+.hero p{margin-top:20px;font-size:20px;color:#c9d8ff;opacity:.9;}
 
 /* ---------- BUTTONS ---------- */
 .btn{
@@ -63,7 +66,8 @@ nav .staff-link{font-size:12px;opacity:.5;letter-spacing:2px;}
 /* ---------- SECTIONS ---------- */
 section{padding:120px 8%;}
 .title{font-size:50px;font-family:Cinzel;text-align:center;margin-bottom:70px;letter-spacing:2px;}
-.subtitle{text-align:center;margin-top:-50px;margin-bottom:60px;color:#bbb;font-size:16px;}
+.title::after{content:"";display:block;width:70px;height:3px;margin:22px auto 0;background:linear-gradient(90deg,#b30000,#3b6fd4);border-radius:2px;}
+.subtitle{text-align:center;margin-top:-50px;margin-bottom:60px;color:#9db4e8;font-size:16px;}
 
 /* ---------- ABOUT ---------- */
 .about{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
@@ -91,8 +95,8 @@ section{padding:120px 8%;}
 .service:hover{transform:translateY(-5px);border-color:#b30000;}
 .service h4{font-family:Cinzel;font-size:20px;margin-bottom:14px;letter-spacing:1px;}
 .service .price{font-size:32px;color:#e60000;font-family:Cinzel;}
-.service .dur{color:#888;font-size:13px;margin-top:6px;}
-.service .tag{color:#888;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+.service .dur{color:#7aa2ff;font-size:13px;margin-top:6px;}
+.service .tag{color:#7aa2ff;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
 
 /* ---------- GALLERY ---------- */
 .gallery-filter{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-bottom:40px;}
@@ -142,7 +146,7 @@ section{padding:120px 8%;}
 .info p{color:#ddd;line-height:1.7;}
 
 /* ---------- FOOTER ---------- */
-footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13px;letter-spacing:1px;}
+footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-top:1px solid rgba(255,255,255,.08);font-size:13px;letter-spacing:1px;}
 
 /* ---------- BOOKING SECTION ---------- */
 #booking{display:none;}
@@ -151,7 +155,7 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
   max-width:900px;margin:0 auto;
 }
 .booking-panel .field{margin-bottom:22px;}
-.booking-panel label{display:block;color:#bbb;font-size:13px;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;}
+.booking-panel label{display:block;color:#9db4e8;font-size:13px;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;}
 .booking-panel input,.booking-panel select{
   width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;
   padding:16px;border-radius:10px;font-family:Poppins;font-size:15px;
@@ -177,6 +181,9 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
 .svc-row .lbl{flex:1;padding:0 14px;font-size:14px;}
 .svc-row .prc{color:#e60000;font-family:Cinzel;font-size:16px;}
 .svc-row.radio .check{border-radius:50%;}
+.svc-row.included{cursor:default;opacity:.75;}
+.svc-row.included:hover{background:#0a0a0a;}
+.svc-row.included .check{visibility:hidden;}
 .summary-bar{
   margin-top:20px;padding:18px;background:#050505;border-radius:10px;
   display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
@@ -234,12 +241,27 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
 
 /* ---------- MOBILE ---------- */
 @media(max-width:900px){
-  nav{padding:20px;}
+  nav{padding:10px 18px;}
+  nav .logo img{height:42px;}
   nav ul{
-    display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;
-    background:rgba(0,0,0,.95);padding:24px;gap:20px;align-items:flex-start;
-    backdrop-filter:blur(20px);
+    display:none;position:absolute;top:calc(100% + 12px);left:0;right:0;flex-direction:column;
+    background:rgba(5,5,5,.97);padding:20px;gap:12px;align-items:stretch;
+    backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 0 30px rgba(179,0,0,.35), 0 20px 45px rgba(0,0,0,.7);
   }
+  nav ul li{width:100%;}
+  nav ul a,nav ul button.link{
+    display:block;width:100%;text-align:left;padding:14px 18px;
+    background:#0d0d0d;border:1px solid rgba(255,255,255,.1);border-left:3px solid #b30000;
+    border-radius:0;font-size:14px;letter-spacing:2px;text-transform:uppercase;
+    transition:.3s;
+  }
+  nav ul a:hover,nav ul button.link:hover,
+  nav ul a:active,nav ul button.link:active{
+    background:#180505;color:#fff;border-color:#b30000;
+    box-shadow:0 0 18px rgba(230,0,0,.45), inset 0 0 12px rgba(179,0,0,.15);
+  }
+  nav ul .staff-link{opacity:.6;}
   nav ul.open{display:flex;}
   .hamburger{display:flex;}
   .about,.contact,.reviews-wrap{grid-template-columns:1fr;gap:40px;}
@@ -259,12 +281,10 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
 <body>
 
 <nav>
-  <h1>STUNNA'S</h1>
+  <a class="logo" href="#home"><img src="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03" alt="Stunna's Unique Barbering"></a>
   <ul id="navlist">
     <li><a href="#home">Home</a></li>
-    <li><a href="#our-shop">Shop</a></li>
     <li><a href="#barbers-sec">Barbers</a></li>
-    <li><a href="#services-sec">Services</a></li>
     <li><a href="#gallery-sec">Gallery</a></li>
     <li><a href="#reviews-sec">Reviews</a></li>
     <li><a href="#contact-sec">Contact</a></li>
@@ -285,6 +305,13 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
   </div>
 </header>
 
+<section id="barbers-sec">
+  <h2 class="title">Choose Your Barber</h2>
+  <div class="barbers" id="barbersGrid">
+    <div class="gallery-empty" style="grid-column:1/-1;">Loading barbers…</div>
+  </div>
+</section>
+
 <section id="our-shop">
   <h2 class="title">Our Shop</h2>
   <div class="about">
@@ -294,13 +321,6 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
         Located in Welland, Ontario, Stunna's Unique Barbering offers premium fades, beard grooming, luxury hot towel shaves, and modern styling in a relaxed upscale atmosphere. Every chair is a craftsman's station — every client leaves sharper than they came.
       </p>
     </div>
-  </div>
-</section>
-
-<section id="barbers-sec">
-  <h2 class="title">Choose Your Barber</h2>
-  <div class="barbers" id="barbersGrid">
-    <div class="gallery-empty" style="grid-column:1/-1;">Loading barbers…</div>
   </div>
 </section>
 
@@ -319,7 +339,7 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
     </div>
     <div class="field">
       <label>Choose Your Barber</label>
-      <select id="bkBarber" onchange="rebuildTimeSlots()">
+      <select id="bkBarber" onchange="onBarberChange()">
         <option value="">— Select a barber —</option>
       </select>
     </div>
@@ -343,26 +363,18 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
 
     <div class="field">
       <label>Services</label>
-      <div class="services-picker">
-        <h4>Choose Your Cut</h4>
-        <div id="cutList"></div>
-        <h4 style="margin-top:22px;">Add-Ons</h4>
-        <div id="addonList"></div>
-        <div class="summary-bar">
-          <div class="chips" id="summaryChips"><span style="color:#666;font-size:13px;">No services selected</span></div>
-          <div class="total" id="summaryTotal">$0</div>
-        </div>
+      <div class="services-picker" id="menuPicker">
+        <div style="color:#666;font-size:13px;padding:10px 0;">Select a barber to see their menu.</div>
+      </div>
+      <div class="summary-bar" style="margin-top:16px;">
+        <div class="chips" id="summaryChips"><span style="color:#666;font-size:13px;">No services selected</span></div>
+        <div class="total" id="summaryTotal">$0</div>
       </div>
     </div>
 
     <button class="btn" style="width:100%;margin-top:10px;" onclick="submitBooking()">Confirm Booking</button>
     <p style="text-align:center;color:#888;margin-top:16px;font-size:13px;">You'll be asked to sign in with Google to confirm.</p>
   </div>
-</section>
-
-<section id="services-sec">
-  <h2 class="title">Services & Pricing</h2>
-  <div class="services" id="servicesGrid"></div>
 </section>
 
 <section id="gallery-sec">
@@ -407,7 +419,7 @@ footer{padding:40px;text-align:center;background:#090909;color:#777;font-size:13
   </div>
 </section>
 
-<footer>© 2025 Stunna's Unique Barbering</footer>
+<footer>© 2026 Stunna's Unique Barbering</footer>
 
 <!-- Booking success modal -->
 <div class="modal-backdrop" id="successModal">
@@ -459,21 +471,7 @@ const ADMIN_UID = "REPLACE_WITH_ADMIN_UID";
 const TELEGRAM_BOT_TOKEN = ""; // optional, leave blank to skip notifications
 const BUSINESS_HOURS = { start: 9, end: 19 };  // 9 AM – 7 PM
 const SLOT_MINUTES = 35;
-
-const CUTS = [
-  { id:"signature",   name:"Signature Haircut",   price:40 },
-  { id:"haircut_beard", name:"Haircut + Beard",    price:55 },
-  { id:"skin_fade",   name:"Skin Fade",            price:45 },
-  { id:"buzz",        name:"Buzz Cut",             price:20 },
-  { id:"kids",        name:"Kids Cut (12 & under)",price:25 }
-];
-const ADDONS = [
-  { id:"beard",     name:"Beard Trim",         price:15 },
-  { id:"hot_towel", name:"Hot Towel Shave",    price:25 },
-  { id:"lineup",    name:"Line Up / Edge Up",  price:10 },
-  { id:"eyebrows",  name:"Eyebrows",           price:10 },
-  { id:"design",    name:"Hair Design",        price:15 }
-];
+const CURRENCY = "$";  // Canadian Dollars
 
 /* =========================================================
    GLOBAL STATE
@@ -484,8 +482,7 @@ let unavailable = [];
 let bookings = [];
 let reviews = [];
 let gallery = [];
-let selectedCut = null;
-let selectedAddons = new Set();
+let selectedItems = new Set();  // keys of form "catId:itemId"
 let selectedRating = 0;
 let galleryCategory = "All";
 
@@ -553,25 +550,6 @@ function renderBarbers(){
 }
 
 /* =========================================================
-   RENDER: SERVICES (static list)
-========================================================= */
-function renderServices(){
-  const grid = document.getElementById("servicesGrid");
-  grid.innerHTML = [
-    ...CUTS.map(c => ({...c, tag:"Cut"})),
-    ...ADDONS.map(a => ({...a, tag:"Add-On"}))
-  ].map(s => `
-    <div class="service">
-      <div class="tag">${s.tag}</div>
-      <h4>${s.name}</h4>
-      <div class="price">$${s.price}</div>
-      ${s.tag === "Cut" ? '<div class="dur">~35 min</div>' : ""}
-    </div>
-  `).join("");
-}
-renderServices();
-
-/* =========================================================
    RENDER: GALLERY
 ========================================================= */
 function renderGallery(){
@@ -619,13 +597,20 @@ function renderReviews(){
 ========================================================= */
 function openBooking(barberId){
   document.getElementById("booking").style.display = "block";
-  if(barberId) document.getElementById("bkBarber").value = barberId;
   populateBarberSelector();
+  if(barberId) document.getElementById("bkBarber").value = barberId;
+  selectedItems.clear();
   buildServicePicker();
   const today = new Date().toISOString().slice(0,10);
   document.getElementById("bkDate").min = today;
   rebuildTimeSlots();
   document.getElementById("booking").scrollIntoView({behavior:"smooth"});
+}
+
+function onBarberChange(){
+  selectedItems.clear();
+  buildServicePicker();
+  rebuildTimeSlots();
 }
 
 function populateBarberSelector(){
@@ -635,56 +620,84 @@ function populateBarberSelector(){
     barbers.map(b => `<option value="${b.id}" ${b.id===current?"selected":""}>${escape(b.name||"Barber")}</option>`).join("");
 }
 
+function getSelectedBarber(){
+  const id = document.getElementById("bkBarber")?.value;
+  return id ? barbers.find(b => b.id === id) : null;
+}
+
+function fmtMoney(n){
+  return CURRENCY + Number(n||0).toLocaleString("en-CA");
+}
+
 function buildServicePicker(){
-  document.getElementById("cutList").innerHTML = CUTS.map(c => `
-    <div class="svc-row radio" data-cut="${c.id}" onclick="pickCut('${c.id}')">
-      <div class="check">${selectedCut===c.id?"✓":""}</div>
-      <div class="lbl">${c.name}</div>
-      <div class="prc">$${c.price}</div>
-    </div>
-  `).join("");
-  document.getElementById("addonList").innerHTML = ADDONS.map(a => `
-    <div class="svc-row" data-addon="${a.id}" onclick="toggleAddon('${a.id}')">
-      <div class="check">${selectedAddons.has(a.id)?"✓":""}</div>
-      <div class="lbl">${a.name}</div>
-      <div class="prc">+$${a.price}</div>
-    </div>
-  `).join("");
-  updateSummary();
-}
-function pickCut(id){
-  selectedCut = id;
-  document.querySelectorAll("[data-cut]").forEach(el => {
-    const on = el.dataset.cut === id;
-    el.classList.toggle("selected", on);
-    el.querySelector(".check").textContent = on ? "✓" : "";
-  });
-  updateSummary();
-}
-function toggleAddon(id){
-  if(selectedAddons.has(id)) selectedAddons.delete(id); else selectedAddons.add(id);
-  const el = document.querySelector(`[data-addon="${id}"]`);
-  const on = selectedAddons.has(id);
-  el.classList.toggle("selected", on);
-  el.querySelector(".check").textContent = on ? "✓" : "";
-  updateSummary();
-}
-function updateSummary(){
-  const items = [];
-  let total = 0;
-  if(selectedCut){
-    const c = CUTS.find(x => x.id === selectedCut);
-    items.push(c.name); total += c.price;
+  const picker = document.getElementById("menuPicker");
+  const barber = getSelectedBarber();
+  if(!barber){
+    picker.innerHTML = '<div style="color:#666;font-size:13px;padding:10px 0;">Select a barber to see their menu.</div>';
+    updateSummary();
+    return;
   }
-  selectedAddons.forEach(id => {
-    const a = ADDONS.find(x => x.id === id);
-    items.push(a.name); total += a.price;
+  const menu = Array.isArray(barber.menu) ? barber.menu : [];
+  if(!menu.length){
+    picker.innerHTML = '<div style="color:#666;font-size:13px;padding:10px 0;">This barber hasn\'t set up their menu yet. Please check back soon.</div>';
+    updateSummary();
+    return;
+  }
+  picker.innerHTML = menu.map(cat => {
+    const items = Array.isArray(cat.items) ? cat.items : [];
+    return `
+      <h4>${escape((cat.icon?cat.icon+" ":"") + (cat.title||"Category"))}</h4>
+      ${items.map(it => {
+        const key = cat.id + ":" + it.id;
+        const sel = selectedItems.has(key);
+        const included = !!it.included;
+        const priceLabel = included
+          ? '<span style="color:#7fdfff;font-size:11px;letter-spacing:2px;">INCLUDED</span>'
+          : (it.fromPrice ? fmtMoney(it.price) + "+" : fmtMoney(it.price));
+        return `
+          <div class="svc-row ${sel?'selected':''} ${included?'included':''}"
+               data-key="${escape(key)}"
+               ${included?'':`onclick="toggleItem('${escape(key)}')"`}>
+            <div class="check">${sel?"✓":""}</div>
+            <div class="lbl">${escape(it.name||"")}</div>
+            <div class="prc">${priceLabel}</div>
+          </div>
+        `;
+      }).join("")}
+    `;
+  }).join("");
+  updateSummary();
+}
+
+function toggleItem(key){
+  if(selectedItems.has(key)) selectedItems.delete(key); else selectedItems.add(key);
+  buildServicePicker();
+}
+
+function getSelectedMenuItems(){
+  const barber = getSelectedBarber();
+  if(!barber) return [];
+  const menu = Array.isArray(barber.menu) ? barber.menu : [];
+  const picked = [];
+  menu.forEach(cat => {
+    (cat.items||[]).forEach(it => {
+      if(selectedItems.has(cat.id + ":" + it.id) && !it.included){
+        picked.push({ name: it.name, price: Number(it.price)||0, fromPrice: !!it.fromPrice });
+      }
+    });
   });
+  return picked;
+}
+
+function updateSummary(){
+  const picked = getSelectedMenuItems();
+  const total = picked.reduce((s,i) => s + i.price, 0);
+  const anyFrom = picked.some(i => i.fromPrice);
   const chips = document.getElementById("summaryChips");
-  chips.innerHTML = items.length
-    ? items.map(i => `<span class="chip">${i}</span>`).join("")
+  chips.innerHTML = picked.length
+    ? picked.map(i => `<span class="chip">${escape(i.name)}${i.fromPrice?"+":""}</span>`).join("")
     : '<span style="color:#666;font-size:13px;">No services selected</span>';
-  document.getElementById("summaryTotal").textContent = "$" + total;
+  document.getElementById("summaryTotal").textContent = fmtMoney(total) + (anyFrom ? "+" : "");
 }
 
 /* Phone auto-format */
@@ -790,8 +803,9 @@ async function submitBooking(){
   if(!name || !phone || !barberId || !date || !time){
     return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in every field and pick a time.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
-  if(!selectedCut){
-    return Swal.fire({icon:"warning", title:"Pick a cut", text:"Please select at least one cut.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  const picked = getSelectedMenuItems();
+  if(!picked.length){
+    return Swal.fire({icon:"warning", title:"Choose a service", text:"Please select at least one service from the menu.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
 
   const user = await requireAuth();
@@ -806,17 +820,16 @@ async function submitBooking(){
     return Swal.fire({icon:"error", title:"Slot just taken", text:"That time was just booked. Please pick another.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
 
-  const cut = CUTS.find(c => c.id === selectedCut);
-  const addons = ADDONS.filter(a => selectedAddons.has(a.id));
-  const total = cut.price + addons.reduce((s,a)=>s+a.price,0);
-  const serviceList = [cut.name, ...addons.map(a => a.name)].join(", ");
+  const total = picked.reduce((s,i) => s + i.price, 0);
+  const anyFrom = picked.some(i => i.fromPrice);
+  const serviceList = picked.map(i => i.name + (i.fromPrice?"+":"")).join(", ");
   const initials = (name.trim().split(/\s+/).map(w => w[0]||"").join("").slice(0,2) || "XX").toUpperCase();
   const bookingNumber = initials + Math.floor(1000 + Math.random()*9000);
 
   try{
     await db.collection("bookings").add({
       barberId, uid:user.uid, bookingNumber, name, phone, date, time,
-      service: serviceList, duration: SLOT_MINUTES, total,
+      service: serviceList, duration: SLOT_MINUTES, total, fromPrice: anyFrom,
       deposit: "No", status: "Active", cancelledBy: null,
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -825,7 +838,7 @@ async function submitBooking(){
     const barber = barbers.find(b => b.id === barberId);
     const chatId = barber?.telegramChatId;
     if(TELEGRAM_BOT_TOKEN && chatId){
-      const msg = `New booking #${bookingNumber}\n${name} — ${phone}\n${date} @ ${time}\n${serviceList}\nTotal: $${total}`;
+      const msg = `New booking #${bookingNumber}\n${name} — ${phone}\n${date} @ ${time}\n${serviceList}\nTotal: ${fmtMoney(total)}${anyFrom?"+":""}`;
       fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ chat_id: chatId, text: msg })
@@ -840,12 +853,12 @@ async function submitBooking(){
       <div class="booking-line"><span class="k">Date</span><span class="v">${date}</span></div>
       <div class="booking-line"><span class="k">Time</span><span class="v">${time}</span></div>
       <div class="booking-line"><span class="k">Services</span><span class="v" style="text-align:right;max-width:60%;">${escape(serviceList)}</span></div>
-      <div class="booking-line"><span class="k">Total</span><span class="v" style="color:#e60000;font-family:Cinzel;">$${total}</span></div>
+      <div class="booking-line"><span class="k">Total</span><span class="v" style="color:#e60000;font-family:Cinzel;">${fmtMoney(total)}${anyFrom?"+":""}</span></div>
     `;
     document.getElementById("successModal").classList.add("open");
 
     // Reset form
-    selectedCut = null; selectedAddons.clear();
+    selectedItems.clear();
     document.getElementById("bkName").value = "";
     document.getElementById("bkPhone").value = "";
     document.getElementById("bkTime").value = "";
@@ -931,7 +944,7 @@ async function openMyBookings(){
         <div class="info-line" style="color:#999;font-size:13px;">${escape(b.service||"")}</div>
         <div class="row" style="margin-top:10px;">
           <span class="badge ${b.deposit==='Yes'?'pay-yes':'pay-no'}">Payment: ${b.deposit==='Yes'?'Made':'Not Paid'}</span>
-          <span style="color:#e60000;font-family:Cinzel;">$${b.total||0}</span>
+          <span style="color:#e60000;font-family:Cinzel;">${fmtMoney(b.total||0)}${b.fromPrice?"+":""}</span>
         </div>
         ${!cancelled ? `<button class="btn small" style="margin-top:12px;background:#4d0a0a;" onclick="cancelBooking('${b.id}')">Cancel Booking</button>` : ""}
       </div>

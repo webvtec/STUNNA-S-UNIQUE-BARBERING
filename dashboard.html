@@ -14,7 +14,7 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#050505;color:white;font-family:Poppins,sans-serif;min-height:100vh;}
+body{background:#050505;color:#f5f7ff;font-family:Poppins,sans-serif;min-height:100vh;}
 
 /* ---------- ACCESS GUARD ---------- */
 #guard{
@@ -192,6 +192,30 @@ td{color:#ddd;}
   border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;
 }
 
+/* ---------- MENU EDITOR ---------- */
+.menu-cat{
+  background:#0a0a0a;border:1px solid rgba(255,255,255,.05);border-radius:15px;
+  padding:20px;margin-bottom:16px;
+}
+.menu-cat-head{display:flex;gap:10px;align-items:center;margin-bottom:14px;}
+.menu-cat-head input.icon{width:60px;text-align:center;}
+.menu-cat-head input.title{flex:1;font-family:Cinzel;letter-spacing:2px;}
+.menu-item-row{
+  display:grid;grid-template-columns:1fr 120px auto auto auto;gap:8px;align-items:center;
+  padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);
+}
+.menu-item-row input{padding:8px 10px;font-size:13px;}
+.menu-item-row label{margin:0;font-size:10px;letter-spacing:1px;color:#888;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.menu-item-row label input{width:auto;}
+.menu-item-row .rm-item{
+  background:transparent;border:1px solid #4d0a0a;color:#e60000;padding:6px 10px;
+  border-radius:8px;cursor:pointer;font-size:11px;
+}
+.menu-item-row .rm-item:hover{background:#4d0a0a;color:white;}
+@media(max-width:900px){
+  .menu-item-row{grid-template-columns:1fr 1fr;gap:6px;}
+}
+
 /* ---------- UNAVAILABLE LIST ---------- */
 .unavail-item{
   background:#0a0a0a;padding:14px 18px;border-radius:10px;margin-bottom:8px;
@@ -361,6 +385,24 @@ td{color:#ddd;}
     </div>
   </section>
 
+  <!-- MY MENU / PRICING -->
+  <section class="section" id="sec-menu">
+    <div class="panel">
+      <h2 id="menuTitle">My Menu</h2>
+      <div id="menuBarberPickerWrap" style="display:none;" class="field">
+        <label>Editing menu for</label>
+        <select id="menuBarberPicker" onchange="loadMenuForEdit()"></select>
+      </div>
+      <p style="color:#888;font-size:13px;margin-bottom:16px;">Set your services and prices — clients see this list when they book with you. Use categories (e.g. "Adults 18+", "Kids 3-6") to group items. Toggle "Included" for freebies, or "From price (+)" if the price is a starting rate.</p>
+
+      <div id="menuEditor"></div>
+
+      <button class="btn ghost small" onclick="addMenuCategory()" style="margin-top:12px;">+ Add Category</button>
+      <button class="btn" onclick="saveMenu()" style="margin-top:12px;margin-left:8px;">Save Menu</button>
+      <button class="btn ghost small" onclick="loadTemplate()" style="margin-top:12px;margin-left:8px;">Load Sample Template</button>
+    </div>
+  </section>
+
   <!-- ADMIN: BARBER MANAGEMENT -->
   <section class="section" id="sec-barbers">
     <div class="panel">
@@ -468,6 +510,8 @@ const provider = new firebase.auth.GoogleAuthProvider();
 ========================================================= */
 const ADMIN_UID = "REPLACE_WITH_ADMIN_UID";
 const SLOT_MINUTES = 35;
+const CURRENCY = "$";
+function fmtMoney(n){ return CURRENCY + Number(n||0).toLocaleString("en-CA"); }
 
 let currentUser = null;
 let role = null;            // "admin" | "barber"
@@ -543,6 +587,7 @@ function doLogout(){ auth.signOut().then(() => window.location.href = "index.htm
 function buildNav(){
   const items = [
     { id:"reservations", label: role === "admin" ? "All Reservations" : "My Reservations" },
+    { id:"menu",         label: role === "admin" ? "Menus" : "My Menu" },
     { id:"unavail",      label: role === "admin" ? "Unavailable Days" : "My Unavailable Days" },
     { id:"gallery",      label: role === "admin" ? "Gallery" : "My Gallery" },
     { id:"earnings",     label: role === "admin" ? "Earnings" : "My Earnings" }
@@ -560,9 +605,11 @@ function buildNav(){
   document.getElementById("unavailTitle").textContent = role === "admin" ? "Unavailable Days" : "My Unavailable Days";
   document.getElementById("galleryTitle").textContent = role === "admin" ? "Gallery" : "My Gallery";
   document.getElementById("earningsTitle").textContent = role === "admin" ? "Earnings" : "My Earnings";
+  document.getElementById("menuTitle").textContent = role === "admin" ? "Menus" : "My Menu";
   if(role === "admin"){
     document.getElementById("barberFilter").style.display = "";
     document.getElementById("uaScopeWrap").style.display = "";
+    document.getElementById("menuBarberPickerWrap").style.display = "";
   }
 }
 function showSection(id){
@@ -572,6 +619,7 @@ function showSection(id){
   document.querySelectorAll(".dash-nav button").forEach(b => b.classList.toggle("active", b.dataset.sec === id));
   if(id === "earnings") renderEarnings();
   if(id === "revenue") { renderRevenueStats(); renderRevenueTable(); }
+  if(id === "menu") { populateMenuBarberPicker(); loadMenuForEdit(); }
 }
 
 /* =========================================================
@@ -583,6 +631,7 @@ function attachListeners(){
     renderBarbersList();
     renderBarberFilter();
     renderReservations();
+    if(currentSection === "menu"){ populateMenuBarberPicker(); }
   });
   db.collection("bookings").onSnapshot(snap => {
     bookings = snap.docs.map(d => ({id:d.id, ...d.data()}));
@@ -671,7 +720,7 @@ function bookingCard(b, isToday){
       <div class="name"><strong>${esc(b.name)}</strong> — ${esc(b.phone||"")}</div>
       <div class="info-row"><strong>${b.date}</strong> @ ${b.time} · ${b.duration||SLOT_MINUTES} min</div>
       <div class="info-row" style="color:#999;">${esc(b.service||"")}</div>
-      <div class="info-row" style="color:#e60000;font-family:Cinzel;font-size:16px;">$${b.total||0}</div>
+      <div class="info-row" style="color:#e60000;font-family:Cinzel;font-size:16px;">${fmtMoney(b.total||0)}${b.fromPrice?"+":""}</div>
       ${cancelled ? `<div class="info-row" style="color:#888;font-size:11px;margin-top:6px;">Cancelled by ${b.cancelledBy||"—"}</div>` : ""}
       <div class="actions">
         ${!cancelled ? `<button class="btn small danger" onclick="promptCancel('${b.id}')">Cancel</button>` : ""}
@@ -1112,15 +1161,15 @@ function renderEarnings(){
   const weekBk   = scope.filter(b => b.date && new Date(b.date + "T00:00:00") >= wkStart);
   const monthBk  = scope.filter(b => b.date && new Date(b.date + "T00:00:00") >= mStart);
 
-  document.getElementById("earnToday").textContent = "$" + sum(todaysBk);
-  document.getElementById("earnWeek").textContent  = "$" + sum(weekBk);
-  document.getElementById("earnMonth").textContent = "$" + sum(monthBk);
+  document.getElementById("earnToday").textContent = fmtMoney(sum(todaysBk));
+  document.getElementById("earnWeek").textContent  = fmtMoney(sum(weekBk));
+  document.getElementById("earnMonth").textContent = fmtMoney(sum(monthBk));
 
   const list = scope.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
   document.getElementById("earnBreakdown").innerHTML = list.length ? list.map(b => `
     <div class="unavail-item">
       <div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
-      <div style="color:#e60000;font-family:Cinzel;font-size:18px;">$${b.total||0}</div>
+      <div style="color:#e60000;font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}${b.fromPrice?"+":""}</div>
     </div>
   `).join("") : '<div style="color:#666;padding:20px;">No completed bookings yet.</div>';
 }
@@ -1140,7 +1189,7 @@ function renderRevenueStats(){
   const inMonth = b => b.date && new Date(b.date + "T00:00:00") >= mStart;
 
   const setStat = (id, arr) => {
-    document.getElementById(id).textContent = "$" + arr.reduce((s,b) => s + (b.total||0), 0);
+    document.getElementById(id).textContent = fmtMoney(arr.reduce((s,b) => s + (b.total||0), 0));
     document.getElementById(id + "N").textContent = arr.length + " booking" + (arr.length===1?"":"s");
   };
   setStat("revToday", done.filter(inDay));
@@ -1168,13 +1217,165 @@ function renderRevenueTable(){
   }));
   rows.sort((a,b) => (a[revSort.key] > b[revSort.key] ? 1 : -1) * revSort.dir);
   document.querySelector("#revTable tbody").innerHTML = rows.length
-    ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.count}</td><td style="color:#e60000;font-family:Cinzel;">$${r.revenue}</td></tr>`).join("")
+    ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.count}</td><td style="color:#e60000;font-family:Cinzel;">${fmtMoney(r.revenue)}</td></tr>`).join("")
     : `<tr><td colspan="3" style="color:#666;text-align:center;padding:20px;">No completed bookings in range.</td></tr>`;
 }
 function sortRev(key){
   if(revSort.key === key) revSort.dir *= -1;
   else { revSort.key = key; revSort.dir = -1; }
   renderRevenueTable();
+}
+
+/* =========================================================
+   MENU EDITOR
+========================================================= */
+let editingMenu = [];           // in-memory copy
+let editingBarberId = null;
+
+function populateMenuBarberPicker(){
+  if(role !== "admin") return;
+  const sel = document.getElementById("menuBarberPicker");
+  const cur = sel.value;
+  sel.innerHTML = barbers.map(b => `<option value="${b.id}" ${b.id===cur?'selected':''}>${esc(b.name)}</option>`).join("");
+}
+
+function loadMenuForEdit(){
+  if(role === "barber"){
+    editingBarberId = myBarberId;
+  } else {
+    editingBarberId = document.getElementById("menuBarberPicker").value || barbers[0]?.id;
+  }
+  const b = barbers.find(x => x.id === editingBarberId);
+  editingMenu = b?.menu ? JSON.parse(JSON.stringify(b.menu)) : [];
+  renderMenuEditor();
+}
+
+function renderMenuEditor(){
+  const wrap = document.getElementById("menuEditor");
+  if(!editingMenu.length){
+    wrap.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No categories yet. Add one below or load the sample template.</div>';
+    return;
+  }
+  wrap.innerHTML = editingMenu.map((cat, ci) => `
+    <div class="menu-cat">
+      <div class="menu-cat-head">
+        <input class="icon" placeholder="✂" value="${esc(cat.icon||"")}" oninput="updateCat(${ci},'icon',this.value)">
+        <input class="title" placeholder="Category title" value="${esc(cat.title||"")}" oninput="updateCat(${ci},'title',this.value)">
+        <button class="btn small danger" onclick="removeCat(${ci})">Delete</button>
+      </div>
+      <div>
+        ${(cat.items||[]).map((it, ii) => `
+          <div class="menu-item-row">
+            <input placeholder="Service name" value="${esc(it.name||"")}" oninput="updateItem(${ci},${ii},'name',this.value)">
+            <input type="number" placeholder="Price" value="${it.price||""}" oninput="updateItem(${ci},${ii},'price',this.value)" ${it.included?'disabled':''}>
+            <label><input type="checkbox" ${it.included?'checked':''} onchange="updateItem(${ci},${ii},'included',this.checked)"> Included</label>
+            <label><input type="checkbox" ${it.fromPrice?'checked':''} onchange="updateItem(${ci},${ii},'fromPrice',this.checked)"> From (+)</label>
+            <button class="rm-item" onclick="removeItem(${ci},${ii})">Remove</button>
+          </div>
+        `).join("")}
+      </div>
+      <button class="btn ghost small" onclick="addItem(${ci})" style="margin-top:10px;">+ Add Item</button>
+    </div>
+  `).join("");
+}
+
+function updateCat(ci, key, val){ editingMenu[ci][key] = val; }
+function updateItem(ci, ii, key, val){
+  if(key === "price") val = parseFloat(val) || 0;
+  editingMenu[ci].items[ii][key] = val;
+  if(key === "included" && val) editingMenu[ci].items[ii].price = 0;
+  if(key === "included") renderMenuEditor();
+}
+function addMenuCategory(){
+  editingMenu.push({ id: "c" + Date.now(), title: "New Category", icon: "", items: [] });
+  renderMenuEditor();
+}
+function removeCat(ci){
+  openAM("Remove Category", "Delete this category and all its items?", () => {
+    editingMenu.splice(ci, 1);
+    renderMenuEditor();
+    closeAM();
+  });
+}
+function addItem(ci){
+  editingMenu[ci].items = editingMenu[ci].items || [];
+  editingMenu[ci].items.push({ id: "i" + Date.now() + Math.floor(Math.random()*1000), name: "", price: 0, included: false, fromPrice: false });
+  renderMenuEditor();
+}
+function removeItem(ci, ii){
+  editingMenu[ci].items.splice(ii, 1);
+  renderMenuEditor();
+}
+
+async function saveMenu(){
+  if(!editingBarberId) return toast("No barber selected", "red");
+  // Ensure every category and item has an id
+  editingMenu.forEach(cat => {
+    if(!cat.id) cat.id = "c" + Date.now() + Math.floor(Math.random()*1000);
+    (cat.items||[]).forEach(it => {
+      if(!it.id) it.id = "i" + Date.now() + Math.floor(Math.random()*1000);
+      it.price = Number(it.price) || 0;
+    });
+  });
+  try{
+    await db.collection("barbers").doc(editingBarberId).update({ menu: editingMenu });
+    toast("Menu saved", "green");
+  }catch(e){
+    toast("Save failed: " + e.message, "red");
+  }
+}
+
+function loadTemplate(){
+  openAM("Load Sample Template", "Replace current menu with the standard template? Your unsaved changes will be lost.", () => {
+    editingMenu = SAMPLE_MENU();
+    renderMenuEditor();
+    closeAM();
+    toast("Template loaded — remember to Save", "green");
+  });
+}
+
+function SAMPLE_MENU(){
+  const mkId = () => "i" + Date.now() + Math.floor(Math.random()*100000);
+  const items = names => names.map(n => ({ id: mkId(), name: n[0], price: n[1], included: false, fromPrice: n[2]||false }));
+  return [
+    { id:"cat_reg_adult", title:"REGULAR — ADULTS 18+", icon:"✂",
+      items: items([
+        ["All Round Fade",2500],["Taper Fade",2500],["One Level",2500],["Bald Cut",2500],
+        ["Mohawk",2500],["Flat Top",2500],["Big Chop",2500],["Buzz Cut",2500],
+        ["Low Fade",2500],["Skin Fade",2500],["Ladies Cut",3500],["Trim & Shave",3000],
+        ["Eyebrow",500]
+      ])
+    },
+    { id:"cat_prem_adult", title:"PREMIUM — ADULTS 18+", icon:"⭐",
+      items: items([
+        ["All Round Fade",3000],["Taper Fade",3000],["One Level",3000],["Bald Cut",3000],
+        ["Mohawk",3000],["Flat Top",3000],["Big Chop",3000],["Buzz Cut",3000],
+        ["Low Fade",3000],["Skin Fade",3000],["Ladies Cut",3000]
+      ])
+    },
+    { id:"cat_prem_incl", title:"Premium — Included Extras", icon:"✨",
+      items: ["Eyebrow Shape Up","Eyebrow Tint","Warm Towel","Petty Facial"].map(n => ({
+        id: mkId(), name: n, price: 0, included: true, fromPrice: false
+      }))
+    },
+    { id:"cat_bigkids", title:"REGULAR — BIG KIDS 7–17", icon:"✂",
+      items: items([
+        ["All Round Fade",2000],["Taper Fade",2000],["One Level",2000],["Bald Cut",2000],
+        ["Mohawk",2000],["Flat Top",2000],["Big Chop",2000],["Buzz Cut",2000],
+        ["Low Fade",2000],["Skin Fade",2000],["Ladies Cut",2000],["Eyebrow",500]
+      ])
+    },
+    { id:"cat_kids", title:"KIDS 3–6", icon:"👦",
+      items: items([
+        ["All Round Fade",1500,true],["Taper Fade",1500,true],["One Level",1500,true],
+        ["Bald Cut",1500,true],["Mohawk",1500,true],["Flat Top",1500,true],
+        ["Big Chop",1500,true],["Buzz Cut",1500,true],["School Boy Trim",1500,true]
+      ])
+    },
+    { id:"cat_extras", title:"Optional Extras", icon:"➕",
+      items: items([ ["Line Up",500,true], ["Custom Design",200,true] ])
+    }
+  ];
 }
 
 /* =========================================================
