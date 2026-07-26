@@ -1212,7 +1212,7 @@ function editBarber(id){
 async function toggleBarberActive(id){
   const b = barbers.find(x => x.id === id);
   await db.collection("barbers").doc(id).update({ active: !b.active });
-  toast(b.active ? "Deactivated — hidden from booking page" : "Activated", "green");
+  toast(b.active ? "Hidden from barber list on site" : "Now visible on barber list", "green");
 }
 function removeBarber(id){
   const b = barbers.find(x => x.id === id);
@@ -1245,23 +1245,28 @@ function renderBarbersList(){
     list.innerHTML = '<div style="color:#666;padding:20px;">No barbers yet. Add one above.</div>';
     return;
   }
-  list.innerHTML = barbers.map(b => `
+  list.innerHTML = barbers.map(b => {
+    const isMe = b.id === myBarberId;
+    const toggleLabel = isMe
+      ? (b.active ? 'Hide Me from Site' : 'Show Me on Site')
+      : (b.active ? 'Deactivate' : 'Activate');
+    return `
     <div class="barber-item">
       <div class="meta">
-        <strong>${esc(b.name)}${b.id === myBarberId ? ' <span style="color:var(--text-muted);font-size:11px;letter-spacing:1px;">(YOU)</span>' : ''}</strong>
+        <strong>${esc(b.name)}${isMe ? ' <span style="color:var(--text-muted);font-size:11px;letter-spacing:1px;">(YOU)</span>' : ''}</strong>
         <small>${esc(b.email||"")}</small>
         <small>
           <span style="color:${b.uid?'#7fdfff':'var(--text-muted)'};">${b.uid ? "Linked" : "Awaiting first sign-in"}</span>
           &nbsp;·&nbsp;
-          <span style="color:${b.active?'#7fff7f':'var(--text-muted)'};">${b.active ? "Active" : "Inactive"}</span>
+          <span style="color:${b.active?'#7fff7f':'var(--text-muted)'};">${b.active ? "Visible on Site" : "Hidden from Site"}</span>
         </small>
       </div>
       <button class="btn small ghost" onclick="showRevenue('${b.id}')">Revenue</button>
       <button class="btn small ghost" onclick="editBarber('${b.id}')">Edit</button>
-      <button class="btn small ghost" onclick="toggleBarberActive('${b.id}')">${b.active?'Deactivate':'Activate'}</button>
+      <button class="btn small ghost" onclick="toggleBarberActive('${b.id}')">${toggleLabel}</button>
       <button class="btn small danger" onclick="removeBarber('${b.id}')">Remove</button>
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
 }
 
 /* =========================================================

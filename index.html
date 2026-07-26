@@ -153,10 +153,14 @@ section{padding:120px 8%;}
 .step-card p{color:var(--text-dim);font-size:14px;line-height:1.7;}
 
 /* ============ BARBERS ============ */
-.barbers{display:flex;flex-wrap:wrap;justify-content:center;gap:30px;}
+.barbers{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 260px));
+  justify-content:center;gap:30px;
+}
 .barber-profile{
   display:flex;flex-direction:column;align-items:center;text-align:center;
-  width:260px;transition:.4s;
+  transition:.4s;
   background:var(--dark-card);border:1px solid var(--border);
   padding:36px 24px 28px;border-radius:18px;
 }
@@ -169,19 +173,19 @@ section{padding:120px 8%;}
   width:140px;height:140px;border-radius:50%;object-fit:cover;
   border:3px solid rgba(179,0,0,.5);
   box-shadow:0 0 25px rgba(179,0,0,.35), 0 0 60px rgba(179,0,0,.12);
-  transition:.4s;
+  transition:.4s;flex-shrink:0;
 }
 .barber-profile:hover .barber-avatar{
   border-color:var(--red-bright);
   box-shadow:0 0 35px rgba(230,0,0,.55), 0 0 80px rgba(179,0,0,.2);
 }
 .barber-profile h3{font-family:Cinzel;font-size:20px;letter-spacing:1px;margin-top:18px;}
-.barber-profile .specialty{color:var(--text-dim);font-size:13px;margin-top:6px;min-height:20px;}
+.barber-profile .specialty{color:var(--text-dim);font-size:13px;margin-top:6px;min-height:20px;flex-grow:1;}
 .barber-profile .btn-book{
   margin-top:auto;padding:12px 32px;background:var(--red);color:white;
   border:none;font-family:Poppins;font-size:13px;letter-spacing:2px;
   text-transform:uppercase;cursor:pointer;transition:.3s;border-radius:0;
-  width:100%;margin-top:20px;
+  width:100%;
 }
 .barber-profile .btn-book:hover{background:var(--red-bright);box-shadow:0 0 20px rgba(230,0,0,.5);}
 .vacation-badge{
@@ -325,10 +329,11 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   background:rgba(255,255,255,.06);border:1px solid var(--border-light);
   color:var(--text-dim);transition:.3s;
 }
-.social-links a:hover{
-  background:var(--red);border-color:var(--red);color:white;
-  box-shadow:0 0 18px rgba(230,0,0,.4);transform:translateY(-3px);
-}
+.social-links a:hover{transform:translateY(-3px);}
+.social-links .social-ig:hover{background:#E1306C;border-color:#E1306C;box-shadow:0 0 18px rgba(225,48,108,.4);}
+.social-links .social-fb:hover{background:#1877F2;border-color:#1877F2;box-shadow:0 0 18px rgba(24,119,242,.4);}
+.social-links .social-tt{background:rgba(255,255,255,.1);}
+.social-links .social-tt:hover{background:rgba(255,255,255,.15);border-color:rgba(37,244,238,.5);box-shadow:0 0 12px rgba(254,44,85,.35), 0 0 12px rgba(37,244,238,.25);}
 .footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .footer-logo img{height:40px;border-radius:50%;border:2px solid rgba(179,0,0,.4);}
 .footer-logo span{font-family:Cinzel;color:var(--gold);font-size:14px;letter-spacing:3px;}
@@ -580,11 +585,10 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
         <span style="font-size:10px;opacity:.5;">▼</span>
       </button>
       <div class="profile-dropdown" id="profileDropdown">
-        <button onclick="openProfileModal()">My Profile</button>
-        <button onclick="openMyBookings()">My Bookings</button>
-        <button id="adminListToggle" style="display:none;" onclick="toggleAdminOnBarberList()">Show Me on Barber List</button>
-        <button id="staffBtn" style="display:none;" onclick="window.location.href='dashboard.html'">Staff Dashboard</button>
-        <button onclick="handleLogout()">Logout</button>
+        <button onclick="openProfileModal(); closeMobileNav();">My Profile</button>
+        <button onclick="openMyBookings(); closeMobileNav();">My Bookings</button>
+        <button id="staffBtn" style="display:none;" onclick="closeMobileNav(); window.location.href='dashboard.html'">Staff Dashboard</button>
+        <button onclick="handleLogout(); closeMobileNav();">Logout</button>
       </div>
     </li>
   </ul>
@@ -732,14 +736,21 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
     <div class="footer-col">
       <h4>Follow Us</h4>
       <div class="social-links">
-        <a href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        <a href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram" class="social-ig">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="url(#ig-grad)"><defs><radialGradient id="ig-grad" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="5%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
         </a>
-        <a href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        <a href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook" class="social-fb">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
         </a>
-        <a href="https://www.tiktok.com/" target="_blank" rel="noopener" aria-label="TikTok">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.48V13a8.28 8.28 0 005.58 2.17V11.7a4.83 4.83 0 01-3.77-1.24V6.69h3.77z"/></svg>
+        <a href="https://www.tiktok.com/" target="_blank" rel="noopener" aria-label="TikTok" class="social-tt">
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+            <!-- Cyan offset layer (left/down) -->
+            <path d="M18.5 8h4.94a6.5 6.5 0 0 0 5.06 5.44v4.62a10.6 10.6 0 0 1-5.94-2.06v9.36a8.14 8.14 0 1 1-7-8.06v4.78a3.4 3.4 0 1 0 2.44 3.28V8z" fill="#25F4EE" transform="translate(-1.2, 1.2)"/>
+            <!-- Red offset layer (right/up) -->
+            <path d="M18.5 8h4.94a6.5 6.5 0 0 0 5.06 5.44v4.62a10.6 10.6 0 0 1-5.94-2.06v9.36a8.14 8.14 0 1 1-7-8.06v4.78a3.4 3.4 0 1 0 2.44 3.28V8z" fill="#FE2C55" transform="translate(1.2, -1.2)"/>
+            <!-- Black center layer -->
+            <path d="M18.5 8h4.94a6.5 6.5 0 0 0 5.06 5.44v4.62a10.6 10.6 0 0 1-5.94-2.06v9.36a8.14 8.14 0 1 1-7-8.06v4.78a3.4 3.4 0 1 0 2.44 3.28V8z" fill="#000"/>
+          </svg>
         </a>
       </div>
     </div>
@@ -1089,15 +1100,6 @@ auth.onAuthStateChanged(async u => {
     else { avatar.style.display = "none"; }
     dispName.textContent = (userProfile.displayName || u.displayName || u.email || "").split(" ")[0];
     document.getElementById("staffBtn").style.display = (userRole === "admin" || userRole === "barber") ? "block" : "none";
-    /* Admin barber-list toggle button */
-    const adminToggleBtn = document.getElementById("adminListToggle");
-    if(userRole === "admin" && myBarberId){
-      adminToggleBtn.style.display = "block";
-      const adminBarber = barbers.find(b => b.uid === ADMIN_UID);
-      updateAdminToggleLabel(adminBarber ? adminBarber.active !== false : false);
-    } else {
-      adminToggleBtn.style.display = "none";
-    }
     closeModal("authModal");
     loadUserBookings();
     renderReviews();
@@ -1110,20 +1112,9 @@ auth.onAuthStateChanged(async u => {
 });
 
 function handleLogout(){ auth.signOut(); }
-
-/* Admin toggle: show/hide self on barber list */
-function updateAdminToggleLabel(isActive){
-  const btn = document.getElementById("adminListToggle");
-  if(btn) btn.textContent = isActive ? "Hide Me from Barber List" : "Show Me on Barber List";
-}
-async function toggleAdminOnBarberList(){
+function closeMobileNav(){
+  document.getElementById("navlist").classList.remove("open");
   document.getElementById("profileDropdown").classList.remove("open");
-  if(!myBarberId || userRole !== "admin") return;
-  const barber = barbers.find(b => b.id === myBarberId);
-  if(!barber) return;
-  const nowActive = barber.active !== false;
-  await db.collection("barbers").doc(myBarberId).update({ active: !nowActive });
-  updateAdminToggleLabel(!nowActive);
 }
 
 function openAuthModal(){ document.getElementById("authModal").classList.add("open"); }
@@ -1257,11 +1248,6 @@ const HERO_IMAGES = [
 db.collection("barbers").where("active","==",true).onSnapshot(snap => {
   barbers = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderBarbers();
-  /* Refresh admin toggle label — admin may have toggled off, so check all barbers */
-  if(userRole === "admin" && myBarberId){
-    const adminBarber = barbers.find(b => b.uid === ADMIN_UID);
-    updateAdminToggleLabel(!!adminBarber);
-  }
 });
 db.collection("unavailableDays").onSnapshot(snap => {
   const all = snap.docs.map(d => ({id:d.id, ...d.data()}));
@@ -1954,6 +1940,8 @@ function relTime(ts){
   return d.toLocaleDateString();
 }
 document.querySelectorAll("#navlist a, #navlist button").forEach(el => {
+  /* Don't auto-close nav when profile button or its dropdown buttons are tapped */
+  if(el.closest("#navProfile")) return;
   el.addEventListener("click", () => document.getElementById("navlist").classList.remove("open"));
 });
 </script>
