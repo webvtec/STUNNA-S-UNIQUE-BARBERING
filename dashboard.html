@@ -228,6 +228,23 @@ td{color:#ddd;}
 .radio-opt:hover{border-color:rgba(255,255,255,.1);}
 .radio-opt input{width:auto;}
 
+/* ---------- INQUIRY CARDS ---------- */
+.inq-card{
+  background:var(--dark-card);border-left:3px solid var(--blue);border-radius:12px;
+  padding:20px;margin-bottom:12px;
+  border-top:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);
+}
+.inq-card.status-approved{border-left-color:#0a8f0a;}
+.inq-card.status-declined{border-left-color:#666;opacity:.65;}
+.inq-card .inq-name{font-family:Cinzel;font-size:16px;letter-spacing:1px;margin-bottom:6px;}
+.inq-card .inq-detail{color:var(--text-dim);font-size:13px;margin:3px 0;}
+.inq-card .inq-exp{color:#ddd;font-size:13px;line-height:1.6;margin:10px 0;padding:12px;background:var(--dark);border-radius:8px;border-left:2px solid var(--blue);}
+.inq-card .inq-time{color:var(--text-muted);font-size:11px;margin-top:8px;}
+.inq-card .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.b-pending{background:rgba(47,107,255,.15);color:var(--blue);}
+.b-approved{background:#0a4d0a;color:#7fff7f;}
+.b-declined{background:#4d0a0a;color:#ff8080;}
+
 @media(max-width:900px){
   header{padding:16px 20px;}
   main{padding:20px;}
@@ -478,6 +495,21 @@ td{color:#ddd;}
     </div>
   </section>
 
+  <!-- BARBER INQUIRIES (admin only) -->
+  <section class="section" id="sec-inquiries">
+    <div class="panel">
+      <h2>Barber Inquiries</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">People interested in joining the team. Review and manage applications here.</p>
+      <div class="chip-row" id="inquiryChips">
+        <button class="chip active" onclick="setInquiryFilter('all')">All</button>
+        <button class="chip" onclick="setInquiryFilter('pending')">Pending</button>
+        <button class="chip" onclick="setInquiryFilter('approved')">Approved</button>
+        <button class="chip" onclick="setInquiryFilter('declined')">Declined</button>
+      </div>
+      <div id="inquiriesList"></div>
+    </div>
+  </section>
+
 </main>
 
 <div class="toast" id="toast"></div>
@@ -564,6 +596,8 @@ let gallery = [];
 let currentSection = "reservations";
 let resBarberFilter = "";
 let revBarberId = null;
+let inquiries = [];
+let inquiryFilter = "all";
 
 /* =========================================================
    ACCESS GUARD
@@ -646,6 +680,7 @@ function buildNav(){
   if(role === "admin"){
     items.splice(3, 0, { id:"gallery", label:"Website Gallery" });
     items.splice(5, 0, { id:"barbers", label:"Barbers" });
+    items.push({ id:"inquiries", label:"Inquiries" });
   }
   if(role === "barber") items.push({ id:"profile", label:"My Profile" });
 
@@ -676,6 +711,7 @@ function showSection(id){
   if(id === "clients") renderClients();
   if(id === "profile") loadMyProfile();
   if(id === "barbers") renderBarbersList();
+  if(id === "inquiries") renderInquiries();
 }
 
 /* =========================================================
@@ -711,6 +747,12 @@ function attachListeners(){
     gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderGallery();
   });
+  if(role === "admin"){
+    db.collection("barberInquiries").orderBy("timestamp","desc").onSnapshot(snap => {
+      inquiries = snap.docs.map(d => ({id:d.id, ...d.data()}));
+      if(currentSection === "inquiries") renderInquiries();
+    });
+  }
 }
 
 /* =========================================================
@@ -1426,6 +1468,66 @@ function renderClients(){
       <td style="color:var(--text-dim);font-size:13px;">${esc(c.phone)}</td><td style="text-align:center;">${c.count}</td>
       <td style="text-align:right;color:var(--red-bright);font-family:Cinzel;">${fmtMoney(c.spent)}</td>
     </tr>`).join("")}</tbody></table>`;
+}
+
+/* =========================================================
+   BARBER INQUIRIES (admin)
+========================================================= */
+function setInquiryFilter(f){
+  inquiryFilter = f;
+  document.querySelectorAll("#inquiryChips .chip").forEach(c => c.classList.toggle("active", c.textContent.toLowerCase() === f));
+  renderInquiries();
+}
+
+function renderInquiries(){
+  const list = document.getElementById("inquiriesList");
+  if(!list) return;
+  let filtered = inquiries.slice();
+  if(inquiryFilter !== "all") filtered = filtered.filter(i => i.status === inquiryFilter);
+  if(!filtered.length){
+    list.innerHTML = '<div style="color:#666;text-align:center;padding:40px;">No inquiries' + (inquiryFilter !== 'all' ? ' with status "' + inquiryFilter + '"' : '') + '.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(i => {
+    const statusCls = i.status === "approved" ? "b-approved" : i.status === "declined" ? "b-declined" : "b-pending";
+    const cardCls = i.status === "approved" ? "status-approved" : i.status === "declined" ? "status-declined" : "";
+    const ts = i.timestamp?.toDate ? i.timestamp.toDate().toLocaleDateString("en-CA", { month:"short", day:"numeric", year:"numeric" }) : "just now";
+    return `
+      <div class="inq-card ${cardCls}">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div class="inq-name">${esc(i.name)}</div>
+          <span class="badge ${statusCls}">${i.status || "pending"}</span>
+        </div>
+        <div class="inq-detail"><strong>Email:</strong> ${esc(i.email)}</div>
+        <div class="inq-detail"><strong>Phone:</strong> ${esc(i.phone)}</div>
+        ${i.portfolio ? '<div class="inq-detail"><strong>Portfolio:</strong> <a href="' + esc(i.portfolio) + '" target="_blank" rel="noopener" style="color:var(--blue);">' + esc(i.portfolio) + '</a></div>' : ''}
+        <div class="inq-exp">${esc(i.experience)}</div>
+        <div class="inq-time">Submitted ${ts}</div>
+        <div class="actions">
+          ${i.status !== "approved" ? '<button class="btn small" onclick="updateInquiry(\'' + i.id + '\',\'approved\')">Approve</button>' : ''}
+          ${i.status !== "declined" ? '<button class="btn small danger" onclick="updateInquiry(\'' + i.id + '\',\'declined\')">Decline</button>' : ''}
+          ${i.status !== "pending" ? '<button class="btn small ghost" onclick="updateInquiry(\'' + i.id + '\',\'pending\')">Reset to Pending</button>' : ''}
+          <button class="btn small danger" onclick="deleteInquiry('${i.id}')">Delete</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function updateInquiry(id, status){
+  try{
+    await db.collection("barberInquiries").doc(id).update({ status });
+    toast("Inquiry " + status, "green");
+  }catch(e){ toast("Update failed: " + e.message, "red"); }
+}
+
+function deleteInquiry(id){
+  openAM("Delete Inquiry", "Permanently delete this inquiry?", async () => {
+    try{
+      await db.collection("barberInquiries").doc(id).delete();
+      toast("Inquiry deleted", "green");
+    }catch(e){ toast("Delete failed: " + e.message, "red"); }
+    closeAM();
+  }, "Delete");
 }
 
 /* =========================================================

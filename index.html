@@ -182,12 +182,12 @@ section{padding:120px 8%;}
 .barber-profile h3{font-family:Cinzel;font-size:20px;letter-spacing:1px;margin-top:18px;}
 .barber-profile .specialty{color:var(--text-dim);font-size:13px;margin-top:6px;min-height:20px;flex-grow:1;}
 .barber-profile .btn-book{
-  margin-top:auto;padding:12px 32px;background:var(--red);color:white;
-  border:none;font-family:Poppins;font-size:13px;letter-spacing:2px;
+  margin-top:auto;padding:12px 32px;background:#fff;color:var(--red);
+  border:none;font-family:Poppins;font-size:13px;font-weight:600;letter-spacing:2px;
   text-transform:uppercase;cursor:pointer;transition:.3s;border-radius:0;
   width:100%;
 }
-.barber-profile .btn-book:hover{background:var(--red-bright);box-shadow:0 0 20px rgba(230,0,0,.5);}
+.barber-profile .btn-book:hover{background:#f2f2f2;box-shadow:0 0 25px rgba(255,255,255,.35);}
 .vacation-badge{
   margin-top:10px;padding:6px 14px;background:rgba(47,107,255,.15);
   border:1px solid rgba(47,107,255,.3);color:var(--blue-glow);
@@ -499,13 +499,13 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 /* ============ STICKY MOBILE CTA ============ */
 .sticky-cta{
   position:fixed;bottom:24px;right:24px;z-index:998;
-  padding:14px 28px;background:var(--red);color:white;border:none;
-  font-family:Poppins;font-size:14px;letter-spacing:1px;cursor:pointer;
-  box-shadow:0 8px 30px rgba(179,0,0,.5);transition:.3s;display:none;
+  padding:14px 28px;background:#fff;color:var(--red);border:none;
+  font-family:Poppins;font-size:14px;font-weight:600;letter-spacing:1px;cursor:pointer;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);transition:.3s;display:none;
   border-radius:50px;
 }
 .sticky-cta.show{display:block;}
-.sticky-cta:hover{background:var(--red-bright);transform:translateY(-3px);}
+.sticky-cta:hover{background:#f2f2f2;transform:translateY(-3px);box-shadow:0 8px 30px rgba(255,255,255,.35);}
 
 /* ============ MOBILE ============ */
 @media(max-width:900px){
@@ -577,6 +577,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
     <li><a href="#barbers-sec">Barbers</a></li>
     <li><a href="#services-sec">Services</a></li>
     <li><a href="#" onclick="showGalleryPage(); return false;">Gallery</a></li>
+    <li><button class="link" onclick="openInquiryModal()">Become a Barber</button></li>
     <li id="navLogin"><button class="link" id="authBtn" onclick="openAuthModal()">Login</button></li>
     <li id="navProfile" style="display:none;position:relative;">
       <button class="profile-btn" onclick="toggleProfileMenu()">
@@ -911,6 +912,23 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   </div>
 </div>
 
+<!-- Barber Inquiry Modal -->
+<div class="modal-backdrop" id="inquiryModal">
+  <div class="modal-wrap">
+    <div class="modal" style="max-width:520px;">
+      <button class="close" onclick="closeModal('inquiryModal')">×</button>
+      <h3 style="text-align:center;">Become a Barber</h3>
+      <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:24px;">Interested in joining our team? Fill out the form below and our admin will review your inquiry.</p>
+      <div class="auth-field"><label>Full Name</label><input type="text" id="inqName" placeholder="Your full name"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="inqEmail" placeholder="you@email.com"></div>
+      <div class="auth-field"><label>Phone Number</label><input type="tel" id="inqPhone" placeholder="(647) 000-0000" maxlength="14"></div>
+      <div class="auth-field"><label>Experience</label><textarea id="inqExperience" placeholder="Tell us about your barbering experience, specialties, and why you'd like to join Stunna's…" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;resize:vertical;min-height:120px;"></textarea></div>
+      <div class="auth-field"><label>Portfolio / Social Media Link <span style="color:#666;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="url" id="inqPortfolio" placeholder="https://instagram.com/yourhandle"></div>
+      <button class="btn" style="width:100%;margin-top:16px;" onclick="submitInquiry()">Submit Inquiry</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================================================
    FIREBASE INITIALIZATION
@@ -1194,20 +1212,7 @@ document.getElementById("profPhotoFile").addEventListener("change", async e => {
     document.getElementById("navAvatar").style.display = "block";
   }catch(err){ Swal.fire({icon:"error",title:"Upload failed",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 });
-async function saveProfile(){
-  if(!currentUser) return;
-  const name = document.getElementById("profName").value.trim();
-  const phone = document.getElementById("profPhone").value.trim();
-  if(!name) return Swal.fire({icon:"warning",title:"Name required",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  try{
-    await db.collection("users").doc(currentUser.uid).update({ displayName: name, phone });
-    if(myBarberId && userRole === "admin") await db.collection("barbers").doc(myBarberId).update({ name }).catch(() => {});
-    userProfile.displayName = name; userProfile.phone = phone;
-    document.getElementById("navDisplayName").textContent = name.split(" ")[0];
-    closeModal("profileModal");
-    Swal.fire({icon:"success",title:"Profile saved!",timer:1500,showConfirmButton:false,background:"#111",color:"#fff"});
-  }catch(err){ Swal.fire({icon:"error",title:"Error",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
-}
+/* saveProfile moved below with barber self-rename support */
 
 /* =========================================================
    HERO — rotating barbershop backgrounds
@@ -1939,6 +1944,79 @@ function relTime(ts){
   if(days < 30) return `${days} day${days>1?"s":""} ago`;
   return d.toLocaleDateString();
 }
+/* =========================================================
+   BARBER INQUIRY FORM
+========================================================= */
+function openInquiryModal(){
+  document.getElementById("inquiryModal").classList.add("open");
+}
+
+/* Phone auto-format for inquiry form */
+document.getElementById("inqPhone").addEventListener("input", e => {
+  const v = e.target.value.replace(/\D/g,"").slice(0,10);
+  let out = "";
+  if(v.length > 0) out = "(" + v.slice(0,3);
+  if(v.length >= 4) out += ") " + v.slice(3,6);
+  if(v.length >= 7) out += "-" + v.slice(6,10);
+  e.target.value = out;
+});
+
+async function submitInquiry(){
+  const name = document.getElementById("inqName").value.trim();
+  const email = document.getElementById("inqEmail").value.trim();
+  const phone = document.getElementById("inqPhone").value.trim();
+  const experience = document.getElementById("inqExperience").value.trim();
+  const portfolio = document.getElementById("inqPortfolio").value.trim();
+
+  if(!name || !email || !phone || !experience){
+    return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in your name, email, phone, and experience.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    return Swal.fire({icon:"warning", title:"Invalid email", text:"Please enter a valid email address.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+
+  try{
+    await db.collection("barberInquiries").add({
+      name, email, phone, experience, portfolio: portfolio || null,
+      status: "pending",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    closeModal("inquiryModal");
+    document.getElementById("inqName").value = "";
+    document.getElementById("inqEmail").value = "";
+    document.getElementById("inqPhone").value = "";
+    document.getElementById("inqExperience").value = "";
+    document.getElementById("inqPortfolio").value = "";
+    Swal.fire({icon:"success", title:"Inquiry Submitted!", text:"Thanks for your interest! Our team will review your inquiry and get back to you.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }catch(e){
+    Swal.fire({icon:"error", title:"Submission failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+}
+
+/* =========================================================
+   BARBER SELF-RENAME — sync to users collection & nav
+   (When a barber changes their name in dashboard,
+    the barbers doc updates via Firestore listener,
+    which re-renders the public barber cards automatically)
+========================================================= */
+async function saveProfile(){
+  if(!currentUser) return;
+  const name = document.getElementById("profName").value.trim();
+  const phone = document.getElementById("profPhone").value.trim();
+  if(!name) return Swal.fire({icon:"warning",title:"Name required",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  try{
+    await db.collection("users").doc(currentUser.uid).update({ displayName: name, phone });
+    /* If this user is a barber, also update the barber doc so clients see the new name */
+    if(myBarberId){
+      await db.collection("barbers").doc(myBarberId).update({ name }).catch(() => {});
+    }
+    userProfile.displayName = name; userProfile.phone = phone;
+    document.getElementById("navDisplayName").textContent = name.split(" ")[0];
+    closeModal("profileModal");
+    Swal.fire({icon:"success",title:"Profile saved!",timer:1500,showConfirmButton:false,background:"#111",color:"#fff"});
+  }catch(err){ Swal.fire({icon:"error",title:"Error",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
+}
+
 document.querySelectorAll("#navlist a, #navlist button").forEach(el => {
   /* Don't auto-close nav when profile button or its dropdown buttons are tapped */
   if(el.closest("#navProfile")) return;
