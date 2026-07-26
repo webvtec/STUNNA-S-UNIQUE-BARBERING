@@ -162,7 +162,7 @@ section{padding:120px 8%;}
   display:flex;flex-direction:column;align-items:center;text-align:center;
   transition:.4s;
   background:var(--dark-card);border:1px solid var(--border);
-  padding:36px 24px 28px;border-radius:18px;
+  padding:0 0 28px;border-radius:18px;overflow:hidden;
 }
 .barber-profile:hover{
   transform:translateY(-8px);
@@ -173,7 +173,7 @@ section{padding:120px 8%;}
   width:140px;height:140px;border-radius:50%;object-fit:cover;
   border:3px solid rgba(179,0,0,.5);
   box-shadow:0 0 25px rgba(179,0,0,.35), 0 0 60px rgba(179,0,0,.12);
-  transition:.4s;flex-shrink:0;
+  transition:.4s;flex-shrink:0;margin-top:28px;
 }
 .barber-profile:hover .barber-avatar{
   border-color:var(--red-bright);
@@ -181,21 +181,21 @@ section{padding:120px 8%;}
 }
 .barber-profile h3{font-family:Cinzel;font-size:20px;letter-spacing:1px;margin-top:18px;}
 .barber-profile .specialty{color:var(--text-dim);font-size:13px;margin-top:6px;min-height:20px;flex-grow:1;}
-.barber-profile .book-group{
-  margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:0;align-self:center;
-}
 .barber-profile .certified-badge{
-  background:#fff;color:#b8860b;font-family:Poppins;font-size:9px;font-weight:700;
-  letter-spacing:2.5px;text-transform:uppercase;padding:5px 18px;
-  border:1px solid rgba(184,134,11,.25);
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  background:#111;color:#c9a84c;font-family:Poppins;font-size:10px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;padding:8px 12px;
+  border:1px solid rgba(201,168,76,.25);border-left:none;border-right:none;border-top:none;
+  box-sizing:border-box;
 }
+.barber-profile .certified-badge svg{flex-shrink:0;}
 .barber-profile .btn-book{
-  margin-top:0;padding:9px 34px;background:#111;color:#fff;
-  border:1px solid rgba(255,255,255,.12);font-family:Poppins;font-size:11px;font-weight:600;letter-spacing:3px;
+  margin-top:auto;padding:8px 34px;background:var(--red);color:#fff;
+  border:none;font-family:Poppins;font-size:11px;font-weight:600;letter-spacing:3px;
   text-transform:uppercase;cursor:pointer;transition:.4s;border-radius:0;
-  box-shadow:0 0 12px rgba(0,0,0,.4);
+  align-self:center;box-shadow:0 0 14px rgba(179,0,0,.3);
 }
-.barber-profile .btn-book:hover{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 4px 25px rgba(230,0,0,.45);}
+.barber-profile .btn-book:hover{background:var(--red-bright);box-shadow:0 4px 25px rgba(230,0,0,.5);}
 .vacation-badge{
   margin-top:10px;padding:6px 14px;background:rgba(47,107,255,.15);
   border:1px solid rgba(47,107,255,.3);color:var(--blue-glow);
@@ -1330,14 +1330,12 @@ function renderBarbers(){
     }
     return `
     <div class="barber-profile reveal">
+      <div class="certified-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="#c9a84c" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm-1 15l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>LICENSED PROFESSIONAL</div>
       <img class="barber-avatar" src="${b.photoURL || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80'}" alt="${esc(b.name)}" loading="lazy">
       <h3>${esc(b.name || "Barber")}</h3>
       <p class="specialty">${esc(b.specialty || "")}</p>
       ${vacHtml}
-      <div class="book-group">
-        <span class="certified-badge">CERTIFIED PROFESSIONAL</span>
-        <button class="btn-book" onclick="openBarberBooking('${b.id}')">BOOK NOW</button>
-      </div>
+      <button class="btn-book" onclick="openBarberBooking('${b.id}')">BOOK NOW</button>
     </div>`;
   }).join("");
   grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
