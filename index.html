@@ -588,9 +588,25 @@ const provider = new firebase.auth.GoogleAuthProvider();
    CONSTANTS
 ========================================================= */
 const ADMIN_UID = "b44tKAz3gtR0AK4eNLOIgcgEpoD3";
-const BUSINESS_HOURS = { start: 9, end: 19 };  // 9 AM – 7 PM
 const SLOT_MINUTES = 35;
 const CURRENCY = "$";  // Canadian Dollars
+
+/* Shop info & hours are hardcoded — edit here (and in dashboard.html) to change them. */
+const SHOP = {
+  name: "Stunna's Unique Barbering",
+  phone: "(647) 707 7600",
+  address: "626 E Main St, Welland, ON L3B 3Y2",
+  email: "stunnauniquebarbering@gmail.com",
+  hours: {
+    Monday:    { open:"09:00", close:"19:00", closed:false },
+    Tuesday:   { open:"09:00", close:"19:00", closed:false },
+    Wednesday: { open:"09:00", close:"19:00", closed:false },
+    Thursday:  { open:"09:00", close:"19:00", closed:false },
+    Friday:    { open:"09:00", close:"19:00", closed:false },
+    Saturday:  { open:"09:00", close:"19:00", closed:false },
+    Sunday:    { open:"09:00", close:"19:00", closed:true }
+  }
+};
 
 /* =========================================================
    GLOBAL STATE
@@ -632,12 +648,24 @@ auth.onAuthStateChanged(async u => {
       userProfile = uSnap.data();
     }
 
-    // Determine role
+    // Determine role — barbers are matched by UID first; on their very first
+    // sign-in they're matched by email and the account is linked (uid claimed).
     if(u.uid === ADMIN_UID){
       userRole = "admin";
     } else {
-      const bSnap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
-      userRole = bSnap.empty ? "client" : "barber";
+      try{
+        let bSnap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
+        if(bSnap.empty && u.email){
+          const eSnap = await db.collection("barbers").where("email","==",u.email.toLowerCase()).limit(1).get();
+          if(!eSnap.empty && !eSnap.docs[0].data().uid){
+            await eSnap.docs[0].ref.update({ uid: u.uid });
+            bSnap = eSnap;
+          }
+        }
+        userRole = bSnap.empty ? "client" : "barber";
+      }catch(e){
+        userRole = "client";
+      }
     }
 
     // Update nav
@@ -815,11 +843,6 @@ db.collection("reviews").orderBy("timestamp","desc").onSnapshot(snap => {
 db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
   gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderGallery();
-});
-// Shop settings
-let shopSettings = null;
-db.collection("settings").doc("shop").onSnapshot(snap => {
-  shopSettings = snap.exists ? snap.data() : null;
 });
 
 /* =========================================================
@@ -1043,12 +1066,11 @@ function getBookingDuration(){
 }
 
 function getHoursForDate(dateStr){
-  if(!shopSettings?.hours || !dateStr) return { start: BUSINESS_HOURS.start, end: BUSINESS_HOURS.end, closed: false };
+  if(!dateStr) return { start:0, end:0, closed:true };
   const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const dayName = dayNames[new Date(dateStr + "T12:00:00").getDay()];
-  const h = shopSettings.hours[dayName];
-  if(!h) return { start: BUSINESS_HOURS.start, end: BUSINESS_HOURS.end, closed: false };
-  if(h.closed) return { start:0, end:0, closed: true };
+  const h = SHOP.hours[dayName];
+  if(!h || h.closed) return { start:0, end:0, closed:true };
   const [oh,om] = (h.open||"09:00").split(":").map(Number);
   const [ch,cm] = (h.close||"19:00").split(":").map(Number);
   return { start: oh, startMin: om||0, end: ch, endMin: cm||0, closed: false };
@@ -1130,10 +1152,10 @@ async function submitBooking(){
   const user = await requireAuth();
   if(!user) return;
 
-  // Re-validate slot against latest data
+  // Re-validate slot against latest data (using the real booking duration)
   const [h,m] = parseTime(time);
   const startMin = h*60+m;
-  const endMin = startMin + SLOT_MINUTES;
+  const endMin = startMin + getBookingDuration();
   const blocked = getBlockedRanges(barberId, date).some(([a,b]) => !(endMin<=a || startMin>=b));
   if(blocked){
     return Swal.fire({icon:"error", title:"Slot just taken", text:"That time was just booked. Please pick another.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
@@ -1312,6 +1334,12 @@ async function cancelBooking(id){
     await db.collection("bookings").doc(id).update({
       status:"Cancelled", cancelledBy:"client"
     });
+    // Free the reserved time slot so others can book it
+    if(b.barberId && b.date && b.time){
+      await db.collection("slots")
+        .doc(b.barberId + "_" + b.date + "_" + String(b.time).replace(/\s/g,""))
+        .delete().catch(() => {});
+    }
     openMyBookings();
   }
 }

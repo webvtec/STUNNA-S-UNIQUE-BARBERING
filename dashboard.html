@@ -105,6 +105,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#b30000;}
   display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;
 }
 .search-row input,.search-row select{max-width:280px;}
+.chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.chip-row .chip{
+  background:#0a0a0a;border:1px solid rgba(255,255,255,.12);color:#bbb;
+  padding:8px 18px;border-radius:50px;cursor:pointer;font-family:Poppins;
+  font-size:12px;letter-spacing:1px;transition:.3s;
+}
+.chip-row .chip:hover{border-color:#b30000;color:#e60000;}
+.chip-row .chip.active{background:#b30000;border-color:#b30000;color:white;}
 
 /* ---------- BOOKING CARDS ---------- */
 .group-title{
@@ -170,9 +178,8 @@ td{color:#ddd;}
 /* ---------- BARBER LIST ---------- */
 .barber-item{
   background:#0a0a0a;padding:16px;border-radius:12px;margin-bottom:10px;
-  display:flex;align-items:center;gap:16px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
 }
-.barber-item img{width:60px;height:60px;border-radius:50%;object-fit:cover;}
 .barber-item .meta{flex:1;}
 .barber-item .meta strong{font-family:Cinzel;letter-spacing:1px;font-size:15px;}
 .barber-item .meta small{color:#888;display:block;font-size:12px;margin-top:2px;}
@@ -317,11 +324,9 @@ td{color:#ddd;}
       <h2 id="reservationsTitle">My Reservations</h2>
       <div class="search-row">
         <input id="resSearch" placeholder="Search by name, phone, or booking #…">
-        <select id="barberFilter" style="display:none;">
-          <option value="">All Barbers</option>
-        </select>
         <button class="btn ghost" onclick="clearPast()">Clear Past Reservations</button>
       </div>
+      <div class="chip-row" id="barberChips" style="display:none;"></div>
       <div id="reservationsList"></div>
     </div>
   </section>
@@ -411,11 +416,7 @@ td{color:#ddd;}
   <section class="section" id="sec-menu">
     <div class="panel">
       <h2 id="menuTitle">My Menu</h2>
-      <div id="menuBarberPickerWrap" style="display:none;" class="field">
-        <label>Editing menu for</label>
-        <select id="menuBarberPicker" onchange="loadMenuForEdit()"></select>
-      </div>
-      <p style="color:#888;font-size:13px;margin-bottom:16px;">Set your services and prices — clients see this list when they book with you. Use categories (e.g. "Adults 18+", "Kids 3-6") to group items. Toggle "Included" for freebies, or "From price (+)" if the price is a starting rate.</p>
+      <p style="color:#888;font-size:13px;margin-bottom:16px;">Set your own services and prices — clients see this list when they book with you. Use categories (e.g. "Adults 18+", "Kids 3-6") to group items. Toggle "Included" for freebies, or "From price (+)" if the price is a starting rate. Saving your first menu also lists you as a barber on the booking page.</p>
 
       <div id="menuEditor"></div>
 
@@ -429,94 +430,80 @@ td{color:#ddd;}
   <section class="section" id="sec-barbers">
     <div class="panel">
       <h2>Barber Management</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:20px;">Add or edit barbers. To find a Google UID: after the barber signs into the site once, open Firebase Console → Authentication → Users and copy their UID.</p>
+      <p style="color:#888;font-size:13px;margin-bottom:20px;">Add a barber with just their name and email. When they sign in with that email they're linked automatically and can set up their own profile, menu, and photos from their side.</p>
       <div class="two-col">
         <div class="field">
           <label>Name</label>
           <input type="text" id="bmName" placeholder="Full name">
         </div>
         <div class="field">
-          <label>Specialty</label>
-          <input type="text" id="bmSpecialty" placeholder="e.g. Master Fade Specialist">
+          <label>Email</label>
+          <input type="email" id="bmEmail" placeholder="barber@email.com">
         </div>
-      </div>
-      <div class="two-col">
-        <div class="field">
-          <label>Google UID</label>
-          <input type="text" id="bmUid" placeholder="Firebase Auth UID">
-        </div>
-        <div class="field">
-          <label>Telegram Chat ID (optional)</label>
-          <input type="text" id="bmTelegram" placeholder="Chat ID for notifications">
-        </div>
-      </div>
-      <div class="field">
-        <label>Profile Photo</label>
-        <div class="drop-zone" id="bmDrop" onclick="document.getElementById('bmFile').click()">
-          <div>Click to upload</div>
-          <img class="preview" id="bmPreview">
-          <input type="file" id="bmFile" accept="image/*" style="display:none;">
-        </div>
-        <div class="progress" id="bmProgress"><div class="progress-bar" id="bmProgressBar"></div></div>
       </div>
       <button class="btn" onclick="saveBarber()">Save Barber</button>
       <button class="btn ghost" onclick="resetBarberForm()" style="margin-left:8px;">Cancel Edit</button>
       <input type="hidden" id="bmEditId">
-      <input type="hidden" id="bmPhotoURL">
 
-      <h3 style="margin-top:32px;">Current Barbers</h3>
-      <div id="barbersList"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:32px;flex-wrap:wrap;gap:10px;">
+        <h3 style="margin:0;">Current Barbers</h3>
+        <button class="btn ghost small" onclick="showRevenue(null)">All Barbers Revenue</button>
+      </div>
+      <div id="barbersList" style="margin-top:14px;"></div>
+
+      <!-- Revenue panel (per barber or all) -->
+      <div id="revPanel" style="display:none;margin-top:28px;border-top:1px solid rgba(255,255,255,.08);padding-top:24px;">
+        <h3 id="revPanelTitle">Revenue</h3>
+        <div class="stat-grid">
+          <div class="stat"><div class="lbl">Today</div><div class="val" id="revToday">$0</div><div class="sub" id="revTodayN">0 bookings</div></div>
+          <div class="stat"><div class="lbl">This Week</div><div class="val" id="revWeek">$0</div><div class="sub" id="revWeekN">0 bookings</div></div>
+          <div class="stat"><div class="lbl">This Month</div><div class="val" id="revMonth">$0</div><div class="sub" id="revMonthN">0 bookings</div></div>
+          <div class="stat"><div class="lbl">All Time</div><div class="val" id="revAll">$0</div><div class="sub" id="revAllN">0 bookings</div></div>
+        </div>
+        <h3 style="margin-top:24px;">Custom Range</h3>
+        <div class="search-row">
+          <input type="date" id="rangeStart"> <input type="date" id="rangeEnd">
+          <button class="btn small" onclick="renderRevenue()">Apply</button>
+          <span id="rangeResult" style="color:#e60000;font-family:Cinzel;font-size:18px;"></span>
+        </div>
+        <div id="revTableWrap"></div>
+      </div>
     </div>
   </section>
 
-  <!-- ADMIN: REVENUE -->
-  <section class="section" id="sec-revenue">
+  <!-- MY PROFILE (staff) -->
+  <section class="section" id="sec-profile">
     <div class="panel">
-      <h2>Revenue Dashboard</h2>
-      <div class="stat-grid">
-        <div class="stat"><div class="lbl">Today</div><div class="val" id="revToday">$0</div><div class="sub" id="revTodayN">0 bookings</div></div>
-        <div class="stat"><div class="lbl">This Week</div><div class="val" id="revWeek">$0</div><div class="sub" id="revWeekN">0 bookings</div></div>
-        <div class="stat"><div class="lbl">This Month</div><div class="val" id="revMonth">$0</div><div class="sub" id="revMonthN">0 bookings</div></div>
-        <div class="stat"><div class="lbl">Cancellations</div><div class="val" style="color:#888;" id="revCancel">0</div><div class="sub">all-time</div></div>
-      </div>
-
-      <h3 style="margin-top:32px;">Custom Range</h3>
-      <div class="search-row">
-        <input type="date" id="rangeStart"> <input type="date" id="rangeEnd">
-        <button class="btn small" onclick="renderRevenueTable()">Apply</button>
-      </div>
-      <h3 style="margin-top:24px;">Per Barber</h3>
-      <table id="revTable">
-        <thead><tr><th onclick="sortRev('name')">Barber</th><th onclick="sortRev('count')">Bookings</th><th onclick="sortRev('revenue')">Revenue</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </section>
-
-
-  <!-- ADMIN: SHOP SETTINGS -->
-  <section class="section" id="sec-settings">
-    <div class="panel">
-      <h2>Shop Settings</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:24px;">Configure business hours and shop information. These are used for slot generation on the booking page.</p>
+      <h2>My Profile</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:20px;">This is how you appear to clients on the booking page.</p>
       <div class="two-col">
-        <div class="field"><label>Shop Name</label><input type="text" id="setName" placeholder="Stunna's Unique Barbering"></div>
-        <div class="field"><label>Phone</label><input type="tel" id="setPhone" placeholder="(647) 707 7600"></div>
+        <div class="field">
+          <label>Display Name</label>
+          <input type="text" id="ppName" placeholder="Name shown to clients">
+        </div>
+        <div class="field">
+          <label>Specialty</label>
+          <input type="text" id="ppSpecialty" placeholder="e.g. Master Fade Specialist">
+        </div>
       </div>
-      <div class="field"><label>Address</label><input type="text" id="setAddress" placeholder="626 E Main St, Welland, ON"></div>
-
-      <h3 style="margin-top:28px;margin-bottom:16px;">Hours by Day</h3>
-      <div id="hoursEditor"></div>
-
-      <button class="btn" style="margin-top:20px;" onclick="saveShopSettings()">Save Settings</button>
+      <div class="field">
+        <label>Profile Photo</label>
+        <div class="drop-zone" id="ppDrop" onclick="document.getElementById('ppFile').click()">
+          <div>Drop image here or click to browse</div>
+          <img class="preview" id="ppPreview">
+          <input type="file" id="ppFile" accept="image/*" style="display:none;">
+        </div>
+        <div class="progress" id="ppProgress"><div class="progress-bar" id="ppProgressBar"></div></div>
+      </div>
+      <button class="btn" onclick="saveMyProfile()">Save Profile</button>
     </div>
   </section>
 
-  <!-- ADMIN: CLIENTS -->
+  <!-- CLIENTS -->
   <section class="section" id="sec-clients">
     <div class="panel">
-      <h2>Clients</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:20px;">Users who have booked appointments.</p>
+      <h2 id="clientsTitle">Clients</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:20px;" id="clientsDesc">Users who have booked appointments.</p>
       <div id="clientsList"></div>
     </div>
   </section>
@@ -560,6 +547,23 @@ const provider = new firebase.auth.GoogleAuthProvider();
 ========================================================= */
 const ADMIN_UID = "b44tKAz3gtR0AK4eNLOIgcgEpoD3";
 const SLOT_MINUTES = 35;
+
+/* Shop info & hours are hardcoded — edit here (and in index.html) to change them. */
+const SHOP = {
+  name: "Stunna's Unique Barbering",
+  phone: "(647) 707 7600",
+  address: "626 E Main St, Welland, ON L3B 3Y2",
+  email: "stunnauniquebarbering@gmail.com",
+  hours: {
+    Monday:    { open:"09:00", close:"19:00", closed:false },
+    Tuesday:   { open:"09:00", close:"19:00", closed:false },
+    Wednesday: { open:"09:00", close:"19:00", closed:false },
+    Thursday:  { open:"09:00", close:"19:00", closed:false },
+    Friday:    { open:"09:00", close:"19:00", closed:false },
+    Saturday:  { open:"09:00", close:"19:00", closed:false },
+    Sunday:    { open:"09:00", close:"19:00", closed:true }
+  }
+};
 const CURRENCY = "$";
 function fmtMoney(n){ return CURRENCY + Number(n||0).toLocaleString("en-CA"); }
 
@@ -571,7 +575,8 @@ let bookings = [];
 let unavailable = [];
 let gallery = [];
 let currentSection = "reservations";
-let revSort = { key:"revenue", dir:-1 };
+let resBarberFilter = "";   // admin reservations filter ("" = all barbers)
+let revBarberId = null;     // revenue panel scope (null = all barbers)
 
 /* =========================================================
    ACCESS GUARD
@@ -596,18 +601,24 @@ auth.onAuthStateChanged(async u => {
   }
   currentUser = u;
 
-  // Determine role
-  if(u.uid === ADMIN_UID){
-    role = "admin";
-    initApp();
-    return;
-  }
-  // Check if UID matches any barber
+  // Determine role. Barbers are matched by UID first; on their very first
+  // sign-in they're matched by email and the account is linked (uid claimed).
   try{
-    const snap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
-    if(!snap.empty){
+    let snap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
+    if(snap.empty && u.email){
+      const eSnap = await db.collection("barbers").where("email","==",u.email.toLowerCase()).limit(1).get();
+      if(!eSnap.empty && !eSnap.docs[0].data().uid){
+        await eSnap.docs[0].ref.update({ uid: u.uid });
+        snap = eSnap;
+      }
+    }
+    if(!snap.empty) myBarberId = snap.docs[0].id;
+
+    if(u.uid === ADMIN_UID){
+      role = "admin";
+      initApp();
+    } else if(myBarberId){
       role = "barber";
-      myBarberId = snap.docs[0].id;
       initApp();
     } else {
       denyAccess("You do not have staff access.");
@@ -649,31 +660,31 @@ function doLogout(){ auth.signOut().then(() => window.location.href = "index.htm
 function buildNav(){
   const items = [
     { id:"reservations", label: role === "admin" ? "All Reservations" : "My Reservations" },
-    { id:"menu",         label: role === "admin" ? "Menus" : "My Menu" },
+    { id:"menu",         label:"My Menu" },
     { id:"unavail",      label: role === "admin" ? "Unavailable Days" : "My Unavailable Days" },
     { id:"gallery",      label: role === "admin" ? "Gallery" : "My Gallery" },
-    { id:"earnings",     label: role === "admin" ? "Earnings" : "My Earnings" }
+    { id:"earnings",     label:"My Earnings" },
+    { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" },
+    { id:"profile",      label:"My Profile" }
   ];
-  if(role === "admin"){
-    items.push({ id:"barbers", label:"Barbers" });
-    items.push({ id:"revenue", label:"Revenue" });
-    items.push({ id:"settings", label:"Settings" });
-    items.push({ id:"clients", label:"Clients" });
-  }
+  if(role === "admin") items.splice(5, 0, { id:"barbers", label:"Barbers" });
+
   document.getElementById("dashNav").innerHTML = items.map(i =>
     `<button data-sec="${i.id}" class="${i.id===currentSection?'active':''}" onclick="showSection('${i.id}')">${i.label}</button>`
   ).join("");
 
-  // Titles + admin filters
   document.getElementById("reservationsTitle").textContent = role === "admin" ? "All Reservations" : "My Reservations";
   document.getElementById("unavailTitle").textContent = role === "admin" ? "Unavailable Days" : "My Unavailable Days";
   document.getElementById("galleryTitle").textContent = role === "admin" ? "Gallery" : "My Gallery";
-  document.getElementById("earningsTitle").textContent = role === "admin" ? "Earnings" : "My Earnings";
-  document.getElementById("menuTitle").textContent = role === "admin" ? "Menus" : "My Menu";
+  document.getElementById("earningsTitle").textContent = "My Earnings";
+  document.getElementById("menuTitle").textContent = "My Menu";
+  document.getElementById("clientsTitle").textContent = role === "admin" ? "Clients" : "My Clients";
+  document.getElementById("clientsDesc").textContent = role === "admin"
+    ? "Everyone who has booked at the shop."
+    : "Everyone who has booked with you.";
   if(role === "admin"){
-    document.getElementById("barberFilter").style.display = "";
+    document.getElementById("barberChips").style.display = "flex";
     document.getElementById("uaScopeWrap").style.display = "";
-    document.getElementById("menuBarberPickerWrap").style.display = "";
   }
 }
 function showSection(id){
@@ -682,10 +693,10 @@ function showSection(id){
   document.getElementById("sec-" + id).classList.add("active");
   document.querySelectorAll(".dash-nav button").forEach(b => b.classList.toggle("active", b.dataset.sec === id));
   if(id === "earnings") renderEarnings();
-  if(id === "revenue") { renderRevenueStats(); renderRevenueTable(); }
-  if(id === "menu") { populateMenuBarberPicker(); loadMenuForEdit(); }
-  if(id === "settings") loadShopSettings();
+  if(id === "menu") loadMenuForEdit();
   if(id === "clients") renderClients();
+  if(id === "profile") loadMyProfile();
+  if(id === "barbers") renderBarbersList();
 }
 
 /* =========================================================
@@ -695,15 +706,21 @@ function attachListeners(){
   db.collection("barbers").onSnapshot(snap => {
     barbers = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderBarbersList();
-    renderBarberFilter();
+    renderBarberChips();
     renderReservations();
-    if(currentSection === "menu"){ populateMenuBarberPicker(); }
+    if(currentSection === "barbers") renderRevenue();
   });
-  db.collection("bookings").onSnapshot(snap => {
+  // Barbers only listen to their own bookings (matches security rules);
+  // admin listens shop-wide.
+  const bookingsQuery = role === "barber"
+    ? db.collection("bookings").where("barberId","==",myBarberId)
+    : db.collection("bookings");
+  bookingsQuery.onSnapshot(snap => {
     bookings = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderReservations();
     if(currentSection === "earnings") renderEarnings();
-    if(currentSection === "revenue") { renderRevenueStats(); renderRevenueTable(); }
+    if(currentSection === "clients") renderClients();
+    if(currentSection === "barbers") renderRevenue();
   });
   db.collection("unavailableDays").onSnapshot(snap => {
     unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
@@ -718,24 +735,27 @@ function attachListeners(){
 /* =========================================================
    RESERVATIONS
 ========================================================= */
-function renderBarberFilter(){
+function renderBarberChips(){
   if(role !== "admin") return;
-  const sel = document.getElementById("barberFilter");
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">All Barbers</option>' +
-    barbers.map(b => `<option value="${b.id}" ${b.id===cur?'selected':''}>${esc(b.name)}</option>`).join("");
+  const wrap = document.getElementById("barberChips");
+  if(resBarberFilter && !barbers.some(b => b.id === resBarberFilter)) resBarberFilter = "";
+  const opts = [{ id:"", name:"All Barbers" }, ...barbers];
+  wrap.innerHTML = opts.map(b =>
+    `<button class="chip ${resBarberFilter===b.id?'active':''}" onclick="setBarberChip('${b.id}')">${esc(b.name)}</button>`
+  ).join("");
 }
-document.addEventListener("change", e => {
-  if(e.target.id === "barberFilter") renderReservations();
-});
+function setBarberChip(id){
+  resBarberFilter = id;
+  renderBarberChips();
+  renderReservations();
+}
 
 function renderReservations(){
   const list = document.getElementById("reservationsList");
   const search = (document.getElementById("resSearch")?.value || "").toLowerCase().trim();
-  const barberFilter = document.getElementById("barberFilter")?.value || "";
   let mine = bookings.slice();
   if(role === "barber") mine = mine.filter(b => b.barberId === myBarberId);
-  if(role === "admin" && barberFilter) mine = mine.filter(b => b.barberId === barberFilter);
+  if(role === "admin" && resBarberFilter) mine = mine.filter(b => b.barberId === resBarberFilter);
   if(search){
     mine = mine.filter(b =>
       (b.name||"").toLowerCase().includes(search) ||
@@ -800,13 +820,20 @@ function bookingCard(b, isToday){
 /* =========================================================
    BOOKING ACTIONS
 ========================================================= */
+function slotRefFor(b){
+  if(!b || !b.barberId || !b.date || !b.time) return null;
+  return db.collection("slots").doc(b.barberId + "_" + b.date + "_" + String(b.time).replace(/\s/g,""));
+}
 function promptCancel(id){
-  openAM("Cancel Booking", "Are you sure? This cannot be undone.", async () => {
+  openAM("Cancel Booking", "Are you sure? This cannot be undone. The time slot will reopen for booking.", async () => {
+    const b = bookings.find(x => x.id === id);
     await db.collection("bookings").doc(id).update({
       status: "Cancelled",
       cancelledBy: role === "admin" ? "admin" : "barber"
     });
-    toast("Booking cancelled", "red");
+    const sr = slotRefFor(b);
+    if(sr) await sr.delete().catch(() => {});
+    toast("Booking cancelled — slot reopened", "red");
     closeAM();
   });
 }
@@ -849,7 +876,11 @@ async function clearPast(){
     if(role === "barber") scope = scope.filter(b => b.barberId === myBarberId);
     const past = scope.filter(b => b.date && new Date(b.date + "T00:00:00") < today);
     const batch = db.batch();
-    past.forEach(b => batch.delete(db.collection("bookings").doc(b.id)));
+    past.forEach(b => {
+      batch.delete(db.collection("bookings").doc(b.id));
+      const sr = slotRefFor(b);
+      if(sr) batch.delete(sr);
+    });
     await batch.commit();
     toast(`Deleted ${past.length} past bookings`, "green");
     closeAM();
@@ -888,7 +919,8 @@ async function addUnavailable(){
   const startTime = document.getElementById("uaStart").value;
   const endTime = document.getElementById("uaEnd").value;
   const scope = role === "admin" ? document.getElementById("uaScope").value : "self";
-  const barberId = scope === "global" ? "global" : (role === "admin" ? "global" : myBarberId);
+  // "Just me" blocks only the current person's chair; "All barbers" closes the shop.
+  const barberId = scope === "global" ? "global" : (myBarberId || "global");
 
   if(!date) return toast("Pick a date", "red");
   if(!allDay && (!startTime || !endTime)) return toast("Enter start and end times", "red");
@@ -966,7 +998,7 @@ async function removeUnavailable(id){
    GALLERY UPLOAD
 ========================================================= */
 let galFile = null;
-let bmFile = null;
+let ppFile = null;
 function setupUploads(){
   const galInput = document.getElementById("galFile");
   const galDrop = document.getElementById("galDrop");
@@ -982,19 +1014,19 @@ function setupUploads(){
     if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }
   });
 
-  // Barber management upload
-  const bmInput = document.getElementById("bmFile");
-  const bmDrop = document.getElementById("bmDrop");
-  const bmPrev = document.getElementById("bmPreview");
-  bmInput.addEventListener("change", e => {
-    bmFile = e.target.files[0];
-    if(bmFile){ bmPrev.src = URL.createObjectURL(bmFile); bmPrev.classList.add("on"); }
+  // My Profile photo upload
+  const ppInput = document.getElementById("ppFile");
+  const ppDrop = document.getElementById("ppDrop");
+  const ppPrev = document.getElementById("ppPreview");
+  ppInput.addEventListener("change", e => {
+    ppFile = e.target.files[0];
+    if(ppFile){ ppPrev.src = URL.createObjectURL(ppFile); ppPrev.classList.add("on"); }
   });
-  ["dragenter","dragover"].forEach(ev => bmDrop.addEventListener(ev, e => { e.preventDefault(); bmDrop.classList.add("drag"); }));
-  ["dragleave","drop"].forEach(ev => bmDrop.addEventListener(ev, e => { e.preventDefault(); bmDrop.classList.remove("drag"); }));
-  bmDrop.addEventListener("drop", e => {
-    bmFile = e.dataTransfer.files[0];
-    if(bmFile){ bmPrev.src = URL.createObjectURL(bmFile); bmPrev.classList.add("on"); }
+  ["dragenter","dragover"].forEach(ev => ppDrop.addEventListener(ev, e => { e.preventDefault(); ppDrop.classList.add("drag"); }));
+  ["dragleave","drop"].forEach(ev => ppDrop.addEventListener(ev, e => { e.preventDefault(); ppDrop.classList.remove("drag"); }));
+  ppDrop.addEventListener("drop", e => {
+    ppFile = e.dataTransfer.files[0];
+    if(ppFile){ ppPrev.src = URL.createObjectURL(ppFile); ppPrev.classList.add("on"); }
   });
 }
 
@@ -1122,102 +1154,187 @@ async function commitOrder(grid){
 ========================================================= */
 async function saveBarber(){
   const name = document.getElementById("bmName").value.trim();
-  const specialty = document.getElementById("bmSpecialty").value.trim();
-  const uid = document.getElementById("bmUid").value.trim();
-  const telegramChatId = document.getElementById("bmTelegram").value.trim();
+  const email = document.getElementById("bmEmail").value.trim().toLowerCase();
   const editId = document.getElementById("bmEditId").value;
-  let photoURL = document.getElementById("bmPhotoURL").value;
 
-  if(!name || !specialty || !uid) return toast("Name, specialty and UID required", "red");
+  if(!name || !email) return toast("Name and email are required", "red");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast("Enter a valid email address", "red");
+  const dup = barbers.find(b => (b.email||"").toLowerCase() === email && b.id !== editId);
+  if(dup) return toast("A barber with that email already exists", "red");
 
-  const finish = async (url) => {
-    const data = { name, specialty, uid, telegramChatId, photoURL: url, active: true };
+  try{
     if(editId){
-      await db.collection("barbers").doc(editId).update(data);
+      await db.collection("barbers").doc(editId).update({ name, email });
       toast("Barber updated", "green");
     } else {
-      await db.collection("barbers").add(data);
-      toast("Barber added", "green");
+      await db.collection("barbers").add({
+        name, email, uid: null, active: true,
+        specialty: "", photoURL: null, menu: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast("Barber added — they can now sign in with that email", "green");
     }
     resetBarberForm();
-  };
-
-  if(bmFile){
-    const path = `barbers/${Date.now()}_${bmFile.name}`;
-    const ref = storage.ref(path);
-    const task = ref.put(bmFile);
-    const bar = document.getElementById("bmProgressBar");
-    const wrap = document.getElementById("bmProgress");
-    wrap.classList.add("on");
-    task.on("state_changed",
-      snap => { bar.style.width = ((snap.bytesTransferred/snap.totalBytes)*100) + "%"; },
-      err => { toast("Upload failed", "red"); wrap.classList.remove("on"); },
-      async () => {
-        const url = await task.snapshot.ref.getDownloadURL();
-        wrap.classList.remove("on");
-        await finish(url);
-      }
-    );
-  } else {
-    await finish(photoURL || null);
+  }catch(e){
+    toast("Save failed: " + e.message, "red");
   }
 }
 function resetBarberForm(){
   document.getElementById("bmName").value = "";
-  document.getElementById("bmSpecialty").value = "";
-  document.getElementById("bmUid").value = "";
-  document.getElementById("bmTelegram").value = "";
+  document.getElementById("bmEmail").value = "";
   document.getElementById("bmEditId").value = "";
-  document.getElementById("bmPhotoURL").value = "";
-  document.getElementById("bmPreview").classList.remove("on");
-  bmFile = null;
 }
 function editBarber(id){
   const b = barbers.find(x => x.id === id);
   if(!b) return;
   document.getElementById("bmName").value = b.name || "";
-  document.getElementById("bmSpecialty").value = b.specialty || "";
-  document.getElementById("bmUid").value = b.uid || "";
-  document.getElementById("bmTelegram").value = b.telegramChatId || "";
+  document.getElementById("bmEmail").value = b.email || "";
   document.getElementById("bmEditId").value = b.id;
-  document.getElementById("bmPhotoURL").value = b.photoURL || "";
-  const prev = document.getElementById("bmPreview");
-  if(b.photoURL){ prev.src = b.photoURL; prev.classList.add("on"); }
   window.scrollTo({top:0, behavior:"smooth"});
 }
 async function toggleBarberActive(id){
   const b = barbers.find(x => x.id === id);
   await db.collection("barbers").doc(id).update({ active: !b.active });
-  toast(b.active ? "Deactivated" : "Activated", "green");
+  toast(b.active ? "Deactivated — hidden from booking page" : "Activated", "green");
+}
+function removeBarber(id){
+  const b = barbers.find(x => x.id === id);
+  if(!b) return;
+  openAM("Remove Barber",
+    `<p>Permanently remove <strong style="color:#e60000;">${esc(b.name)}</strong>?</p>
+     <p>Their gallery photos and unavailable days are deleted, and they lose staff access. Past bookings stay in history so revenue records are kept.</p>`,
+    async () => {
+      try{
+        const batch = db.batch();
+        batch.delete(db.collection("barbers").doc(id));
+        const [ua, gal] = await Promise.all([
+          db.collection("unavailableDays").where("barberId","==",id).get(),
+          db.collection("gallery").where("barberId","==",id).get()
+        ]);
+        ua.forEach(d => batch.delete(d.ref));
+        gal.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        if(revBarberId === id) document.getElementById("revPanel").style.display = "none";
+        toast("Barber removed", "green");
+      }catch(e){
+        toast("Remove failed: " + e.message, "red");
+      }
+      closeAM();
+    }, "Remove");
 }
 function renderBarbersList(){
   if(role !== "admin") return;
   const list = document.getElementById("barbersList");
+  if(!list) return;
   if(!barbers.length){
-    list.innerHTML = '<div style="color:#666;padding:20px;">No barbers yet.</div>';
+    list.innerHTML = '<div style="color:#666;padding:20px;">No barbers yet. Add one above — or save your own menu in "My Menu" to appear as a barber yourself.</div>';
     return;
   }
   list.innerHTML = barbers.map(b => `
     <div class="barber-item">
-      <img src="${b.photoURL || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=200&q=80'}">
       <div class="meta">
-        <strong>${esc(b.name)}</strong>
-        <small>${esc(b.specialty||"")}</small>
-        <small style="color:${b.active?'#7fff7f':'#888'};">${b.active ? "Active" : "Inactive"}</small>
+        <strong>${esc(b.name)}${b.id === myBarberId ? ' <span style="color:#888;font-size:11px;letter-spacing:1px;">(YOU)</span>' : ''}</strong>
+        <small>${esc(b.email||"")}</small>
+        <small>
+          <span style="color:${b.uid?'#7fdfff':'#888'};">${b.uid ? "Linked" : "Awaiting first sign-in"}</span>
+          &nbsp;·&nbsp;
+          <span style="color:${b.active?'#7fff7f':'#888'};">${b.active ? "Active" : "Inactive"}</span>
+        </small>
       </div>
+      <button class="btn small ghost" onclick="showRevenue('${b.id}')">Revenue</button>
       <button class="btn small ghost" onclick="editBarber('${b.id}')">Edit</button>
-      <button class="btn small ${b.active?'danger':''}" onclick="toggleBarberActive('${b.id}')">${b.active?'Deactivate':'Activate'}</button>
+      <button class="btn small ghost" onclick="toggleBarberActive('${b.id}')">${b.active?'Deactivate':'Activate'}</button>
+      <button class="btn small danger" onclick="removeBarber('${b.id}')">Remove</button>
     </div>
   `).join("");
 }
 
 /* =========================================================
-   EARNINGS (barber view)
+   REVENUE PANEL (inside Barber Management)
+========================================================= */
+function showRevenue(id){
+  revBarberId = id;
+  const panel = document.getElementById("revPanel");
+  panel.style.display = "block";
+  document.getElementById("rangeStart").value = "";
+  document.getElementById("rangeEnd").value = "";
+  renderRevenue();
+  panel.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+function renderRevenue(){
+  const panel = document.getElementById("revPanel");
+  if(!panel || panel.style.display === "none") return;
+  const title = revBarberId
+    ? (barbers.find(b => b.id === revBarberId)?.name || "Barber")
+    : "All Barbers";
+  document.getElementById("revPanelTitle").textContent = "Revenue — " + title;
+
+  let done = bookings.filter(b => b.status === "Completed");
+  if(revBarberId) done = done.filter(b => b.barberId === revBarberId);
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const wkStart = new Date(today); wkStart.setDate(wkStart.getDate() - today.getDay());
+  const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const localStr = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  const sum = arr => arr.reduce((s,b) => s + (b.total||0), 0);
+  const setStat = (id, arr) => {
+    document.getElementById(id).textContent = fmtMoney(sum(arr));
+    document.getElementById(id + "N").textContent = arr.length + " booking" + (arr.length===1?"":"s");
+  };
+  setStat("revToday", done.filter(b => b.date === localStr(today)));
+  setStat("revWeek",  done.filter(b => b.date && new Date(b.date + "T00:00:00") >= wkStart));
+  setStat("revMonth", done.filter(b => b.date && new Date(b.date + "T00:00:00") >= mStart));
+  setStat("revAll", done);
+
+  const start = document.getElementById("rangeStart").value;
+  const end = document.getElementById("rangeEnd").value;
+  let ranged = done;
+  if(start) ranged = ranged.filter(b => b.date >= start);
+  if(end) ranged = ranged.filter(b => b.date <= end);
+  document.getElementById("rangeResult").textContent =
+    (start || end) ? fmtMoney(sum(ranged)) + " · " + ranged.length + " booking" + (ranged.length===1?"":"s") : "";
+
+  const wrap = document.getElementById("revTableWrap");
+  const rangeNote = (start || end) ? " (custom range)" : "";
+  if(!revBarberId){
+    const perBarber = {};
+    ranged.forEach(b => {
+      const bid = b.barberId || "unknown";
+      if(!perBarber[bid]) perBarber[bid] = { count:0, revenue:0 };
+      perBarber[bid].count++;
+      perBarber[bid].revenue += (b.total || 0);
+    });
+    const rows = Object.entries(perBarber).map(([bid, d]) => ({
+      name: barbers.find(x => x.id === bid)?.name || "Removed barber",
+      count: d.count, revenue: d.revenue
+    })).sort((a,b) => b.revenue - a.revenue);
+    wrap.innerHTML = `
+      <h3 style="margin-top:24px;">Per Barber${rangeNote}</h3>
+      <table>
+        <thead><tr><th>Barber</th><th>Bookings</th><th>Revenue</th></tr></thead>
+        <tbody>${rows.length
+          ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.count}</td><td style="color:#e60000;font-family:Cinzel;">${fmtMoney(r.revenue)}</td></tr>`).join("")
+          : '<tr><td colspan="3" style="color:#666;text-align:center;padding:20px;">No completed bookings.</td></tr>'}</tbody>
+      </table>`;
+  } else {
+    const recent = ranged.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
+    wrap.innerHTML = `
+      <h3 style="margin-top:24px;">Completed Bookings${rangeNote}</h3>
+      ${recent.length ? recent.map(b => `
+        <div class="unavail-item">
+          <div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
+          <div style="color:#e60000;font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}${b.fromPrice?"+":""}</div>
+        </div>`).join("") : '<div style="color:#666;padding:20px;">No completed bookings.</div>'}`;
+  }
+}
+
+/* =========================================================
+   MY EARNINGS — always personal (admin included)
 ========================================================= */
 function renderEarnings(){
-  const scope = role === "barber"
+  const scope = myBarberId
     ? bookings.filter(b => b.barberId === myBarberId && b.status === "Completed")
-    : bookings.filter(b => b.status === "Completed");
+    : [];
   const today = new Date(); today.setHours(0,0,0,0);
   const wkStart = new Date(today); wkStart.setDate(wkStart.getDate() - today.getDay());
   const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -1233,142 +1350,87 @@ function renderEarnings(){
   document.getElementById("earnMonth").textContent = fmtMoney(sum(monthBk));
 
   const list = scope.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
+  const emptyMsg = !myBarberId && role === "admin"
+    ? 'You are not set up as a barber yet — save your menu in "My Menu" to create your barber profile and start tracking your own cuts.'
+    : 'No completed cuts yet. Mark bookings as Completed to see them here.';
   document.getElementById("earnBreakdown").innerHTML = list.length ? list.map(b => `
     <div class="unavail-item">
       <div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
       <div style="color:#e60000;font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}${b.fromPrice?"+":""}</div>
     </div>
-  `).join("") : '<div style="color:#666;padding:20px;">No completed bookings yet.</div>';
+  `).join("") : `<div style="color:#666;padding:20px;">${emptyMsg}</div>`;
 }
 
 /* =========================================================
-   REVENUE (admin)
+   MY PROFILE (staff — how you appear on the booking page)
 ========================================================= */
-function renderRevenueStats(){
-  const done = bookings.filter(b => b.status === "Completed");
-  const cancelled = bookings.filter(b => b.status === "Cancelled");
-  const today = new Date(); today.setHours(0,0,0,0);
-  const wkStart = new Date(today); wkStart.setDate(wkStart.getDate() - today.getDay());
-  const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
-
-  const inDay = b => b.date === today.toISOString().slice(0,10);
-  const inWeek = b => b.date && new Date(b.date + "T00:00:00") >= wkStart;
-  const inMonth = b => b.date && new Date(b.date + "T00:00:00") >= mStart;
-
-  const setStat = (id, arr) => {
-    document.getElementById(id).textContent = fmtMoney(arr.reduce((s,b) => s + (b.total||0), 0));
-    document.getElementById(id + "N").textContent = arr.length + " booking" + (arr.length===1?"":"s");
-  };
-  setStat("revToday", done.filter(inDay));
-  setStat("revWeek",  done.filter(inWeek));
-  setStat("revMonth", done.filter(inMonth));
-  document.getElementById("revCancel").textContent = cancelled.length;
-}
-function renderRevenueTable(){
-  const start = document.getElementById("rangeStart").value;
-  const end = document.getElementById("rangeEnd").value;
-  let done = bookings.filter(b => b.status === "Completed");
-  if(start) done = done.filter(b => b.date >= start);
-  if(end) done = done.filter(b => b.date <= end);
-  const perBarber = {};
-  done.forEach(b => {
-    const bid = b.barberId || "unknown";
-    if(!perBarber[bid]) perBarber[bid] = { count:0, revenue:0 };
-    perBarber[bid].count++;
-    perBarber[bid].revenue += (b.total || 0);
+async function ensureMyBarberDoc(){
+  if(myBarberId) return;
+  if(role !== "admin") throw new Error("No barber profile found for your account.");
+  const ref = await db.collection("barbers").add({
+    name: currentUser.displayName || "Stunna",
+    email: (currentUser.email || "").toLowerCase(),
+    uid: currentUser.uid,
+    active: true, specialty: "", photoURL: null, menu: [],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-  let rows = Object.entries(perBarber).map(([bid, d]) => ({
-    name: barbers.find(x => x.id === bid)?.name || "—",
-    count: d.count,
-    revenue: d.revenue
-  }));
-  rows.sort((a,b) => (a[revSort.key] > b[revSort.key] ? 1 : -1) * revSort.dir);
-  document.querySelector("#revTable tbody").innerHTML = rows.length
-    ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.count}</td><td style="color:#e60000;font-family:Cinzel;">${fmtMoney(r.revenue)}</td></tr>`).join("")
-    : `<tr><td colspan="3" style="color:#666;text-align:center;padding:20px;">No completed bookings in range.</td></tr>`;
-}
-function sortRev(key){
-  if(revSort.key === key) revSort.dir *= -1;
-  else { revSort.key = key; revSort.dir = -1; }
-  renderRevenueTable();
+  myBarberId = ref.id;
 }
 
-
-
-/* =========================================================
-   SHOP SETTINGS (admin)
-========================================================= */
-let shopSettings = null;
-const DAY_NAMES = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-
-function loadShopSettings(){
-  db.collection("settings").doc("shop").get().then(snap => {
-    shopSettings = snap.exists ? snap.data() : { name:"Stunna's Unique Barbering", phone:"(647) 707 7600", address:"626 E Main St, Welland, ON L3B 3Y2", hours:{} };
-    document.getElementById("setName").value = shopSettings.name || "";
-    document.getElementById("setPhone").value = shopSettings.phone || "";
-    document.getElementById("setAddress").value = shopSettings.address || "";
-    renderHoursEditor();
-  });
+function loadMyProfile(){
+  const b = barbers.find(x => x.id === myBarberId);
+  document.getElementById("ppName").value = b?.name || currentUser.displayName || "";
+  document.getElementById("ppSpecialty").value = b?.specialty || "";
+  const prev = document.getElementById("ppPreview");
+  if(b?.photoURL){ prev.src = b.photoURL; prev.classList.add("on"); }
+  else prev.classList.remove("on");
 }
 
-function renderHoursEditor(){
-  const wrap = document.getElementById("hoursEditor");
-  const hours = shopSettings?.hours || {};
-  wrap.innerHTML = DAY_NAMES.map(day => {
-    const d = hours[day] || { open:"09:00", close:"19:00", closed:false };
-    return `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:10px;background:#0a0a0a;border-radius:8px;">
-        <span style="width:100px;font-size:13px;letter-spacing:1px;">${day}</span>
-        <label style="font-size:12px;color:#888;display:flex;align-items:center;gap:4px;">
-          <input type="checkbox" ${d.closed?'checked':''} onchange="toggleDayClosed('${day}',this.checked)"> Closed
-        </label>
-        <input type="time" value="${d.open||'09:00'}" id="hr_${day}_open" ${d.closed?'disabled':''} style="background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:6px;font-family:Poppins;font-size:13px;">
-        <span style="color:#666;">to</span>
-        <input type="time" value="${d.close||'19:00'}" id="hr_${day}_close" ${d.closed?'disabled':''} style="background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:6px;font-family:Poppins;font-size:13px;">
-      </div>`;
-  }).join("");
-}
-
-function toggleDayClosed(day, closed){
-  if(!shopSettings.hours) shopSettings.hours = {};
-  if(!shopSettings.hours[day]) shopSettings.hours[day] = { open:"09:00", close:"19:00", closed:false };
-  shopSettings.hours[day].closed = closed;
-  renderHoursEditor();
-}
-
-async function saveShopSettings(){
-  const hours = {};
-  DAY_NAMES.forEach(day => {
-    const openEl = document.getElementById("hr_" + day + "_open");
-    const closeEl = document.getElementById("hr_" + day + "_close");
-    const existing = shopSettings?.hours?.[day] || {};
-    hours[day] = {
-      open: openEl.value || "09:00",
-      close: closeEl.value || "19:00",
-      closed: existing.closed || false
-    };
-  });
-  const data = {
-    name: document.getElementById("setName").value.trim(),
-    phone: document.getElementById("setPhone").value.trim(),
-    address: document.getElementById("setAddress").value.trim(),
-    hours
-  };
+async function saveMyProfile(){
+  const name = document.getElementById("ppName").value.trim();
+  const specialty = document.getElementById("ppSpecialty").value.trim();
+  if(!name) return toast("Display name is required", "red");
   try{
-    await db.collection("settings").doc("shop").set(data, { merge: true });
-    shopSettings = data;
-    toast("Settings saved", "green");
+    await ensureMyBarberDoc();
+    const finish = async url => {
+      const data = { name, specialty };
+      if(url) data.photoURL = url;
+      await db.collection("barbers").doc(myBarberId).update(data);
+      document.getElementById("userName").textContent = name;
+      ppFile = null;
+      toast("Profile saved — this is how clients see you", "green");
+    };
+    if(ppFile){
+      const ref = storage.ref(`barbers/${myBarberId}/${Date.now()}_${ppFile.name}`);
+      const task = ref.put(ppFile);
+      const bar = document.getElementById("ppProgressBar");
+      const wrap = document.getElementById("ppProgress");
+      wrap.classList.add("on");
+      task.on("state_changed",
+        snap => { bar.style.width = ((snap.bytesTransferred/snap.totalBytes)*100) + "%"; },
+        err => { toast("Photo upload failed: " + err.message, "red"); wrap.classList.remove("on"); },
+        async () => {
+          const url = await task.snapshot.ref.getDownloadURL();
+          wrap.classList.remove("on");
+          bar.style.width = "0%";
+          await finish(url);
+        }
+      );
+    } else {
+      await finish(null);
+    }
   }catch(e){
     toast("Save failed: " + e.message, "red");
   }
 }
 
 /* =========================================================
-   CLIENTS (admin)
+   CLIENTS — shop-wide for admin, own clients for barbers
 ========================================================= */
 function renderClients(){
   const clientMap = {};
-  bookings.forEach(b => {
+  const source = role === "admin" ? bookings : bookings.filter(b => b.barberId === myBarberId);
+  source.forEach(b => {
     if(!b.uid) return;
     if(!clientMap[b.uid]) clientMap[b.uid] = { name: b.name || "—", email: b.userEmail || "", phone: b.phone || "", count: 0, spent: 0 };
     clientMap[b.uid].count++;
@@ -1381,7 +1443,7 @@ function renderClients(){
   const clients = Object.values(clientMap).sort((a,b) => b.spent - a.spent);
   const list = document.getElementById("clientsList");
   if(!clients.length){
-    list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">No clients yet.</div>';
+    list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">No clients yet — they appear here after their first booking.</div>';
     return;
   }
   list.innerHTML = `
@@ -1408,23 +1470,10 @@ function renderClients(){
 /* =========================================================
    MENU EDITOR
 ========================================================= */
-let editingMenu = [];           // in-memory copy
-let editingBarberId = null;
-
-function populateMenuBarberPicker(){
-  if(role !== "admin") return;
-  const sel = document.getElementById("menuBarberPicker");
-  const cur = sel.value;
-  sel.innerHTML = barbers.map(b => `<option value="${b.id}" ${b.id===cur?'selected':''}>${esc(b.name)}</option>`).join("");
-}
+let editingMenu = [];           // in-memory copy of MY menu
 
 function loadMenuForEdit(){
-  if(role === "barber"){
-    editingBarberId = myBarberId;
-  } else {
-    editingBarberId = document.getElementById("menuBarberPicker").value || barbers[0]?.id;
-  }
-  const b = barbers.find(x => x.id === editingBarberId);
+  const b = barbers.find(x => x.id === myBarberId);
   editingMenu = b?.menu ? JSON.parse(JSON.stringify(b.menu)) : [];
   renderMenuEditor();
 }
@@ -1488,7 +1537,6 @@ function removeItem(ci, ii){
 }
 
 async function saveMenu(){
-  if(!editingBarberId) return toast("No barber selected", "red");
   // Ensure every category and item has an id
   editingMenu.forEach(cat => {
     if(!cat.id) cat.id = "c" + Date.now() + Math.floor(Math.random()*1000);
@@ -1499,8 +1547,10 @@ async function saveMenu(){
     });
   });
   try{
-    await db.collection("barbers").doc(editingBarberId).update({ menu: editingMenu });
-    toast("Menu saved", "green");
+    const isNew = !myBarberId;
+    await ensureMyBarberDoc(); // admin's first save creates their barber profile
+    await db.collection("barbers").doc(myBarberId).update({ menu: editingMenu });
+    toast(isNew ? "Menu saved — you now appear as a barber on the site" : "Menu saved", "green");
   }catch(e){
     toast("Save failed: " + e.message, "red");
   }
@@ -1608,6 +1658,65 @@ function parseTimeAmPm(str){
 </script>
 
 <!-- Suggested Firestore rules (commented, for reference) -->
+<!--
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return isSignedIn() && request.auth.uid == "b44tKAz3gtR0AK4eNLOIgcgEpoD3"; }
+    function isBarber(barberId) {
+      return isSignedIn() && get(/databases/$(database)/documents/barbers/$(barberId)).data.uid == request.auth.uid;
+    }
+
+    match /barbers/{barberId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      // Admin edits anything; a barber edits their own doc (name, specialty,
+      // photoURL, menu); a signed-in user may CLAIM an unclaimed doc whose
+      // email matches their auth email by setting uid (first sign-in link).
+      allow update: if isAdmin()
+                    || isBarber(barberId)
+                    || (isSignedIn()
+                        && resource.data.uid == null
+                        && resource.data.email == request.auth.token.email
+                        && request.resource.data.uid == request.auth.uid);
+    }
+    match /bookings/{bookingId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid) || isBarber(resource.data.barberId);
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isAdmin()
+                    || isBarber(resource.data.barberId)
+                    || (isSignedIn() && resource.data.uid == request.auth.uid
+                        && request.resource.data.status == "Cancelled"
+                        && request.resource.data.cancelledBy == "client");
+      allow delete: if isAdmin() || isBarber(resource.data.barberId);
+    }
+    match /slots/{slotId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      // Freed when a booking is cancelled — by admin, the barber, or the client who booked.
+      allow delete: if isSignedIn();
+    }
+    match /gallery/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isBarber(request.resource.data.barberId) || isBarber(resource.data.barberId);
+    }
+    match /reviews/{docId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
+    }
+    match /unavailableDays/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin()
+                                    || isBarber(request.resource.data.barberId)
+                                    || isBarber(resource.data.barberId);
+    }
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+  }
+}
+-->
 <!--
 service cloud.firestore {
   match /databases/{database}/documents {
