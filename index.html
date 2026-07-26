@@ -598,7 +598,6 @@ const CURRENCY = "$";  // Canadian Dollars
 let currentUser = null;
 let barbers = [];
 let unavailable = [];
-let bookings = [];
 let reviews = [];
 let gallery = [];
 let selectedItems = new Set();  // keys of form "catId:itemId"
@@ -659,10 +658,12 @@ auth.onAuthStateChanged(async u => {
     document.getElementById("staffBtn").style.display = (userRole === "admin" || userRole === "barber") ? "block" : "none";
 
     closeModal("authModal");
+    loadUserBookings();
     renderReviews(); // re-render to show delete buttons
   } else {
     userProfile = null;
     userRole = null;
+    bookings = [];
     document.getElementById("navLogin").style.display = "block";
     document.getElementById("navProfile").style.display = "none";
     renderReviews();
@@ -793,10 +794,20 @@ db.collection("unavailableDays").onSnapshot(snap => {
   unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
   rebuildTimeSlots();
 });
-db.collection("bookings").onSnapshot(snap => {
-  bookings = snap.docs.map(d => ({id:d.id, ...d.data()}));
+// Slots collection (public read) for availability blocking
+let slots = [];
+db.collection("slots").onSnapshot(snap => {
+  slots = snap.docs.map(d => ({id:d.id, ...d.data()}));
   rebuildTimeSlots();
 });
+// User's own bookings — loaded after auth
+let bookings = [];
+function loadUserBookings(){
+  if(!currentUser) { bookings = []; return; }
+  db.collection("bookings").where("uid","==",currentUser.uid).onSnapshot(snap => {
+    bookings = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  });
+}
 db.collection("reviews").orderBy("timestamp","desc").onSnapshot(snap => {
   reviews = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderReviews();
@@ -1006,11 +1017,11 @@ function rebuildTimeSlots(){
     container.innerHTML = '<div class="time-empty">Select a barber and date to see available times.</div>';
     return;
   }
-  const slots = generateSlots();
+  const timeSlots = generateSlots();
   const taken = getBlockedRanges(barberId, date);
   const now = new Date();
   const isToday = date === now.toISOString().slice(0,10);
-  const html = slots.map(s => {
+  const html = timeSlots.map(s => {
     const dur = getBookingDuration();
     const startMin = s.h*60 + s.m;
     const endMin = startMin + dur;
@@ -1059,13 +1070,12 @@ function generateSlots(){
 }
 function getBlockedRanges(barberId, date){
   const ranges = [];
-  bookings.forEach(b => {
-    if(b.status === "Cancelled") return;
-    if(b.barberId !== barberId) return;
-    if(b.date !== date) return;
-    const [h,m] = parseTime(b.time);
+  slots.forEach(s => {
+    if(s.barberId !== barberId) return;
+    if(s.date !== date) return;
+    const [h,m] = parseTime(s.time);
     const start = h*60+m;
-    ranges.push([start, start + (b.duration || SLOT_MINUTES)]);
+    ranges.push([start, start + (s.duration || SLOT_MINUTES)]);
   });
   unavailable.forEach(u => {
     if(u.date !== date) return;
@@ -1141,7 +1151,7 @@ async function submitBooking(){
       const slotSnap = await tx.get(slotRef);
       if(slotSnap.exists) throw new Error("This time slot was just booked by someone else. Please pick another.");
       const bookingRef = db.collection("bookings").doc();
-      tx.set(slotRef, { barberId, date, time, bookingId: bookingRef.id, createdAt: new Date().toISOString() });
+      tx.set(slotRef, { barberId, date, time, duration: getBookingDuration(), bookingId: bookingRef.id, createdAt: new Date().toISOString() });
       tx.set(bookingRef, {
       barberId, uid:user.uid, userEmail: user.email || "", bookingNumber, name, phone, date, time,
       service: serviceList, duration: getBookingDuration(), total, fromPrice: anyFrom,
