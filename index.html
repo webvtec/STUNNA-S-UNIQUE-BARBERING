@@ -44,13 +44,16 @@ nav a:hover,nav button.link:hover{color:#d60000;}
 
 /* ---------- HERO ---------- */
 .hero{
-  height:100vh;
-  background:
-    linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.75)),
-    url("https://images.unsplash.com/photo-1647140655214-e4a2d914971f?auto=format&fit=crop&w=1800&q=80");
-  background-size:cover;background-position:center;
+  height:100vh;position:relative;overflow:hidden;background:#050505;
   display:flex;justify-content:center;align-items:center;text-align:center;
 }
+.hero .hero-bg{
+  position:absolute;inset:0;background-size:cover;background-position:center;
+  opacity:0;transition:opacity 1.8s ease;
+}
+.hero .hero-bg.on{opacity:1;}
+.hero::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.75);}
+.hero > div{position:relative;z-index:2;}
 .hero h2{font-size:70px;font-family:Cinzel;letter-spacing:2px;}
 .hero p{margin-top:20px;font-size:20px;color:#c9d8ff;opacity:.9;}
 
@@ -105,6 +108,42 @@ nav a:hover,nav button.link:hover{color:#d60000;}
 .summary-bar .chips{display:flex;flex-wrap:wrap;gap:6px;}
 .summary-bar .chip{background:#1a1a1a;padding:5px 12px;border-radius:50px;font-size:12px;color:#ddd;}
 .summary-bar .total{font-family:Cinzel;font-size:26px;color:#e60000;letter-spacing:1px;}
+.svc-row.radio .check{border-radius:50%;}
+.cat-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.cat-chips .chip{
+  background:#0a0a0a;border:1px solid rgba(255,255,255,.12);color:#bbb;
+  padding:9px 18px;border-radius:50px;cursor:pointer;font-family:Poppins;
+  font-size:12px;letter-spacing:1px;transition:.3s;
+}
+.cat-chips .chip:hover{border-color:#b30000;color:#e60000;}
+.cat-chips .chip.active{background:#b30000;border-color:#b30000;color:white;}
+
+/* ---------- CALENDAR ---------- */
+.cal{background:#050505;border:1px solid rgba(255,255,255,.08);border-radius:15px;padding:16px;}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.cal-head .cal-title{font-family:Cinzel;letter-spacing:2px;font-size:14px;}
+.cal-head button{
+  background:#111;border:1px solid rgba(255,255,255,.12);color:#e60000;
+  width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;transition:.3s;
+}
+.cal-head button:hover{border-color:#b30000;}
+.cal-head button:disabled{opacity:.25;cursor:not-allowed;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-dow{text-align:center;color:#666;font-size:10px;letter-spacing:1px;padding:4px 0;text-transform:uppercase;}
+.cal-day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;
+  font-size:13px;cursor:pointer;background:#0a0a0a;border:1px solid transparent;transition:.2s;
+}
+.cal-day:hover{border-color:#b30000;}
+.cal-day.blank{background:transparent;cursor:default;border:none;}
+.cal-day.muted{opacity:.25;cursor:not-allowed;background:transparent;}
+.cal-day.muted:hover{border-color:transparent;}
+.cal-day.full{
+  color:#777;background:#160707;cursor:not-allowed;text-decoration:line-through;
+  border:1px solid rgba(230,0,0,.25);
+}
+.cal-day.full:hover{border-color:rgba(230,0,0,.25);}
+.cal-day.selected{background:#b30000;color:white;border-color:#b30000;}
 
 
 /* ---------- PROFILE DROPDOWN ---------- */
@@ -371,6 +410,14 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
   </div>
 </section>
 
+<section id="gallery-sec">
+  <h2 class="title">Gallery</h2>
+  <div class="gallery-filter" id="galleryFilter"></div>
+  <div class="gallery" id="galleryGrid">
+    <div class="gallery-empty">Loading photos…</div>
+  </div>
+</section>
+
 <section id="our-shop">
   <h2 class="title">Our Shop</h2>
   <div class="about">
@@ -384,13 +431,6 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
 </section>
 
 
-<section id="gallery-sec">
-  <h2 class="title">Gallery</h2>
-  <div class="gallery-filter" id="galleryFilter"></div>
-  <div class="gallery" id="galleryGrid">
-    <div class="gallery-empty">Loading photos…</div>
-  </div>
-</section>
 
 <section id="reviews-sec">
   <h2 class="title">Reviews</h2>
@@ -492,6 +532,7 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
         <img id="bbAvatar" class="barber-avatar" style="width:100px;height:100px;margin:0 auto;">
         <h3 style="font-family:Cinzel;margin-top:14px;" id="bbName"></h3>
         <p style="color:#bbb;font-size:13px;" id="bbSpecialty"></p>
+        <button class="btn ghost small" id="bbGalleryBtn" style="display:none;margin-top:12px;" onclick="openBarberGallery()">View Barber's Gallery</button>
       </div>
 
       <div class="field" style="margin-bottom:18px;">
@@ -503,39 +544,65 @@ footer{padding:40px;text-align:center;background:#090909;color:#8fa3c8;border-to
         <input type="tel" id="bkPhone" placeholder="(647) 000-0000" maxlength="14" style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
-        <div class="field">
-          <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Date</label>
-          <input type="date" id="bkDate" onchange="rebuildTimeSlots()" style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
-        </div>
-        <div class="field">
-          <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Estimated Duration</label>
-          <input type="text" id="bkDuration" value="35 min" readonly style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:#888;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
-        </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">1 · Choose a Category</label>
+        <div class="cat-chips" id="catChips"><span style="color:#666;font-size:13px;">Loading menu…</span></div>
       </div>
 
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Available Times</label>
+        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">2 · Choose Your Cut (pick one)</label>
+        <div class="services-picker" id="menuPicker">
+          <div style="color:#666;font-size:13px;padding:10px 0;">Loading menu…</div>
+        </div>
+      </div>
+
+      <div class="field" id="extrasWrap" style="margin-bottom:18px;display:none;">
+        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">3 · Optional Extras</label>
+        <div class="services-picker" id="extrasPicker"></div>
+      </div>
+
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">4 · Pick a Date</label>
+        <div class="cal" id="bkCalendar"></div>
+        <input type="hidden" id="bkDate">
+        <p style="color:#666;font-size:11px;margin-top:8px;">Crossed-out dates are fully booked.</p>
+      </div>
+
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">5 · Pick a Time</label>
         <div class="time-grid" id="bkTimes">
-          <div class="time-empty">Select a date to see available times.</div>
+          <div class="time-empty">Pick a date to see available times.</div>
         </div>
         <input type="hidden" id="bkTime">
       </div>
 
-      <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Services</label>
-        <div class="services-picker" id="menuPicker">
-          <div style="color:#666;font-size:13px;padding:10px 0;">Loading menu…</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;align-items:end;">
+        <div class="field">
+          <label style="display:block;color:#bbb;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Estimated Duration</label>
+          <input type="text" id="bkDuration" value="35 min" readonly style="width:100%;background:#050505;border:1px solid rgba(255,255,255,.1);color:#888;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
         </div>
-        <div class="summary-bar" style="margin-top:14px;">
-          <div class="chips" id="summaryChips"><span style="color:#666;font-size:13px;">No services selected</span></div>
-          <div class="total" id="summaryTotal">$0</div>
-        </div>
+        <div></div>
+      </div>
+
+      <div class="summary-bar" style="margin-bottom:6px;">
+        <div class="chips" id="summaryChips"><span style="color:#666;font-size:13px;">No services selected</span></div>
+        <div class="total" id="summaryTotal">$0</div>
       </div>
 
       <input type="hidden" id="bkBarber">
       <button class="btn" style="width:100%;margin-top:8px;" onclick="submitBooking()">Confirm Booking</button>
       <p style="text-align:center;color:#888;margin-top:14px;font-size:12px;">You'll be asked to sign in with Google to confirm.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Barber's Gallery modal -->
+<div class="modal-backdrop" id="barberGalleryModal">
+  <div class="modal-wrap">
+    <div class="modal" style="max-width:760px;">
+      <button class="close" onclick="closeModal('barberGalleryModal')">×</button>
+      <h3 style="text-align:center;" id="bgTitle">Barber's Gallery</h3>
+      <div class="gallery" id="bgGrid" style="margin-top:24px;"></div>
     </div>
   </div>
 </div>
@@ -616,7 +683,10 @@ let barbers = [];
 let unavailable = [];
 let reviews = [];
 let gallery = [];
-let selectedItems = new Set();  // keys of form "catId:itemId"
+let selectedCategoryId = null;      // which age-group tab is open
+let selectedMainKey = null;         // ONE cut, "catId:itemId"
+let selectedExtras = new Set();     // optional add-ons
+let myBarberId = null;              // set when the signed-in user is staff
 let selectedRating = 0;
 let galleryCategory = "All";
 
@@ -650,22 +720,26 @@ auth.onAuthStateChanged(async u => {
 
     // Determine role — barbers are matched by UID first; on their very first
     // sign-in they're matched by email and the account is linked (uid claimed).
-    if(u.uid === ADMIN_UID){
-      userRole = "admin";
-    } else {
-      try{
-        let bSnap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
-        if(bSnap.empty && u.email){
-          const eSnap = await db.collection("barbers").where("email","==",u.email.toLowerCase()).limit(1).get();
-          if(!eSnap.empty && !eSnap.docs[0].data().uid){
-            await eSnap.docs[0].ref.update({ uid: u.uid });
-            bSnap = eSnap;
-          }
+    myBarberId = null;
+    try{
+      let bSnap = await db.collection("barbers").where("uid","==",u.uid).limit(1).get();
+      if(bSnap.empty && u.email){
+        const eSnap = await db.collection("barbers").where("email","==",u.email.toLowerCase()).limit(1).get();
+        if(!eSnap.empty && !eSnap.docs[0].data().uid){
+          await eSnap.docs[0].ref.update({ uid: u.uid });
+          bSnap = eSnap;
         }
-        userRole = bSnap.empty ? "client" : "barber";
-      }catch(e){
-        userRole = "client";
       }
+      if(!bSnap.empty){
+        myBarberId = bSnap.docs[0].id;
+        // Keep the barber card photo in sync with the profile photo
+        const bd = bSnap.docs[0].data();
+        const photo0 = userProfile.photoURL || u.photoURL || "";
+        if(photo0 && !bd.photoURL) await bSnap.docs[0].ref.update({ photoURL: photo0 }).catch(() => {});
+      }
+      userRole = u.uid === ADMIN_UID ? "admin" : (myBarberId ? "barber" : "client");
+    }catch(e){
+      userRole = u.uid === ADMIN_UID ? "admin" : "client";
     }
 
     // Update nav
@@ -785,6 +859,7 @@ document.getElementById("profPhotoFile").addEventListener("change", async e => {
     const snap = await ref.put(file);
     const url = await snap.ref.getDownloadURL();
     await db.collection("users").doc(currentUser.uid).update({ photoURL: url });
+    if(myBarberId) await db.collection("barbers").doc(myBarberId).update({ photoURL: url }).catch(() => {});
     userProfile.photoURL = url;
     document.getElementById("profAvatar").src = url;
     document.getElementById("navAvatar").src = url;
@@ -801,6 +876,7 @@ async function saveProfile(){
   if(!name) return Swal.fire({icon:"warning",title:"Name required",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
   try{
     await db.collection("users").doc(currentUser.uid).update({ displayName: name, phone });
+    if(myBarberId && userRole === "admin") await db.collection("barbers").doc(myBarberId).update({ name }).catch(() => {});
     userProfile.displayName = name;
     userProfile.phone = phone;
     document.getElementById("navDisplayName").textContent = name.split(" ")[0];
@@ -812,6 +888,38 @@ async function saveProfile(){
 }
 
 /* =========================================================
+   HERO — rotating barbershop backgrounds
+========================================================= */
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1647140655214-e4a2d914971f?auto=format&fit=crop&w=1800&q=80",
+  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1800&q=80",
+  "https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=1800&q=80"
+];
+(function initHero(){
+  const hero = document.getElementById("home");
+  const layers = [];
+  HERO_IMAGES.forEach(url => {
+    const probe = new Image();
+    probe.onload = () => {
+      const d = document.createElement("div");
+      d.className = "hero-bg";
+      d.style.backgroundImage = `url("${url}")`;
+      hero.prepend(d);
+      layers.push(d);
+      if(layers.length === 1) d.classList.add("on");
+    };
+    probe.src = url; // images that fail to load are simply skipped
+  });
+  let idx = 0;
+  setInterval(() => {
+    if(layers.length < 2) return;
+    layers[idx].classList.remove("on");
+    idx = (idx + 1) % layers.length;
+    layers[idx].classList.add("on");
+  }, 6000);
+})();
+
+/* =========================================================
    FIRESTORE LISTENERS
 ========================================================= */
 db.collection("barbers").where("active","==",true).onSnapshot(snap => {
@@ -820,12 +928,14 @@ db.collection("barbers").where("active","==",true).onSnapshot(snap => {
 });
 db.collection("unavailableDays").onSnapshot(snap => {
   unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderCal();
   rebuildTimeSlots();
 });
 // Slots collection (public read) for availability blocking
 let slots = [];
 db.collection("slots").onSnapshot(snap => {
   slots = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderCal();
   rebuildTimeSlots();
 });
 // User's own bookings — loaded after auth
@@ -848,13 +958,17 @@ db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
 /* =========================================================
    RENDER: BARBERS
 ========================================================= */
+function hasMenu(b){
+  return Array.isArray(b.menu) && b.menu.some(c => Array.isArray(c.items) && c.items.length);
+}
 function renderBarbers(){
   const grid = document.getElementById("barbersGrid");
-  if(!barbers.length){
+  const listed = barbers.filter(hasMenu); // barbers appear once their menu/prices are set
+  if(!listed.length){
     grid.innerHTML = '<div class="gallery-empty" style="width:100%;text-align:center;">No barbers listed yet.</div>';
     return;
   }
-  grid.innerHTML = barbers.map(b => `
+  grid.innerHTML = listed.map(b => `
     <div class="barber-profile">
       <img class="barber-avatar" src="${b.photoURL || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80'}" alt="${b.name}">
       <h3>${b.name || "Barber"}</h3>
@@ -870,11 +984,14 @@ function renderBarbers(){
 function renderGallery(){
   const grid = document.getElementById("galleryGrid");
   const filter = document.getElementById("galleryFilter");
-  const cats = ["All", ...new Set(gallery.map(g => g.category || "General"))];
+  // Homepage shows the website gallery only; each barber's own cuts live
+  // behind "View Barber's Gallery" on their booking card.
+  const site = gallery.filter(g => g.barberId === "shop" || g.barberId === "admin");
+  const cats = ["All", ...new Set(site.map(g => g.category || "General"))];
   filter.innerHTML = cats.map(c =>
     `<button class="${c===galleryCategory?"active":""}" onclick="setGalleryCat('${c.replace(/'/g,"\\'")}')">${c}</button>`
   ).join("");
-  const shown = galleryCategory === "All" ? gallery : gallery.filter(g => (g.category||"General") === galleryCategory);
+  const shown = galleryCategory === "All" ? site : site.filter(g => (g.category||"General") === galleryCategory);
   if(!shown.length){
     grid.innerHTML = '<div class="gallery-empty">No photos yet.</div>';
     return;
@@ -920,19 +1037,37 @@ function openBarberBooking(barberId){
   document.getElementById("bbName").textContent = barber.name || "Barber";
   document.getElementById("bbSpecialty").textContent = barber.specialty || "";
   document.getElementById("bkBarber").value = barberId;
-  selectedItems.clear();
+  document.getElementById("bbGalleryBtn").style.display =
+    gallery.some(g => g.barberId === barberId) ? "inline-block" : "none";
+  selectedCategoryId = null;
+  selectedMainKey = null;
+  selectedExtras.clear();
   buildServicePicker();
-  const today = new Date().toISOString().slice(0,10);
-  document.getElementById("bkDate").min = today;
+  const n = new Date();
+  calMonth = new Date(n.getFullYear(), n.getMonth(), 1);
   document.getElementById("bkDate").value = "";
   document.getElementById("bkTime").value = "";
-  document.getElementById("bkTimes").innerHTML = '<div class="time-empty">Select a date to see available times.</div>';
+  renderCal();
+  document.getElementById("bkTimes").innerHTML = '<div class="time-empty">Pick a date to see available times.</div>';
   // Prefill from profile
   if(userProfile){
     if(userProfile.displayName) document.getElementById("bkName").value = userProfile.displayName;
     if(userProfile.phone) document.getElementById("bkPhone").value = userProfile.phone;
   }
   document.getElementById("barberBookingModal").classList.add("open");
+}
+
+function openBarberGallery(){
+  const barber = getSelectedBarber();
+  if(!barber) return;
+  document.getElementById("bgTitle").textContent = (barber.name || "Barber") + " — Gallery";
+  const photos = gallery
+    .filter(g => g.barberId === barber.id)
+    .sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
+  document.getElementById("bgGrid").innerHTML = photos.length
+    ? photos.map(g => `<img src="${g.url}" alt="Cut by ${esc(barber.name||'barber')}">`).join("")
+    : '<div class="gallery-empty">No photos yet.</div>';
+  document.getElementById("barberGalleryModal").classList.add("open");
 }
 
 
@@ -946,65 +1081,119 @@ function fmtMoney(n){
   return CURRENCY + Number(n||0).toLocaleString("en-CA");
 }
 
+function catKind(c){
+  // Explicit flag wins; otherwise infer extras from the title (legacy menus)
+  return c.kind || (/extra/i.test(c.title||"") ? "extras" : "main");
+}
 function buildServicePicker(){
+  const chipsWrap = document.getElementById("catChips");
   const picker = document.getElementById("menuPicker");
+  const extrasWrap = document.getElementById("extrasWrap");
+  const extrasPicker = document.getElementById("extrasPicker");
   const barber = getSelectedBarber();
   if(!barber){
+    chipsWrap.innerHTML = "";
     picker.innerHTML = '<div style="color:#666;font-size:13px;padding:10px 0;">Select a barber to see their menu.</div>';
+    extrasWrap.style.display = "none";
     updateSummary();
     return;
   }
   const menu = Array.isArray(barber.menu) ? barber.menu : [];
-  if(!menu.length){
+  const mains = menu.filter(c => catKind(c) === "main" && (c.items||[]).length);
+  const extras = menu.filter(c => catKind(c) === "extras" && (c.items||[]).length);
+  if(!mains.length){
+    chipsWrap.innerHTML = "";
     picker.innerHTML = '<div style="color:#666;font-size:13px;padding:10px 0;">This barber hasn\'t set up their menu yet. Please check back soon.</div>';
+    extrasWrap.style.display = "none";
     updateSummary();
     return;
   }
-  picker.innerHTML = menu.map(cat => {
-    const items = Array.isArray(cat.items) ? cat.items : [];
+  if(!selectedCategoryId || !mains.some(c => c.id === selectedCategoryId)) selectedCategoryId = mains[0].id;
+
+  chipsWrap.innerHTML = mains.map(c =>
+    `<button class="chip ${c.id===selectedCategoryId?'active':''}" onclick="pickCategory('${esc(c.id)}')">${esc((c.icon?c.icon+" ":"") + (c.title||"Category"))}</button>`
+  ).join("");
+
+  const cat = mains.find(c => c.id === selectedCategoryId);
+  picker.innerHTML = (cat.items||[]).map(it => {
+    const key = cat.id + ":" + it.id;
+    if(it.included) return `
+      <div class="svc-row included">
+        <div class="check"></div>
+        <div class="lbl">${esc(it.name||"")}</div>
+        <div class="prc"><span style="color:#7fdfff;font-size:11px;letter-spacing:2px;">INCLUDED</span></div>
+      </div>`;
+    const sel = selectedMainKey === key;
     return `
-      <h4>${esc((cat.icon?cat.icon+" ":"") + (cat.title||"Category"))}</h4>
-      ${items.map(it => {
-        const key = cat.id + ":" + it.id;
-        const sel = selectedItems.has(key);
-        const included = !!it.included;
-        const priceLabel = included
-          ? '<span style="color:#7fdfff;font-size:11px;letter-spacing:2px;">INCLUDED</span>'
-          : (it.fromPrice ? fmtMoney(it.price) + "+" : fmtMoney(it.price));
+      <div class="svc-row radio ${sel?'selected':''}" onclick="pickMain('${esc(key)}')">
+        <div class="check">${sel?"✓":""}</div>
+        <div class="lbl">${esc(it.name||"")}</div>
+        <div class="prc">${it.fromPrice ? fmtMoney(it.price)+"+" : fmtMoney(it.price)}</div>
+      </div>`;
+  }).join("") || '<div class="time-empty">No services in this category.</div>';
+
+  if(extras.length){
+    extrasWrap.style.display = "block";
+    extrasPicker.innerHTML = extras.map(c =>
+      (c.items||[]).filter(it => !it.included).map(it => {
+        const key = c.id + ":" + it.id;
+        const sel = selectedExtras.has(key);
         return `
-          <div class="svc-row ${sel?'selected':''} ${included?'included':''}"
-               data-key="${esc(key)}"
-               ${included?'':`onclick="toggleItem('${esc(key)}')"`}>
+          <div class="svc-row ${sel?'selected':''}" onclick="toggleExtra('${esc(key)}')">
             <div class="check">${sel?"✓":""}</div>
             <div class="lbl">${esc(it.name||"")}</div>
-            <div class="prc">${priceLabel}</div>
-          </div>
-        `;
-      }).join("")}
-    `;
-  }).join("");
+            <div class="prc">${it.fromPrice ? fmtMoney(it.price)+"+" : fmtMoney(it.price)}</div>
+          </div>`;
+      }).join("")
+    ).join("");
+  } else {
+    extrasWrap.style.display = "none";
+  }
   updateSummary();
 }
 
-function toggleItem(key){
-  if(selectedItems.has(key)) selectedItems.delete(key); else selectedItems.add(key);
+function pickCategory(id){
+  selectedCategoryId = id;
+  selectedMainKey = null; // switching age group clears the picked cut
   buildServicePicker();
+  renderCal();
+  rebuildTimeSlots();
+}
+function pickMain(key){
+  selectedMainKey = selectedMainKey === key ? null : key; // one cut only
+  buildServicePicker();
+  renderCal();
+  rebuildTimeSlots();
+}
+function toggleExtra(key){
+  if(selectedExtras.has(key)) selectedExtras.delete(key); else selectedExtras.add(key);
+  buildServicePicker();
+  renderCal();
   rebuildTimeSlots();
 }
 
+function findMenuItem(menu, key){
+  const [cid, iid] = String(key).split(":");
+  const c = menu.find(x => x.id === cid);
+  if(!c) return null;
+  const it = (c.items||[]).find(x => x.id === iid);
+  if(!it || it.included) return null;
+  return { name: it.name, price: Number(it.price)||0, duration: Number(it.duration)||0, fromPrice: !!it.fromPrice };
+}
 function getSelectedMenuItems(){
   const barber = getSelectedBarber();
   if(!barber) return [];
   const menu = Array.isArray(barber.menu) ? barber.menu : [];
-  const picked = [];
-  menu.forEach(cat => {
-    (cat.items||[]).forEach(it => {
-      if(selectedItems.has(cat.id + ":" + it.id) && !it.included){
-        picked.push({ name: it.name, price: Number(it.price)||0, duration: Number(it.duration)||35, fromPrice: !!it.fromPrice });
-      }
-    });
+  const out = [];
+  if(selectedMainKey){
+    const m = findMenuItem(menu, selectedMainKey);
+    if(m) out.push(m);
+  }
+  selectedExtras.forEach(k => {
+    const e = findMenuItem(menu, k);
+    if(e) out.push(e);
   });
-  return picked;
+  return out;
 }
 
 function updateSummary(){
@@ -1016,6 +1205,8 @@ function updateSummary(){
     ? picked.map(i => `<span class="chip">${esc(i.name)}${i.fromPrice?"+":""}</span>`).join("")
     : '<span style="color:#666;font-size:13px;">No services selected</span>';
   document.getElementById("summaryTotal").textContent = fmtMoney(total) + (anyFrom ? "+" : "");
+  const durEl = document.getElementById("bkDuration");
+  if(durEl) durEl.value = getBookingDuration() + " min";
 }
 
 /* Phone auto-format */
@@ -1029,6 +1220,95 @@ document.getElementById("bkPhone").addEventListener("input", e => {
 });
 
 /* =========================================================
+   BOOKING CALENDAR
+========================================================= */
+let calMonth = null; // Date pinned to the 1st of the visible month
+
+function localDateStr(d){
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function calBounds(){
+  const n = new Date();
+  return {
+    min: new Date(n.getFullYear(), n.getMonth(), 1),
+    max: new Date(n.getFullYear(), n.getMonth() + 2, 1) // book up to ~3 months out
+  };
+}
+function calShift(dir){
+  const { min, max } = calBounds();
+  const next = new Date(calMonth.getFullYear(), calMonth.getMonth() + dir, 1);
+  if(next < min || next > max) return;
+  calMonth = next;
+  renderCal();
+}
+function dayIsFull(barberId, dstr){
+  // A day is "full" only when not a single start time fits the current booking.
+  const hrs = getHoursForDate(dstr);
+  if(hrs.closed) return false;
+  const dur = getBookingDuration();
+  const taken = getBlockedRanges(barberId, dstr);
+  const dayStart = hrs.start*60 + (hrs.startMin||0);
+  const dayEnd = hrs.end*60 + (hrs.endMin||0);
+  const now = new Date();
+  const isToday = dstr === localDateStr(now);
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  for(let mins = dayStart; mins + dur <= dayEnd; mins += 30){
+    if(isToday && mins <= nowMin) continue;
+    const blocked = taken.some(([a,b]) => !(mins + dur <= a || mins >= b));
+    if(!blocked) return false;
+  }
+  return true;
+}
+function renderCal(){
+  const wrap = document.getElementById("bkCalendar");
+  if(!wrap) return;
+  const barberId = document.getElementById("bkBarber")?.value;
+  if(!calMonth){
+    const n = new Date();
+    calMonth = new Date(n.getFullYear(), n.getMonth(), 1);
+  }
+  const { min, max } = calBounds();
+  const y = calMonth.getFullYear(), mo = calMonth.getMonth();
+  const monthName = calMonth.toLocaleString("en-CA", { month:"long", year:"numeric" });
+  const startDow = new Date(y, mo, 1).getDay();
+  const daysInMonth = new Date(y, mo + 1, 0).getDate();
+  const todayStr = localDateStr(new Date());
+  const selected = document.getElementById("bkDate").value;
+
+  let html = `
+    <div class="cal-head">
+      <button onclick="calShift(-1)" ${calMonth.getTime() <= min.getTime() ? "disabled" : ""}>‹</button>
+      <span class="cal-title">${monthName}</span>
+      <button onclick="calShift(1)" ${calMonth.getTime() >= max.getTime() ? "disabled" : ""}>›</button>
+    </div>
+    <div class="cal-grid">
+      ${["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => `<div class="cal-dow">${d}</div>`).join("")}
+      ${'<div class="cal-day blank"></div>'.repeat(startDow)}`;
+
+  for(let day = 1; day <= daysInMonth; day++){
+    const dstr = localDateStr(new Date(y, mo, day));
+    const past = dstr < todayStr;
+    const closed = getHoursForDate(dstr).closed;
+    let cls = "cal-day", click = "";
+    if(past || closed){
+      cls += " muted";
+    } else if(barberId && dayIsFull(barberId, dstr)){
+      cls += " full";
+    } else {
+      if(dstr === selected) cls += " selected";
+      click = ` onclick="pickDate('${dstr}')"`;
+    }
+    html += `<div class="${cls}"${click}>${day}</div>`;
+  }
+  wrap.innerHTML = html + "</div>";
+}
+function pickDate(dstr){
+  document.getElementById("bkDate").value = dstr;
+  renderCal();
+  rebuildTimeSlots();
+}
+
+/* =========================================================
    TIME SLOT CALCULATION
 ========================================================= */
 function rebuildTimeSlots(){
@@ -1037,7 +1317,7 @@ function rebuildTimeSlots(){
   const container = document.getElementById("bkTimes");
   if(!container) return;
   if(!barberId || !date){
-    container.innerHTML = '<div class="time-empty">Select a barber and date to see available times.</div>';
+    container.innerHTML = '<div class="time-empty">Pick a date on the calendar to see available times.</div>';
     return;
   }
   const timeSlots = generateSlots();
@@ -1056,13 +1336,12 @@ function rebuildTimeSlots(){
   }).join("");
   container.innerHTML = html || '<div class="time-empty">No slots available on this date.</div>';
   document.getElementById("bkTime").value = "";
-  document.getElementById("bkDuration").value = getBookingDuration() + " min";
 }
 function getBookingDuration(){
   const picked = getSelectedMenuItems();
   if(!picked.length) return SLOT_MINUTES;
-  const total = picked.reduce((s,i) => s + (i.duration || SLOT_MINUTES), 0);
-  return total || SLOT_MINUTES;
+  const total = picked.reduce((s,i) => s + (i.duration || 0), 0);
+  return Math.max(total, 20) || SLOT_MINUTES; // 20-minute floor
 }
 
 function getHoursForDate(dateStr){
@@ -1086,7 +1365,7 @@ function generateSlots(){
   const end = hrs.end * 60 + (hrs.endMin||0);
   while(mins + dur <= end){
     out.push({ h: Math.floor(mins/60), m: mins%60 });
-    mins += dur;
+    mins += 30; // clean half-hour start times; overlaps are filtered by blocked ranges
   }
   return out;
 }
@@ -1144,10 +1423,10 @@ async function submitBooking(){
   if(!name || !phone || !barberId || !date || !time){
     return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in every field and pick a time.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
-  const picked = getSelectedMenuItems();
-  if(!picked.length){
-    return Swal.fire({icon:"warning", title:"Choose a service", text:"Please select at least one service from the menu.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  if(!selectedMainKey){
+    return Swal.fire({icon:"warning", title:"Choose your cut", text:"Pick one haircut from the menu — extras are optional add-ons.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
+  const picked = getSelectedMenuItems();
 
   const user = await requireAuth();
   if(!user) return;
@@ -1197,11 +1476,14 @@ async function submitBooking(){
     document.getElementById("successModal").classList.add("open");
 
     // Reset form
-    selectedItems.clear();
+    selectedMainKey = null;
+    selectedExtras.clear();
     document.getElementById("bkName").value = "";
     document.getElementById("bkPhone").value = "";
     document.getElementById("bkTime").value = "";
+    document.getElementById("bkDate").value = "";
     buildServicePicker();
+    renderCal();
     rebuildTimeSlots();
   }catch(e){
     Swal.fire({icon:"error", title:"Booking failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});

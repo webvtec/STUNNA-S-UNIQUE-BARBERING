@@ -114,6 +114,32 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#b30000;}
 .chip-row .chip:hover{border-color:#b30000;color:#e60000;}
 .chip-row .chip.active{background:#b30000;border-color:#b30000;color:white;}
 
+/* ---------- CALENDAR ---------- */
+.cal{background:#050505;border:1px solid rgba(255,255,255,.08);border-radius:15px;padding:16px;max-width:420px;}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.cal-head .cal-title{font-family:Cinzel;letter-spacing:2px;font-size:14px;}
+.cal-head button{
+  background:#111;border:1px solid rgba(255,255,255,.12);color:#e60000;
+  width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;transition:.3s;
+}
+.cal-head button:hover{border-color:#b30000;}
+.cal-head button:disabled{opacity:.25;cursor:not-allowed;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-dow{text-align:center;color:#666;font-size:10px;letter-spacing:1px;padding:4px 0;text-transform:uppercase;}
+.cal-day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;
+  font-size:13px;cursor:pointer;background:#0a0a0a;border:1px solid transparent;transition:.2s;position:relative;
+}
+.cal-day:hover{border-color:#b30000;}
+.cal-day.blank{background:transparent;cursor:default;border:none;}
+.cal-day.muted{opacity:.25;cursor:not-allowed;background:transparent;}
+.cal-day.muted:hover{border-color:transparent;}
+.cal-day.selected{background:#b30000;color:white;border-color:#b30000;}
+.cal-day.marked::after{
+  content:"";position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:#e60000;
+}
+.cal-day.selected.marked::after{background:white;}
+
 /* ---------- BOOKING CARDS ---------- */
 .group-title{
   font-family:Cinzel;font-size:14px;letter-spacing:3px;color:#888;
@@ -335,17 +361,16 @@ td{color:#ddd;}
   <section class="section" id="sec-unavail">
     <div class="panel">
       <h2 id="unavailTitle">My Unavailable Days</h2>
-      <div class="two-col" style="align-items:end;">
-        <div class="field">
-          <label>Date</label>
-          <input type="date" id="uaDate">
-        </div>
-        <div class="field">
-          <label style="display:flex;align-items:center;gap:8px;">
-            <input type="checkbox" id="uaAllDay" checked style="width:auto;" onchange="toggleUaTimes()">
-            All Day
-          </label>
-        </div>
+      <div class="field">
+        <label>Pick a Date <span style="color:#666;text-transform:none;letter-spacing:0;">(red dots = already marked unavailable)</span></label>
+        <div class="cal" id="uaCalendar"></div>
+        <input type="hidden" id="uaDate">
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="uaAllDay" checked style="width:auto;" onchange="toggleUaTimes()">
+          All Day
+        </label>
       </div>
       <div class="two-col" id="uaTimes" style="display:none;">
         <div class="field">
@@ -377,6 +402,13 @@ td{color:#ddd;}
   <section class="section" id="sec-gallery">
     <div class="panel">
       <h2 id="galleryTitle">My Gallery</h2>
+      <div class="field" id="galTargetWrap" style="display:none;">
+        <label>Upload To</label>
+        <select id="galTarget">
+          <option value="shop">Website Gallery (homepage)</option>
+          <option value="mine">My Barber Gallery (shown on my Book Now card)</option>
+        </select>
+      </div>
       <div class="two-col">
         <div class="field">
           <label>Category</label>
@@ -416,13 +448,13 @@ td{color:#ddd;}
   <section class="section" id="sec-menu">
     <div class="panel">
       <h2 id="menuTitle">My Menu</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:16px;">Set your own services and prices — clients see this list when they book with you. Use categories (e.g. "Adults 18+", "Kids 3-6") to group items. Toggle "Included" for freebies, or "From price (+)" if the price is a starting rate. Saving your first menu also lists you as a barber on the booking page.</p>
+      <p style="color:#888;font-size:13px;margin-bottom:16px;">All prices are in CAD. Clients pick ONE cut from a category (Adults, Kids, etc.), then stack on anything from your "Extras" categories (eyebrow, hot towel…). Mark a category as <strong>Extras</strong> to make its items optional add-ons. "Included" marks freebies bundled with a category (e.g. premium perks); "From (+)" means starting price. Saving your first menu lists you as a barber on the booking page — until then you stay hidden.</p>
 
       <div id="menuEditor"></div>
 
       <button class="btn ghost small" onclick="addMenuCategory()" style="margin-top:12px;">+ Add Category</button>
       <button class="btn" onclick="saveMenu()" style="margin-top:12px;margin-left:8px;">Save Menu</button>
-      <button class="btn ghost small" onclick="loadTemplate()" style="margin-top:12px;margin-left:8px;">Load Sample Template</button>
+      <button class="btn ghost small" onclick="loadTemplate()" style="margin-top:12px;margin-left:8px;">Reset to Template</button>
     </div>
   </section>
 
@@ -651,6 +683,7 @@ function initApp(){
   attachListeners();
   setupUploads();
   setupSearch();
+  renderUaCalendar();
 }
 function doLogout(){ auth.signOut().then(() => window.location.href = "index.html"); }
 
@@ -664,10 +697,12 @@ function buildNav(){
     { id:"unavail",      label: role === "admin" ? "Unavailable Days" : "My Unavailable Days" },
     { id:"gallery",      label: role === "admin" ? "Gallery" : "My Gallery" },
     { id:"earnings",     label:"My Earnings" },
-    { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" },
-    { id:"profile",      label:"My Profile" }
+    { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" }
   ];
   if(role === "admin") items.splice(5, 0, { id:"barbers", label:"Barbers" });
+  // Admin's name & photo come from their profile on the main site;
+  // barbers manage theirs here.
+  if(role === "barber") items.push({ id:"profile", label:"My Profile" });
 
   document.getElementById("dashNav").innerHTML = items.map(i =>
     `<button data-sec="${i.id}" class="${i.id===currentSection?'active':''}" onclick="showSection('${i.id}')">${i.label}</button>`
@@ -685,6 +720,7 @@ function buildNav(){
   if(role === "admin"){
     document.getElementById("barberChips").style.display = "flex";
     document.getElementById("uaScopeWrap").style.display = "";
+    document.getElementById("galTargetWrap").style.display = "";
   }
 }
 function showSection(id){
@@ -725,6 +761,7 @@ function attachListeners(){
   db.collection("unavailableDays").onSnapshot(snap => {
     unavailable = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderUnavailable();
+    renderUaCalendar();
   });
   db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
     gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
@@ -909,6 +946,69 @@ function setupSearch(){
 /* =========================================================
    UNAVAILABLE DAYS
 ========================================================= */
+let uaCalMonth = null;
+
+function uaLocalStr(d){
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function uaCalShift(dir){
+  const n = new Date();
+  const min = new Date(n.getFullYear(), n.getMonth(), 1);
+  const max = new Date(n.getFullYear(), n.getMonth() + 3, 1);
+  const next = new Date(uaCalMonth.getFullYear(), uaCalMonth.getMonth() + dir, 1);
+  if(next < min || next > max) return;
+  uaCalMonth = next;
+  renderUaCalendar();
+}
+function renderUaCalendar(){
+  const wrap = document.getElementById("uaCalendar");
+  if(!wrap) return;
+  if(!uaCalMonth){
+    const n = new Date();
+    uaCalMonth = new Date(n.getFullYear(), n.getMonth(), 1);
+  }
+  const n = new Date();
+  const min = new Date(n.getFullYear(), n.getMonth(), 1);
+  const max = new Date(n.getFullYear(), n.getMonth() + 3, 1);
+  const y = uaCalMonth.getFullYear(), mo = uaCalMonth.getMonth();
+  const monthName = uaCalMonth.toLocaleString("en-CA", { month:"long", year:"numeric" });
+  const startDow = new Date(y, mo, 1).getDay();
+  const daysInMonth = new Date(y, mo + 1, 0).getDate();
+  const todayStr = uaLocalStr(new Date());
+  const selected = document.getElementById("uaDate").value;
+  const marked = new Set(
+    unavailable
+      .filter(u => role === "admin" || u.barberId === myBarberId || u.barberId === "global")
+      .map(u => u.date)
+  );
+
+  let html = `
+    <div class="cal-head">
+      <button onclick="uaCalShift(-1)" ${uaCalMonth.getTime() <= min.getTime() ? "disabled" : ""}>‹</button>
+      <span class="cal-title">${monthName}</span>
+      <button onclick="uaCalShift(1)" ${uaCalMonth.getTime() >= max.getTime() ? "disabled" : ""}>›</button>
+    </div>
+    <div class="cal-grid">
+      ${["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => `<div class="cal-dow">${d}</div>`).join("")}
+      ${'<div class="cal-day blank"></div>'.repeat(startDow)}`;
+
+  for(let day = 1; day <= daysInMonth; day++){
+    const dstr = uaLocalStr(new Date(y, mo, day));
+    const past = dstr < todayStr;
+    let cls = "cal-day";
+    if(past) cls += " muted";
+    else if(dstr === selected) cls += " selected";
+    if(marked.has(dstr)) cls += " marked";
+    const click = past ? "" : ` onclick="pickUaDate('${dstr}')"`;
+    html += `<div class="${cls}"${click}>${day}</div>`;
+  }
+  wrap.innerHTML = html + "</div>";
+}
+function pickUaDate(dstr){
+  document.getElementById("uaDate").value = dstr;
+  renderUaCalendar();
+}
+
 function toggleUaTimes(){
   const allDay = document.getElementById("uaAllDay").checked;
   document.getElementById("uaTimes").style.display = allDay ? "none" : "grid";
@@ -922,7 +1022,7 @@ async function addUnavailable(){
   // "Just me" blocks only the current person's chair; "All barbers" closes the shop.
   const barberId = scope === "global" ? "global" : (myBarberId || "global");
 
-  if(!date) return toast("Pick a date", "red");
+  if(!date) return toast("Pick a date on the calendar", "red");
   if(!allDay && (!startTime || !endTime)) return toast("Enter start and end times", "red");
 
   // Conflict check against own bookings
@@ -964,6 +1064,7 @@ async function addUnavailable(){
   document.getElementById("uaDate").value = "";
   document.getElementById("uaAllDay").checked = true;
   toggleUaTimes();
+  renderUaCalendar();
   toast("Unavailable day added", "green");
 }
 
@@ -1034,7 +1135,18 @@ function setupUploads(){
 async function uploadGalleryPhoto(){
   if(!galFile) return toast("Choose an image first", "red");
   const category = document.getElementById("galCategory").value.trim() || "General";
-  const barberId = myBarberId || "admin";
+  let barberId;
+  if(role === "admin"){
+    if(document.getElementById("galTarget").value === "mine"){
+      try{ await ensureMyBarberDoc(); }
+      catch(e){ return toast("Could not create your barber profile: " + e.message, "red"); }
+      barberId = myBarberId;
+    } else {
+      barberId = "shop"; // homepage website gallery
+    }
+  } else {
+    barberId = myBarberId;
+  }
   const path = `gallery/${barberId}/${Date.now()}_${galFile.name}`;
   const ref = storage.ref(path);
   const task = ref.put(galFile);
@@ -1066,13 +1178,18 @@ function renderGallery(){
   let mine = gallery.slice();
   if(role === "barber") mine = mine.filter(g => g.barberId === myBarberId);
   if(!mine.length){
-    list.innerHTML = '<div style="color:#666;padding:20px;">No photos yet.</div>';
+    list.innerHTML = '<div style="color:#666;padding:20px;">No photos yet. Your gallery shows on your Book Now card as "View Barber\'s Gallery".</div>';
     return;
   }
+  const ownerName = bid =>
+    (bid === "shop" || bid === "admin") ? "Website Gallery"
+    : bid === myBarberId ? "My Gallery"
+    : (barbers.find(b => b.id === bid)?.name || "Unknown") + "'s Gallery";
   const byCat = {};
   mine.forEach(g => {
     const c = g.category || "General";
-    (byCat[c] = byCat[c] || []).push(g);
+    const key = role === "admin" ? ownerName(g.barberId) + " — " + c : c;
+    (byCat[key] = byCat[key] || []).push(g);
   });
   list.innerHTML = Object.keys(byCat).map(cat => {
     const items = byCat[cat].sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
@@ -1475,14 +1592,20 @@ let editingMenu = [];           // in-memory copy of MY menu
 
 function loadMenuForEdit(){
   const b = barbers.find(x => x.id === myBarberId);
-  editingMenu = b?.menu ? JSON.parse(JSON.stringify(b.menu)) : [];
+  if(b?.menu && b.menu.length){
+    editingMenu = JSON.parse(JSON.stringify(b.menu));
+  } else {
+    // Never start from a blank page — the shop template is the baseline;
+    // adjust prices / add categories, then Save.
+    editingMenu = SAMPLE_MENU();
+  }
   renderMenuEditor();
 }
 
 function renderMenuEditor(){
   const wrap = document.getElementById("menuEditor");
   if(!editingMenu.length){
-    wrap.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No categories yet. Add one below or load the sample template.</div>';
+    wrap.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">Menu is empty — hit "Reset to Template" to start from the shop template.</div>';
     return;
   }
   wrap.innerHTML = editingMenu.map((cat, ci) => `
@@ -1490,6 +1613,9 @@ function renderMenuEditor(){
       <div class="menu-cat-head">
         <input class="icon" placeholder="✂" value="${esc(cat.icon||"")}" oninput="updateCat(${ci},'icon',this.value)">
         <input class="title" placeholder="Category title" value="${esc(cat.title||"")}" oninput="updateCat(${ci},'title',this.value)">
+        <label style="margin:0;font-size:10px;letter-spacing:1px;color:#888;display:flex;align-items:center;gap:5px;white-space:nowrap;" title="Extras are optional add-ons clients can stack on top of one chosen cut">
+          <input type="checkbox" style="width:auto;" ${cat.kind==='extras'?'checked':''} onchange="updateCat(${ci},'kind',this.checked?'extras':'main')"> Extras
+        </label>
         <button class="btn small danger" onclick="removeCat(${ci})">Delete</button>
       </div>
       <div>
@@ -1558,54 +1684,58 @@ async function saveMenu(){
 }
 
 function loadTemplate(){
-  openAM("Load Sample Template", "Replace current menu with the standard template? Your unsaved changes will be lost.", () => {
+  openAM("Reset to Template", "Replace your current menu with the shop template (CAD pricing)? Your unsaved changes will be lost.", () => {
     editingMenu = SAMPLE_MENU();
     renderMenuEditor();
     closeAM();
-    toast("Template loaded — remember to Save", "green");
+    toast("Template loaded — adjust prices and hit Save", "green");
   });
 }
 
 function SAMPLE_MENU(){
   const mkId = () => "i" + Date.now() + Math.floor(Math.random()*100000);
-  const items = names => names.map(n => ({ id: mkId(), name: n[0], price: n[1], included: false, fromPrice: n[2]||false }));
+  const cut = (name, price, duration, fromPrice) =>
+    ({ id: mkId(), name, price, duration: duration || 40, included: false, fromPrice: !!fromPrice });
+  const inc = name =>
+    ({ id: mkId(), name, price: 0, duration: 0, included: true, fromPrice: false });
   return [
-    { id:"cat_reg_adult", title:"REGULAR — ADULTS 18+", icon:"✂",
-      items: items([
-        ["All Round Fade",2500],["Taper Fade",2500],["One Level",2500],["Bald Cut",2500],
-        ["Mohawk",2500],["Flat Top",2500],["Big Chop",2500],["Buzz Cut",2500],
-        ["Low Fade",2500],["Skin Fade",2500],["Ladies Cut",3500],["Trim & Shave",3000],
-        ["Eyebrow",500]
-      ])
+    { id:"cat_reg_adult", title:"REGULAR — ADULTS 18+", icon:"✂", kind:"main",
+      items: [
+        cut("All Round Fade",35), cut("Taper Fade",35), cut("Low Fade",35),
+        cut("Skin Fade",40), cut("One Level",30,35), cut("Bald Cut",30,30),
+        cut("Buzz Cut",25,30), cut("Mohawk",40,45), cut("Flat Top",40,45),
+        cut("Big Chop",35,45), cut("Ladies Cut",45,45), cut("Trim & Shave",40,45)
+      ]
     },
-    { id:"cat_prem_adult", title:"PREMIUM — ADULTS 18+", icon:"⭐",
-      items: items([
-        ["All Round Fade",3000],["Taper Fade",3000],["One Level",3000],["Bald Cut",3000],
-        ["Mohawk",3000],["Flat Top",3000],["Big Chop",3000],["Buzz Cut",3000],
-        ["Low Fade",3000],["Skin Fade",3000],["Ladies Cut",3000]
-      ])
+    { id:"cat_prem_adult", title:"PREMIUM — ADULTS 18+", icon:"⭐", kind:"main",
+      items: [
+        cut("All Round Fade",50,60), cut("Taper Fade",50,60), cut("Low Fade",50,60),
+        cut("Skin Fade",55,60), cut("Mohawk",55,65), cut("Flat Top",55,65),
+        cut("Big Chop",50,65), cut("Ladies Cut",60,65),
+        inc("Eyebrow Shape Up"), inc("Eyebrow Tint"), inc("Warm Towel"), inc("Petty Facial")
+      ]
     },
-    { id:"cat_prem_incl", title:"Premium — Included Extras", icon:"✨",
-      items: ["Eyebrow Shape Up","Eyebrow Tint","Warm Towel","Petty Facial"].map(n => ({
-        id: mkId(), name: n, price: 0, included: true, fromPrice: false
-      }))
+    { id:"cat_bigkids", title:"BIG KIDS 7–17", icon:"✂", kind:"main",
+      items: [
+        cut("All Round Fade",30,35), cut("Taper Fade",30,35), cut("Low Fade",30,35),
+        cut("Skin Fade",32,35), cut("One Level",28,30), cut("Bald Cut",25,30),
+        cut("Buzz Cut",22,25), cut("Mohawk",32,40), cut("Big Chop",30,40),
+        cut("School Boy Trim",25,30)
+      ]
     },
-    { id:"cat_bigkids", title:"REGULAR — BIG KIDS 7–17", icon:"✂",
-      items: items([
-        ["All Round Fade",2000],["Taper Fade",2000],["One Level",2000],["Bald Cut",2000],
-        ["Mohawk",2000],["Flat Top",2000],["Big Chop",2000],["Buzz Cut",2000],
-        ["Low Fade",2000],["Skin Fade",2000],["Ladies Cut",2000],["Eyebrow",500]
-      ])
+    { id:"cat_kids", title:"KIDS 3–6", icon:"👦", kind:"main",
+      items: [
+        cut("All Round Fade",25,30,true), cut("Taper Fade",25,30,true),
+        cut("One Level",22,25,true), cut("Bald Cut",20,25,true),
+        cut("Buzz Cut",20,25,true), cut("Mohawk",28,35,true),
+        cut("School Boy Trim",22,25,true)
+      ]
     },
-    { id:"cat_kids", title:"KIDS 3–6", icon:"👦",
-      items: items([
-        ["All Round Fade",1500,true],["Taper Fade",1500,true],["One Level",1500,true],
-        ["Bald Cut",1500,true],["Mohawk",1500,true],["Flat Top",1500,true],
-        ["Big Chop",1500,true],["Buzz Cut",1500,true],["School Boy Trim",1500,true]
-      ])
-    },
-    { id:"cat_extras", title:"Optional Extras", icon:"➕",
-      items: items([ ["Line Up",500,true], ["Custom Design",200,true] ])
+    { id:"cat_extras", title:"OPTIONAL EXTRAS", icon:"➕", kind:"extras",
+      items: [
+        cut("Eyebrow",10,5), cut("Line Up",10,10), cut("Beard Line Up",12,10),
+        cut("Hot Towel",5,5), cut("Custom Design",5,10,true)
+      ]
     }
   ];
 }
