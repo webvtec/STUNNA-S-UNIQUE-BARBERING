@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Axon — Digital Workers for Mundane Workflows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; color: #1B133C; }
+    .font-serif-display { font-family: 'Instrument Serif', serif; }
+
+    /* Nav link hover */
+    .nav-link { color: rgba(27, 19, 60, 0.8); transition: color 0.25s ease; }
+    .nav-link:hover { color: rgba(27, 19, 60, 1); }
+
+    /* CTA hover */
+    .cta-btn {
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+    .cta-btn:hover {
+      box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up {
+      animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.25s; }
+    .delay-3 { animation-delay: 0.4s; }
+    .delay-4 { animation-delay: 0.55s; }
+    .delay-5 { animation-delay: 0.7s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-fade-up { animation: none; opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero Section -->
+  <section class="relative h-screen w-full overflow-hidden flex flex-col" style="height: 100vh;">
+
+    <!-- Background Video -->
+    <video
+      autoplay muted loop playsinline
+      class="absolute inset-0 z-0 w-full object-cover"
+      style="height: 130%; object-position: center top;"
+      src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260714_113715_c7e0daa0-8bdd-4486-a2da-040901f8f0ea.mp4"
+    ></video>
+
+    <!-- Navigation -->
+    <nav class="relative z-10 flex justify-center animate-fade-up delay-1" style="padding-top: 1rem;">
+      <div
+        class="inline-flex items-center gap-6 px-4 py-3 rounded-xl"
+        style="background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 3px rgba(0,0,0,0.06);"
+      >
+        <!-- SVG Logo -->
+        <a href="#" class="flex-shrink-0" aria-label="Axon Home">
+          <svg width="24" height="24" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 256 256 L 128 256 L 0 128 L 128 128 Z" fill="#1B133C"/>
+            <path d="M 256 128 L 128 128 L 0 0 L 128 0 Z" fill="#1B133C"/>
+          </svg>
+        </a>
+
+        <!-- Nav Links (hidden on mobile) -->
+        <div class="hidden sm:flex items-center gap-5">
+          <a href="#" class="nav-link text-sm font-medium">Features</a>
+          <a href="#" class="nav-link text-sm font-medium">Plans</a>
+          <a href="#" class="nav-link text-sm font-medium">Security</a>
+          <a href="#" class="nav-link text-sm font-medium">About</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Content -->
+    <div class="relative z-10 flex flex-col items-center text-center px-6" style="margin-top: 2rem;">
+
+      <!-- Badge -->
+      <div class="animate-fade-up delay-2" style="margin-bottom: 1.5rem;">
+        <div
+          class="inline-flex items-center gap-2.5 rounded-xl px-4 py-2 text-sm font-medium"
+          style="border: 1px solid rgba(27,19,60,0.1); background: rgba(255,255,255,0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);"
+        >
+          <span
+            class="flex items-center justify-center rounded font-bold text-white text-xs"
+            style="width: 1.25rem; height: 1.25rem; background: #f97316;"
+          >Y</span>
+          <span style="color: #1B133C;">Funded by Y Combinator</span>
+        </div>
+      </div>
+
+      <!-- Heading -->
+      <h1
+        class="font-serif-display animate-fade-up delay-3"
+        style="font-size: clamp(2.25rem, 8vw, 6rem); line-height: 0.95; letter-spacing: -0.02em; color: #1B133C; max-width: 56rem;"
+      >
+        Deploy digital workers<br/>for mundane workflows
+      </h1>
+
+      <!-- Subtitle -->
+      <p
+        class="animate-fade-up delay-4"
+        style="margin-top: 1.5rem; max-width: 48rem; font-size: clamp(0.75rem, 1.5vw, 1rem); line-height: 1.625; color: rgba(27,19,60,0.7);"
+      >
+        Eliminate your tedious browser work and 10x your team's capacity. Put intelligent agents on every routine process so you grow faster and deliver more for clients — effortlessly.
+      </p>
+
+      <!-- CTA Button -->
+      <div class="animate-fade-up delay-5" style="margin-top: 2rem;">
+        <a
+          href="#"
+          class="cta-btn inline-block rounded-xl px-8 py-3.5 text-sm font-semibold"
+          style="background: #FEFEFE; color: #1B133C;"
+        >
+          Get Early Access
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Adjust nav padding for md breakpoint
+    const nav = document.querySelector('nav');
+    function adjustNav() {
+      nav.style.paddingTop = window.innerWidth >= 768 ? '1.5rem' : '1rem';
+      const heroContent = document.querySelector('.relative.z-10.flex.flex-col.items-center');
+      if (heroContent) {
+        heroContent.style.marginTop = window.innerWidth >= 768 ? '4rem' : '2rem';
+      }
+    }
+    adjustNav();
+    window.addEventListener('resize', adjustNav);
+  </script>
+</body>
+</html>
