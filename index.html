@@ -9,7 +9,48 @@
 <meta property="og:description" content="Exclusive Cuts From Welland's Best Barbers. Book online now.">
 <meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
 <meta property="og:type" content="website">
+<!-- TODO: confirm this is the live domain, then update this tag + robots.txt + sitemap.xml to match -->
+<meta property="og:url" content="https://www.stunnasuniquebarbering.com/">
+<link rel="canonical" href="https://www.stunnasuniquebarbering.com/">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Stunna's Unique Barbering — Premium Barbershop in Welland, Ontario">
+<meta name="twitter:description" content="Exclusive cuts from Welland's best barbers. Book online now.">
+<meta name="twitter:image" content="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
+
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#050505">
+
+<!-- Favicon / app icons -->
 <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
+<link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%20%22Stunna%27s%20Unique%20Barbering%22%2C%20%22short_name%22%3A%20%22Stunna%27s%22%2C%20%22icons%22%3A%20%5B%7B%22src%22%3A%20%22https%3A//firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%2520BARBERING%2520LOGO.png%3Falt%3Dmedia%26token%3D0245b4b9-4cec-406b-a92e-cb76a46f8a03%22%2C%20%22sizes%22%3A%20%22192x192%22%2C%20%22type%22%3A%20%22image/png%22%7D%2C%20%7B%22src%22%3A%20%22https%3A//firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%2520BARBERING%2520LOGO.png%3Falt%3Dmedia%26token%3D0245b4b9-4cec-406b-a92e-cb76a46f8a03%22%2C%20%22sizes%22%3A%20%22512x512%22%2C%20%22type%22%3A%20%22image/png%22%7D%5D%2C%20%22theme_color%22%3A%20%22%23050505%22%2C%20%22background_color%22%3A%20%22%23050505%22%2C%20%22display%22%3A%20%22standalone%22%2C%20%22start_url%22%3A%20%22/index.html%22%7D">
+
+<!-- Local business structured data for Google -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HairSalon",
+  "name": "Stunna's Unique Barbering",
+  "image": "https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03",
+  "url": "https://www.stunnasuniquebarbering.com/",
+  "telephone": "+1-647-707-7600",
+  "email": "stunnauniquebarbering@gmail.com",
+  "priceRange": "$$",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "626 E Main St",
+    "addressLocality": "Welland",
+    "addressRegion": "ON",
+    "postalCode": "L3B 3Y2",
+    "addressCountry": "CA"
+  },
+  "openingHoursSpecification": [
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], "opens": "09:00", "closes": "19:00" }
+  ]
+}
+</script>
 
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -766,7 +807,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 
   </div>
   <div class="footer-bottom">
-    © 2026 Stunna's Unique Barbering. All rights reserved.
+    © 2026 Stunna's Unique Barbering. All rights reserved. &nbsp;·&nbsp; <button onclick="document.getElementById('privacyModal').classList.add('open')" style="background:none;border:none;color:var(--text-muted);text-decoration:underline;font-family:Poppins;font-size:inherit;cursor:pointer;padding:0;">Privacy Policy</button>
     <div style="margin-top:10px;font-size:11px;letter-spacing:2px;">
       <a href="https://webvtec.com" target="_blank" rel="noopener" style="color:#555;text-decoration:none;transition:color .3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">CLICK TO REQUEST YOUR OWN WEBSITE &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600;">WEBVTEC.COM</span></a>
     </div>
@@ -916,6 +957,27 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <button class="close" onclick="closeModal('myBookingsModal')">×</button>
       <h3>My Bookings</h3>
       <div id="myBookingsList"><div style="color:var(--text-muted);">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div class="modal-backdrop" id="privacyModal">
+  <div class="modal-wrap" style="max-width:600px;">
+    <div class="modal" style="max-width:600px;">
+      <button class="close" onclick="closeModal('privacyModal')">×</button>
+      <h3>Privacy Policy</h3>
+      <p style="color:var(--text-muted);font-size:12px;margin-bottom:24px;">Last updated: August 11, 2026</p>
+
+      <div style="color:var(--text-dim);font-size:14px;line-height:1.8;">
+        <p>Stunna's Unique Barbering collects the information you provide when booking online — your name, email, phone number, and appointment details — so we can manage your bookings and get in touch with you if needed.</p>
+
+        <p style="margin-top:16px;">We don't sell your information, and we don't collect or store payment details — all payment is made in person at the shop.</p>
+
+        <p style="margin-top:16px;">You can update or delete your account anytime by signing in, or by emailing us at the address below.</p>
+
+        <p style="margin-top:16px;">Questions? Contact us at <a href="mailto:stunnauniquebarbering@gmail.com" style="color:var(--blue-glow);">stunnauniquebarbering@gmail.com</a> or (647) 707-7600.</p>
+      </div>
     </div>
   </div>
 </div>
