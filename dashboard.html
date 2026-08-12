@@ -106,6 +106,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);}
 }
 .cal-head button:hover{border-color:var(--red);}
 .cal-head button:disabled{opacity:.25;cursor:not-allowed;}
+.btn:disabled,.btn[disabled]{opacity:.25;cursor:not-allowed;}
+.btn:disabled:hover,.btn[disabled]:hover{background:inherit;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
 .cal-dow{text-align:center;color:#666;font-size:10px;letter-spacing:1px;padding:4px 0;text-transform:uppercase;}
 .cal-day{
@@ -418,12 +420,31 @@ td{color:#ddd;}
     </div>
   </section>
 
-  <!-- SHOP MENU (read-only) -->
-  <section class="section" id="sec-menu">
+  <!-- PRICE LIST (admin) -->
+  <section class="section" id="sec-services">
     <div class="panel">
-      <h2 id="menuTitle">Shop Menu</h2>
-      <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">This is the standard menu for the entire shop. All barbers offer the same services at the same prices. Prices are set shop-wide and cannot be changed here.</p>
-      <div id="menuReadonly"></div>
+      <h2>Price List</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">This is the shop-wide menu everyone sees on the booking page. Add new styles, edit prices, or hide something without deleting it.</p>
+
+      <div class="two-col">
+        <div class="field"><label>Service Name</label><input type="text" id="svcName" placeholder="e.g. Skin Fade"></div>
+        <div class="field"><label>Price ($)</label><input type="number" id="svcPrice" placeholder="35" step="0.01" min="0"></div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label>Duration (minutes)</label><input type="number" id="svcDuration" placeholder="35" step="5" min="5"></div>
+        <div class="field"><label>Note <span style="color:#666;text-transform:none;letter-spacing:0;">(optional, e.g. "Under 11 Years")</span></label><input type="text" id="svcNote" placeholder=""></div>
+      </div>
+      <button class="btn" onclick="saveService()">Save Service</button>
+      <button class="btn ghost" onclick="resetServiceForm()" style="margin-left:8px;">Cancel Edit</button>
+      <input type="hidden" id="svcEditId">
+
+      <div id="svcSeedWrap" style="display:none;margin-top:20px;padding:16px;border:1px dashed var(--border);border-radius:12px;">
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:10px;">No services yet — load the starting price list to get going, then edit it below.</p>
+        <button class="btn ghost small" onclick="seedDefaultServices()">Load Default Price List</button>
+      </div>
+
+      <h3 style="margin-top:32px;">Current Menu</h3>
+      <div id="servicesList" style="margin-top:14px;"></div>
     </div>
   </section>
 
@@ -552,8 +573,8 @@ const ADMIN_UID = "b44tKAz3gtR0AK4eNLOIgcgEpoD3";
 const SLOT_MINUTES = 35;
 const CURRENCY = "$";
 
-/* Universal shop menu — same as index.html */
-const SHOP_SERVICES = [
+/* Default menu, used only to seed the "services" collection the first time */
+const DEFAULT_SERVICES = [
   { id:"svc_mens_haircut",      name:"Men's Haircut",             price:32,  duration:35,  note:"" },
   { id:"svc_beard_trim",        name:"Beard Trim",                price:28,  duration:25,  note:"" },
   { id:"svc_cut_beard",         name:"Hair Cut & Beard Trim",     price:47,  duration:50,  note:"" },
@@ -594,6 +615,7 @@ let bookings = [];
 let unavailable = [];
 let vacations = [];
 let gallery = [];
+let services = [];
 let currentSection = "reservations";
 let resBarberFilter = "";
 let revBarberId = null;
@@ -663,7 +685,6 @@ function initApp(){
   setupUploads();
   setupSearch();
   renderUaCalendar();
-  renderMenuReadonly();
 }
 function doLogout(){ auth.signOut().then(() => window.location.href = "index.html"); }
 
@@ -680,6 +701,7 @@ function buildNav(){
   if(role === "admin"){
     items.splice(3, 0, { id:"gallery", label:"Website Gallery" });
     items.splice(5, 0, { id:"barbers", label:"Barbers" });
+    items.splice(6, 0, { id:"services", label:"Price List" });
     items.push({ id:"inquiries", label:"Inquiries" });
   }
   if(role === "barber") items.push({ id:"profile", label:"My Profile" });
@@ -692,7 +714,6 @@ function buildNav(){
   document.getElementById("unavailTitle").textContent = role === "admin" ? "Unavailable Days" : "My Unavailable Days";
   document.getElementById("galleryTitle").textContent = "Website Gallery";
   document.getElementById("earningsTitle").textContent = "My Earnings";
-  document.getElementById("menuTitle").textContent = "Shop Menu";
   document.getElementById("clientsTitle").textContent = role === "admin" ? "Clients" : "My Clients";
   document.getElementById("clientsDesc").textContent = role === "admin"
     ? "Everyone who has booked at the shop." : "Everyone who has booked with you.";
@@ -711,6 +732,7 @@ function showSection(id){
   if(id === "clients") renderClients();
   if(id === "profile") loadMyProfile();
   if(id === "barbers") renderBarbersList();
+  if(id === "services") renderServicesList();
   if(id === "inquiries") renderInquiries();
 }
 
@@ -748,6 +770,12 @@ function attachListeners(){
     renderGallery();
   });
   if(role === "admin"){
+    db.collection("services").orderBy("order","asc").onSnapshot(snap => {
+      services = snap.docs.map(d => ({id:d.id, ...d.data()}));
+      renderServicesList();
+    });
+  }
+  if(role === "admin"){
     db.collection("barberInquiries").orderBy("timestamp","desc").onSnapshot(snap => {
       inquiries = snap.docs.map(d => ({id:d.id, ...d.data()}));
       if(currentSection === "inquiries") renderInquiries();
@@ -756,22 +784,120 @@ function attachListeners(){
 }
 
 /* =========================================================
-   SHOP MENU — READ-ONLY DISPLAY
+   PRICE LIST — FULL CRUD (admin)
 ========================================================= */
-function renderMenuReadonly(){
-  const wrap = document.getElementById("menuReadonly");
-  wrap.innerHTML = SHOP_SERVICES.map(s => `
-    <div class="menu-readonly-row">
-      <div>
-        <div class="svc-name">${esc(s.name)}</div>
-        ${s.note ? `<div class="svc-note">${esc(s.note)}</div>` : ''}
+async function saveService(){
+  const name = document.getElementById("svcName").value.trim();
+  const price = parseFloat(document.getElementById("svcPrice").value);
+  const duration = parseInt(document.getElementById("svcDuration").value, 10);
+  const note = document.getElementById("svcNote").value.trim();
+  const editId = document.getElementById("svcEditId").value;
+
+  if(!name) return toast("Service name is required", "red");
+  if(isNaN(price) || price < 0) return toast("Enter a valid price", "red");
+  if(isNaN(duration) || duration < 5) return toast("Enter a valid duration (minutes)", "red");
+
+  try{
+    if(editId){
+      await db.collection("services").doc(editId).update({ name, price, duration, note });
+      toast("Service updated", "green");
+    } else {
+      const order = services.length ? Math.max(...services.map(s => s.order ?? 0)) + 1 : 0;
+      await db.collection("services").add({ name, price, duration, note, active:true, order });
+      toast("Service added to the menu", "green");
+    }
+    resetServiceForm();
+  }catch(e){ toast("Save failed: " + e.message, "red"); }
+}
+function resetServiceForm(){
+  document.getElementById("svcName").value = "";
+  document.getElementById("svcPrice").value = "";
+  document.getElementById("svcDuration").value = "";
+  document.getElementById("svcNote").value = "";
+  document.getElementById("svcEditId").value = "";
+}
+function editService(id){
+  const s = services.find(x => x.id === id);
+  if(!s) return;
+  document.getElementById("svcName").value = s.name || "";
+  document.getElementById("svcPrice").value = s.price ?? "";
+  document.getElementById("svcDuration").value = s.duration ?? "";
+  document.getElementById("svcNote").value = s.note || "";
+  document.getElementById("svcEditId").value = s.id;
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+async function toggleServiceActive(id){
+  const s = services.find(x => x.id === id);
+  if(!s) return;
+  await db.collection("services").doc(id).update({ active: !s.active });
+  toast(s.active ? "Hidden from the booking page" : "Now visible on the booking page", "green");
+}
+function deleteService(id){
+  const s = services.find(x => x.id === id);
+  if(!s) return;
+  openAM("Remove Service",
+    `<p>Permanently remove <strong style="color:var(--red-bright);">${esc(s.name)}</strong> from the menu?</p>
+     <p>Past bookings that already used this service keep their record — this only affects new bookings.</p>`,
+    async () => {
+      try{
+        await db.collection("services").doc(id).delete();
+        toast("Service removed", "green");
+      }catch(e){ toast("Remove failed: " + e.message, "red"); }
+      closeAM();
+    }, "Remove");
+}
+async function moveService(id, dir){
+  const sorted = [...services].sort((a,b) => (a.order??0) - (b.order??0));
+  const idx = sorted.findIndex(s => s.id === id);
+  const swapIdx = idx + dir;
+  if(idx === -1 || swapIdx < 0 || swapIdx >= sorted.length) return;
+  const a = sorted[idx], b = sorted[swapIdx];
+  try{
+    const batch = db.batch();
+    batch.update(db.collection("services").doc(a.id), { order: b.order ?? swapIdx });
+    batch.update(db.collection("services").doc(b.id), { order: a.order ?? idx });
+    await batch.commit();
+  }catch(e){ toast("Reorder failed: " + e.message, "red"); }
+}
+async function seedDefaultServices(){
+  try{
+    const batch = db.batch();
+    DEFAULT_SERVICES.forEach((s, i) => {
+      const ref = db.collection("services").doc(s.id);
+      batch.set(ref, { name:s.name, price:s.price, duration:s.duration, note:s.note||"", active:true, order:i });
+    });
+    await batch.commit();
+    toast("Default price list loaded", "green");
+  }catch(e){ toast("Load failed: " + e.message, "red"); }
+}
+function renderServicesList(){
+  const wrap = document.getElementById("servicesList");
+  const seedWrap = document.getElementById("svcSeedWrap");
+  if(!wrap) return;
+  seedWrap.style.display = services.length ? "none" : "block";
+  if(!services.length){
+    wrap.innerHTML = '<div style="color:#666;padding:20px;">No services yet.</div>';
+    return;
+  }
+  const sorted = [...services].sort((a,b) => (a.order??0) - (b.order??0));
+  wrap.innerHTML = sorted.map((s, i) => `
+    <div class="barber-item" style="${s.active===false?'opacity:.5;':''}">
+      <div class="meta">
+        <strong>${esc(s.name)}</strong>
+        ${s.note ? `<small>${esc(s.note)}</small>` : ''}
+        <small>
+          <span style="color:var(--red-bright);font-family:Cinzel;">${fmtMoney(s.price)}</span>
+          &nbsp;·&nbsp; ${s.duration} min
+          &nbsp;·&nbsp;
+          <span style="color:${s.active!==false?'#7fff7f':'var(--text-muted)'};">${s.active!==false ? "Visible on Site" : "Hidden from Site"}</span>
+        </small>
       </div>
-      <div style="display:flex;align-items:center;">
-        <span class="svc-price">${fmtMoney(s.price)}</span>
-        <span class="svc-dur">${s.duration} min</span>
-      </div>
-    </div>
-  `).join("");
+      <button class="btn small ghost" onclick="moveService('${s.id}', -1)" ${i===0?'disabled':''}>↑</button>
+      <button class="btn small ghost" onclick="moveService('${s.id}', 1)" ${i===sorted.length-1?'disabled':''}>↓</button>
+      <button class="btn small ghost" onclick="editService('${s.id}')">Edit</button>
+      <button class="btn small ghost" onclick="toggleServiceActive('${s.id}')">${s.active!==false ? 'Hide' : 'Show'}</button>
+      <button class="btn small danger" onclick="deleteService('${s.id}')">Remove</button>
+    </div>`).join("");
 }
 
 /* =========================================================

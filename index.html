@@ -1024,7 +1024,9 @@ const ADMIN_UID = "b44tKAz3gtR0AK4eNLOIgcgEpoD3";
 const SLOT_MINUTES = 35;
 const CURRENCY = "$";
 
-const SHOP_SERVICES = [
+/* Fallback menu — used only until the "services" collection loads from Firestore,
+   or if the admin hasn't added any services yet. Managed live from the admin dashboard. */
+const DEFAULT_SERVICES = [
   { id:"svc_mens_haircut",      name:"Men's Haircut",             price:32,  duration:35,  note:"" },
   { id:"svc_beard_trim",        name:"Beard Trim",                price:28,  duration:25,  note:"" },
   { id:"svc_cut_beard",         name:"Hair Cut & Beard Trim",     price:47,  duration:50,  note:"" },
@@ -1038,6 +1040,7 @@ const SHOP_SERVICES = [
   { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" },
   { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" }
 ];
+let services = DEFAULT_SERVICES;
 
 const SHOP = {
   name: "Stunna's Unique Barbering",
@@ -1107,20 +1110,21 @@ let galleryCategory = "All";
 /* =========================================================
    PRICING GRID (public display)
 ========================================================= */
-(function renderPricingGrid(){
+function renderPricingGrid(){
   const grid = document.getElementById("pricingGrid");
-  grid.innerHTML = SHOP_SERVICES.map(s => `
+  grid.innerHTML = services.map(s => `
     <div class="price-card reveal">
       <div class="svc-info">
-        <h4>${s.name}</h4>
-        ${s.note ? `<span class="note">${s.note}</span>` : ''}
+        <h4>${esc(s.name)}</h4>
+        ${s.note ? `<span class="note">${esc(s.note)}</span>` : ''}
       </div>
-      <div class="svc-price">${CURRENCY}${s.price.toFixed(2)}</div>
+      <div class="svc-price">${CURRENCY}${Number(s.price).toFixed(2)}</div>
     </div>
   `).join("");
   // observe new reveals
   grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
-})();
+}
+renderPricingGrid();
 
 /* =========================================================
    LIGHTBOX
@@ -1353,6 +1357,16 @@ db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
   gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderGallery();
 });
+db.collection("services").orderBy("order","asc").onSnapshot(snap => {
+  const live = snap.docs.map(d => ({id:d.id, ...d.data()})).filter(s => s.active !== false);
+  services = live.length ? live : DEFAULT_SERVICES;
+  renderPricingGrid();
+  buildServicePicker();
+}, () => {
+  // if the collection/rules aren't set up yet, keep showing the default menu
+  services = DEFAULT_SERVICES;
+  renderPricingGrid();
+});
 
 /* =========================================================
    VACATION HELPERS
@@ -1533,10 +1547,11 @@ function getSelectedBarber(){
 }
 function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2); }
 
-/* Build flat service picker from SHOP_SERVICES */
+/* Build flat service picker from live services list */
 function buildServicePicker(){
   const picker = document.getElementById("menuPicker");
-  picker.innerHTML = SHOP_SERVICES.map(svc => {
+  if(!picker) return;
+  picker.innerHTML = services.map(svc => {
     const sel = selectedServices.has(svc.id);
     return `
       <div class="svc-row ${sel?'selected':''}" onclick="toggleService('${svc.id}')">
@@ -1594,7 +1609,7 @@ function toggleService(id){
 }
 
 function getSelectedMenuItems(){
-  return SHOP_SERVICES.filter(s => selectedServices.has(s.id));
+  return services.filter(s => selectedServices.has(s.id));
 }
 
 function updateSummary(){
