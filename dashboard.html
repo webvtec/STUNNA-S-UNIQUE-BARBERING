@@ -486,46 +486,6 @@ td{color:#ddd;}
     </div>
   </section>
 
-  <!-- MY PROFILE (staff) -->
-  <section class="section" id="sec-profile">
-    <div class="panel">
-      <h2>My Profile</h2>
-      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">This is how you appear to clients on the booking page.</p>
-      <div class="two-col">
-        <div class="field"><label>Display Name</label><input type="text" id="ppName" placeholder="Name shown to clients"></div>
-        <div class="field"><label>Specialty</label><input type="text" id="ppSpecialty" placeholder="e.g. Master Fade Specialist"></div>
-      </div>
-      <div class="field">
-        <label>Profile Photo</label>
-        <div class="drop-zone" id="ppDrop" onclick="document.getElementById('ppFile').click()">
-          <div>Drop image here or click to browse</div>
-          <img class="preview" id="ppPreview">
-          <input type="file" id="ppFile" accept="image/*" style="display:none;">
-        </div>
-        <div class="progress" id="ppProgress"><div class="progress-bar" id="ppProgressBar"></div></div>
-      </div>
-      <div class="field" style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px;">
-        <label>Home Call Availability</label>
-        <p style="color:var(--text-muted);font-size:12px;margin:2px 0 14px;">Turn on the windows you're willing to travel to clients for. Pricing is fixed shop-wide — you only choose availability.</p>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
-            <input type="checkbox" id="hcDuring" style="width:auto;">
-            During Hours (9:00 AM – 7:00 PM) — <strong style="color:var(--red-bright);">$200</strong>
-          </label>
-          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
-            <input type="checkbox" id="hcBefore" style="width:auto;">
-            Before Hours (before 9:00 AM) — <strong style="color:var(--red-bright);">$200</strong>
-          </label>
-          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
-            <input type="checkbox" id="hcAfter" style="width:auto;">
-            After Hours (after 7:00 PM) — <strong style="color:var(--red-bright);">$150</strong>
-          </label>
-        </div>
-      </div>
-      <button class="btn" onclick="saveMyProfile()">Save Profile</button>
-    </div>
-  </section>
-
   <!-- CLIENTS -->
   <section class="section" id="sec-clients">
     <div class="panel">
@@ -555,6 +515,27 @@ td{color:#ddd;}
     <div class="panel">
       <h2 id="homecallTitle">Home Call Requests</h2>
       <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Clients asking for a barber to come to them. Accept or decline each request.</p>
+
+      <div class="field" style="margin-bottom:28px;border-bottom:1px solid var(--border);padding-bottom:24px;">
+        <label>Home Call Availability</label>
+        <p style="color:var(--text-muted);font-size:12px;margin:2px 0 14px;">Turn on the windows you're willing to travel to clients for. Pricing is fixed shop-wide — you only choose availability.</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
+            <input type="checkbox" id="hcDuring" style="width:auto;">
+            During Hours (9:00 AM – 7:00 PM) — <strong style="color:var(--red-bright);">$200</strong>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
+            <input type="checkbox" id="hcBefore" style="width:auto;">
+            Before Hours (before 9:00 AM) — <strong style="color:var(--red-bright);">$200</strong>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
+            <input type="checkbox" id="hcAfter" style="width:auto;">
+            After Hours (after 7:00 PM) — <strong style="color:var(--red-bright);">$150</strong>
+          </label>
+        </div>
+        <button class="btn small" style="margin-top:16px;" onclick="saveHomeCallAvailability()">Save Availability</button>
+      </div>
+
       <div class="chip-row" id="hcChips">
         <button class="chip active" onclick="setHcFilter('all')">All</button>
         <button class="chip" onclick="setHcFilter('Pending')">Pending</button>
@@ -608,18 +589,18 @@ const CURRENCY = "$";
 
 /* Default menu, used only to seed the "services" collection the first time */
 const DEFAULT_SERVICES = [
-  { id:"svc_mens_haircut",      name:"Men's Haircut",             price:32,  duration:35,  note:"" },
-  { id:"svc_beard_trim",        name:"Beard Trim",                price:28,  duration:25,  note:"" },
-  { id:"svc_cut_beard",         name:"Hair Cut & Beard Trim",     price:47,  duration:50,  note:"" },
-  { id:"svc_hot_towel",         name:"Hot Towel Shave",           price:32,  duration:35,  note:"" },
-  { id:"svc_hot_towel_haircut", name:"Hot Towel Shave & Haircut", price:72,  duration:60,  note:"" },
-  { id:"svc_senior",            name:"Senior Haircut",            price:29,  duration:35,  note:"65+ Years" },
-  { id:"svc_basic_kids",        name:"Basic Kids Haircut",        price:23,  duration:25,  note:"Under 11 Years" },
-  { id:"svc_kids_fade",         name:"Kids Fade Haircut",         price:25,  duration:30,  note:"Under 11 Years" },
-  { id:"svc_youth",             name:"Youth Haircut",             price:28,  duration:30,  note:"12 Years – 16 Years" },
-  { id:"svc_facial",            name:"Men's Facial",              price:40,  duration:40,  note:"" },
-  { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" },
-  { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" }
+  { id:"svc_mens_haircut",      name:"Men's Haircut",             price:29,  duration:35,  note:"" },
+  { id:"svc_beard_trim",        name:"Beard Trim",                price:25,  duration:25,  note:"" },
+  { id:"svc_cut_beard",         name:"Hair Cut & Beard Trim",     price:44,  duration:50,  note:"" },
+  { id:"svc_hot_towel",         name:"Hot Towel Shave",           price:29,  duration:35,  note:"" },
+  { id:"svc_hot_towel_haircut", name:"Hot Towel Shave & Haircut", price:69,  duration:60,  note:"" },
+  { id:"svc_senior",            name:"Senior Haircut",            price:26,  duration:35,  note:"65+ Years" },
+  { id:"svc_basic_kids",        name:"Basic Kids Haircut",        price:20,  duration:25,  note:"Under 11 Years" },
+  { id:"svc_kids_fade",         name:"Kids Fade Haircut",         price:22,  duration:30,  note:"Under 11 Years" },
+  { id:"svc_youth",             name:"Youth Haircut",             price:25,  duration:30,  note:"12 Years – 16 Years" },
+  { id:"svc_facial",            name:"Men's Facial",              price:37,  duration:40,  note:"" },
+  { id:"svc_signature",         name:"Stunna's Signature Service",price:96,  duration:75,  note:"" },
+  { id:"svc_perm",              name:"Hair Perm",                 price:147, duration:120, note:"" }
 ];
 
 const SHOP = {
@@ -740,7 +721,6 @@ function buildNav(){
     items.splice(7, 0, { id:"services", label:"Price List" });
     items.push({ id:"inquiries", label:"Inquiries" });
   }
-  items.push({ id:"profile", label:"My Profile" }); // admin AND barbers can edit their own bookable profile + home call settings
 
   document.getElementById("dashNav").innerHTML = items.map(i =>
     `<button data-sec="${i.id}" class="${i.id===currentSection?'active':''}" onclick="showSection('${i.id}')">${i.label}</button>`
@@ -767,11 +747,10 @@ function showSection(id){
   document.querySelectorAll(".dash-nav button").forEach(b => b.classList.toggle("active", b.dataset.sec === id));
   if(id === "earnings") renderEarnings();
   if(id === "clients") renderClients();
-  if(id === "profile") loadMyProfile();
   if(id === "barbers") renderBarbersList();
   if(id === "services") renderServicesList();
   if(id === "inquiries") renderInquiries();
-  if(id === "homecall") renderHomeCallRequests();
+  if(id === "homecall"){ loadHomeCallAvailability(); renderHomeCallRequests(); }
 }
 
 /* =========================================================
@@ -1286,7 +1265,6 @@ function renderVacations(){
    GALLERY UPLOAD
 ========================================================= */
 let galFile = null;
-let ppFile = null;
 function setupUploads(){
   const galInput = document.getElementById("galFile");
   const galDrop = document.getElementById("galDrop");
@@ -1295,14 +1273,6 @@ function setupUploads(){
   ["dragenter","dragover"].forEach(ev => galDrop.addEventListener(ev, e => { e.preventDefault(); galDrop.classList.add("drag"); }));
   ["dragleave","drop"].forEach(ev => galDrop.addEventListener(ev, e => { e.preventDefault(); galDrop.classList.remove("drag"); }));
   galDrop.addEventListener("drop", e => { galFile = e.dataTransfer.files[0]; if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }});
-
-  const ppInput = document.getElementById("ppFile");
-  const ppDrop = document.getElementById("ppDrop");
-  const ppPrev = document.getElementById("ppPreview");
-  ppInput.addEventListener("change", e => { ppFile = e.target.files[0]; if(ppFile){ ppPrev.src = URL.createObjectURL(ppFile); ppPrev.classList.add("on"); }});
-  ["dragenter","dragover"].forEach(ev => ppDrop.addEventListener(ev, e => { e.preventDefault(); ppDrop.classList.add("drag"); }));
-  ["dragleave","drop"].forEach(ev => ppDrop.addEventListener(ev, e => { e.preventDefault(); ppDrop.classList.remove("drag"); }));
-  ppDrop.addEventListener("drop", e => { ppFile = e.dataTransfer.files[0]; if(ppFile){ ppPrev.src = URL.createObjectURL(ppFile); ppPrev.classList.add("on"); }});
 }
 
 async function uploadGalleryPhoto(){
@@ -1561,7 +1531,7 @@ function renderEarnings(){
 }
 
 /* =========================================================
-   MY PROFILE
+   HOME CALL AVAILABILITY (per barber)
 ========================================================= */
 async function ensureMyBarberDoc(){
   if(myBarberId) return;
@@ -1576,23 +1546,15 @@ async function ensureMyBarberDoc(){
   myBarberId = ref.id;
 }
 
-function loadMyProfile(){
+function loadHomeCallAvailability(){
   const b = barbers.find(x => x.id === myBarberId);
-  document.getElementById("ppName").value = b?.name || currentUser.displayName || "";
-  document.getElementById("ppSpecialty").value = b?.specialty || "";
-  const prev = document.getElementById("ppPreview");
-  if(b?.photoURL){ prev.src = b.photoURL; prev.classList.add("on"); }
-  else prev.classList.remove("on");
   const hc = b?.homeCall || {};
   document.getElementById("hcDuring").checked = !!hc.during;
   document.getElementById("hcBefore").checked = !!hc.before;
   document.getElementById("hcAfter").checked = !!hc.after;
 }
 
-async function saveMyProfile(){
-  const name = document.getElementById("ppName").value.trim();
-  const specialty = document.getElementById("ppSpecialty").value.trim();
-  if(!name) return toast("Display name is required", "red");
+async function saveHomeCallAvailability(){
   const homeCall = {
     during: document.getElementById("hcDuring").checked,
     before: document.getElementById("hcBefore").checked,
@@ -1600,26 +1562,8 @@ async function saveMyProfile(){
   };
   try{
     await ensureMyBarberDoc();
-    const finish = async url => {
-      const data = { name, specialty, homeCall };
-      if(url) data.photoURL = url;
-      await db.collection("barbers").doc(myBarberId).update(data);
-      document.getElementById("userName").textContent = name;
-      ppFile = null;
-      toast("Profile saved — this is how clients see you", "green");
-    };
-    if(ppFile){
-      const ref = storage.ref(`barbers/${myBarberId}/${Date.now()}_${ppFile.name}`);
-      const task = ref.put(ppFile);
-      const bar = document.getElementById("ppProgressBar");
-      const wrap = document.getElementById("ppProgress");
-      wrap.classList.add("on");
-      task.on("state_changed",
-        snap => { bar.style.width = ((snap.bytesTransferred/snap.totalBytes)*100) + "%"; },
-        err => { toast("Photo upload failed: " + err.message, "red"); wrap.classList.remove("on"); },
-        async () => { const url = await task.snapshot.ref.getDownloadURL(); wrap.classList.remove("on"); bar.style.width = "0%"; await finish(url); }
-      );
-    } else { await finish(null); }
+    await db.collection("barbers").doc(myBarberId).update({ homeCall });
+    toast("Home call availability saved", "green");
   }catch(e){ toast("Save failed: " + e.message, "red"); }
 }
 
