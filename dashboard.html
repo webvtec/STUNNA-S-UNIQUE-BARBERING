@@ -504,6 +504,24 @@ td{color:#ddd;}
         </div>
         <div class="progress" id="ppProgress"><div class="progress-bar" id="ppProgressBar"></div></div>
       </div>
+      <div class="field" style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px;">
+        <label>Home Call Availability</label>
+        <p style="color:var(--text-muted);font-size:12px;margin:2px 0 14px;">Turn on the windows you're willing to travel to clients for. Pricing is fixed shop-wide — you only choose availability.</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
+            <input type="checkbox" id="hcDuring" style="width:auto;">
+            During Hours (9:00 AM – 7:00 PM) — <strong style="color:var(--red-bright);">$200</strong>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
+            <input type="checkbox" id="hcBefore" style="width:auto;">
+            Before Hours (before 9:00 AM) — <strong style="color:var(--red-bright);">$200</strong>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;cursor:pointer;">
+            <input type="checkbox" id="hcAfter" style="width:auto;">
+            After Hours (after 7:00 PM) — <strong style="color:var(--red-bright);">$150</strong>
+          </label>
+        </div>
+      </div>
       <button class="btn" onclick="saveMyProfile()">Save Profile</button>
     </div>
   </section>
@@ -529,6 +547,21 @@ td{color:#ddd;}
         <button class="chip" onclick="setInquiryFilter('declined')">Declined</button>
       </div>
       <div id="inquiriesList"></div>
+    </div>
+  </section>
+
+  <!-- HOME CALL REQUESTS -->
+  <section class="section" id="sec-homecall">
+    <div class="panel">
+      <h2 id="homecallTitle">Home Call Requests</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Clients asking for a barber to come to them. Accept or decline each request.</p>
+      <div class="chip-row" id="hcChips">
+        <button class="chip active" onclick="setHcFilter('all')">All</button>
+        <button class="chip" onclick="setHcFilter('Pending')">Pending</button>
+        <button class="chip" onclick="setHcFilter('Accepted')">Accepted</button>
+        <button class="chip" onclick="setHcFilter('Declined')">Declined</button>
+      </div>
+      <div id="hcList"></div>
     </div>
   </section>
 
@@ -621,6 +654,8 @@ let resBarberFilter = "";
 let revBarberId = null;
 let inquiries = [];
 let inquiryFilter = "all";
+let homeCallRequests = [];
+let hcFilter = "all";
 
 /* =========================================================
    ACCESS GUARD
@@ -694,14 +729,15 @@ function doLogout(){ auth.signOut().then(() => window.location.href = "index.htm
 function buildNav(){
   const items = [
     { id:"reservations", label: role === "admin" ? "All Reservations" : "My Reservations" },
+    { id:"homecall",      label: role === "admin" ? "Home Call Requests" : "My Home Call Requests" },
     { id:"unavail",      label: role === "admin" ? "Unavailable Days" : "My Unavailable Days" },
     { id:"earnings",     label:"My Earnings" },
     { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" }
   ];
   if(role === "admin"){
-    items.splice(3, 0, { id:"gallery", label:"Website Gallery" });
-    items.splice(5, 0, { id:"barbers", label:"Barbers" });
-    items.splice(6, 0, { id:"services", label:"Price List" });
+    items.splice(4, 0, { id:"gallery", label:"Website Gallery" });
+    items.splice(6, 0, { id:"barbers", label:"Barbers" });
+    items.splice(7, 0, { id:"services", label:"Price List" });
     items.push({ id:"inquiries", label:"Inquiries" });
   }
   if(role === "barber") items.push({ id:"profile", label:"My Profile" });
@@ -711,6 +747,7 @@ function buildNav(){
   ).join("");
 
   document.getElementById("reservationsTitle").textContent = role === "admin" ? "All Reservations" : "My Reservations";
+  document.getElementById("homecallTitle").textContent = role === "admin" ? "Home Call Requests" : "My Home Call Requests";
   document.getElementById("unavailTitle").textContent = role === "admin" ? "Unavailable Days" : "My Unavailable Days";
   document.getElementById("galleryTitle").textContent = "Website Gallery";
   document.getElementById("earningsTitle").textContent = "My Earnings";
@@ -734,6 +771,7 @@ function showSection(id){
   if(id === "barbers") renderBarbersList();
   if(id === "services") renderServicesList();
   if(id === "inquiries") renderInquiries();
+  if(id === "homecall") renderHomeCallRequests();
 }
 
 /* =========================================================
@@ -781,6 +819,14 @@ function attachListeners(){
       if(currentSection === "inquiries") renderInquiries();
     });
   }
+  const hcQuery = role === "barber"
+    ? db.collection("homeCallRequests").where("barberId","==",myBarberId)
+    : db.collection("homeCallRequests");
+  hcQuery.onSnapshot(snap => {
+    homeCallRequests = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    homeCallRequests.sort((a,b) => (b.timestamp?.toMillis?.()||0) - (a.timestamp?.toMillis?.()||0));
+    if(currentSection === "homecall") renderHomeCallRequests();
+  });
 }
 
 /* =========================================================
@@ -1537,16 +1583,25 @@ function loadMyProfile(){
   const prev = document.getElementById("ppPreview");
   if(b?.photoURL){ prev.src = b.photoURL; prev.classList.add("on"); }
   else prev.classList.remove("on");
+  const hc = b?.homeCall || {};
+  document.getElementById("hcDuring").checked = !!hc.during;
+  document.getElementById("hcBefore").checked = !!hc.before;
+  document.getElementById("hcAfter").checked = !!hc.after;
 }
 
 async function saveMyProfile(){
   const name = document.getElementById("ppName").value.trim();
   const specialty = document.getElementById("ppSpecialty").value.trim();
   if(!name) return toast("Display name is required", "red");
+  const homeCall = {
+    during: document.getElementById("hcDuring").checked,
+    before: document.getElementById("hcBefore").checked,
+    after: document.getElementById("hcAfter").checked,
+  };
   try{
     await ensureMyBarberDoc();
     const finish = async url => {
-      const data = { name, specialty };
+      const data = { name, specialty, homeCall };
       if(url) data.photoURL = url;
       await db.collection("barbers").doc(myBarberId).update(data);
       document.getElementById("userName").textContent = name;
@@ -1654,6 +1709,64 @@ function deleteInquiry(id){
     }catch(e){ toast("Delete failed: " + e.message, "red"); }
     closeAM();
   }, "Delete");
+}
+
+/* =========================================================
+   HOME CALL REQUESTS
+========================================================= */
+const HC_WINDOW_LABELS = {
+  during: "During Hours (9AM–7PM) · $200",
+  before: "Before Hours (before 9AM) · $200",
+  after: "After Hours (after 7PM) · $150",
+};
+
+function setHcFilter(f){
+  hcFilter = f;
+  document.querySelectorAll("#hcChips .chip").forEach(c => c.classList.toggle("active", c.textContent.trim() === (f === "all" ? "All" : f)));
+  renderHomeCallRequests();
+}
+
+function renderHomeCallRequests(){
+  const list = document.getElementById("hcList");
+  if(!list) return;
+  let filtered = homeCallRequests.slice();
+  if(hcFilter !== "all") filtered = filtered.filter(r => r.status === hcFilter);
+  if(!filtered.length){
+    list.innerHTML = '<div style="color:#666;text-align:center;padding:40px;">No home call requests' + (hcFilter !== "all" ? ' with status "' + hcFilter + '"' : '') + '.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(r => {
+    const statusCls = r.status === "Accepted" ? "b-approved" : r.status === "Declined" ? "b-declined" : "b-pending";
+    const cardCls = r.status === "Accepted" ? "status-approved" : r.status === "Declined" ? "status-declined" : "";
+    const ts = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleDateString("en-CA", { month:"short", day:"numeric", year:"numeric" }) : "just now";
+    return `
+      <div class="inq-card ${cardCls}">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div class="inq-name">#${esc(r.requestNumber || r.id)} — ${esc(r.name)}</div>
+          <span class="badge ${statusCls}">${r.status || "Pending"}</span>
+        </div>
+        ${role === "admin" ? `<div class="inq-detail"><strong>Barber:</strong> ${esc(r.barberName || "—")}</div>` : ""}
+        <div class="inq-detail"><strong>Phone:</strong> ${esc(r.phone)}</div>
+        <div class="inq-detail"><strong>Address:</strong> ${esc(r.address)}</div>
+        <div class="inq-detail"><strong>Date:</strong> ${esc(r.date)} · <strong>Time:</strong> ${esc(r.time)}</div>
+        <div class="inq-detail"><strong>Window:</strong> ${esc(HC_WINDOW_LABELS[r.window] || r.window)}</div>
+        <div class="inq-detail"><strong>Price:</strong> $${Number(r.price||0).toFixed(2)} CAD</div>
+        ${r.notes ? `<div class="inq-exp">${esc(r.notes)}</div>` : ""}
+        <div class="inq-time">Requested ${ts}</div>
+        <div class="actions">
+          ${r.status !== "Accepted" && (role === "admin" || r.barberId === myBarberId) ? '<button class="btn small" onclick="updateHomeCallStatus(\'' + r.id + '\',\'Accepted\')">Accept</button>' : ''}
+          ${r.status !== "Declined" && (role === "admin" || r.barberId === myBarberId) ? '<button class="btn small danger" onclick="updateHomeCallStatus(\'' + r.id + '\',\'Declined\')">Decline</button>' : ''}
+          ${r.status !== "Pending" && (role === "admin" || r.barberId === myBarberId) ? '<button class="btn small ghost" onclick="updateHomeCallStatus(\'' + r.id + '\',\'Pending\')">Reset to Pending</button>' : ''}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function updateHomeCallStatus(id, status){
+  try{
+    await db.collection("homeCallRequests").doc(id).update({ status });
+    toast("Home call request " + status.toLowerCase(), "green");
+  }catch(e){ toast("Update failed: " + e.message, "red"); }
 }
 
 /* =========================================================

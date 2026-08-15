@@ -935,6 +935,54 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   </div>
 </div>
 
+<!-- Home Call request modal -->
+<div class="modal-backdrop" id="homeCallModal">
+  <div class="modal-wrap">
+    <div class="modal" style="max-width:560px;">
+      <button class="close" onclick="closeModal('homeCallModal')">×</button>
+      <div style="text-align:center;margin-bottom:20px;">
+        <h3 style="font-family:Cinzel;">🏠 Request Home Call</h3>
+        <p style="color:var(--text-dim);font-size:13px;" id="hcBarberName"></p>
+      </div>
+      <input type="hidden" id="hcBarberId">
+
+      <div class="notice-box" style="background:rgba(230,0,0,0.06);border:1px solid rgba(230,0,0,0.2);border-left:3px solid #e60000;padding:12px 16px;margin-bottom:18px;border-radius:6px;font-size:13px;color:#ddd;line-height:1.6;" id="hcWindowsAvailable"></div>
+
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Name</label>
+        <input type="text" id="hcName" placeholder="Full name" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
+        <input type="tel" id="hcPhone" placeholder="(647) 000-0000" maxlength="14" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Address</label>
+        <input type="text" id="hcAddress" placeholder="Where should the barber come?" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+        <div class="field">
+          <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Date</label>
+          <input type="date" id="hcDate" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+        </div>
+        <div class="field">
+          <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Time</label>
+          <input type="time" id="hcTime" onchange="updateHomeCallQuote()" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Notes (optional)</label>
+        <textarea id="hcNotes" rows="3" placeholder="Anything the barber should know" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;resize:vertical;"></textarea>
+      </div>
+
+      <div style="text-align:center;margin-bottom:16px;font-size:14px;" id="hcQuote"></div>
+
+      <button class="btn" style="width:100%;" onclick="submitHomeCallRequest()">Send Request</button>
+      <p style="text-align:center;color:var(--text-muted);margin-top:14px;font-size:12px;">You'll be asked to sign in with Google to confirm. The barber must accept before it's booked.</p>
+    </div>
+  </div>
+</div>
+
 <!-- Booking success modal -->
 <div class="modal-backdrop" id="successModal">
   <div class="modal-wrap">
@@ -1023,6 +1071,13 @@ const provider = new firebase.auth.GoogleAuthProvider();
 const ADMIN_UID = "b44tKAz3gtR0AK4eNLOIgcgEpoD3";
 const SLOT_MINUTES = 35;
 const CURRENCY = "$";
+const CURRENCY_SUFFIX = " CAD";
+const HOME_CALL_PRICES = { during: 200, before: 200, after: 150 };
+const HOME_CALL_LABELS = {
+  during: "During Hours (9:00 AM – 7:00 PM)",
+  before: "Before Hours (before 9:00 AM)",
+  after: "After Hours (after 7:00 PM)",
+};
 
 /* Fallback menu — used only until the "services" collection loads from Firestore,
    or if the admin hasn't added any services yet. Managed live from the admin dashboard. */
@@ -1412,6 +1467,7 @@ function renderBarbers(){
       <p class="specialty">${esc(b.specialty || "")}</p>
       ${vacHtml}
       <button class="btn-book" onclick="openBarberBooking('${b.id}')">BOOK NOW</button>
+      ${barberHomeCallWindows(b).length ? `<button class="btn-book" style="margin-top:8px;background:transparent;border:1px solid var(--red-bright);color:var(--red-bright);" onclick="openHomeCallRequest('${b.id}')">🏠 REQUEST HOME CALL</button>` : ""}
     </div>`;
   }).join("");
   grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
@@ -1545,7 +1601,115 @@ function getSelectedBarber(){
   const id = document.getElementById("bkBarber")?.value;
   return id ? barbers.find(b => b.id === id) : null;
 }
-function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2); }
+
+/* =========================================================
+   HOME CALL — client-facing request flow
+========================================================= */
+function barberHomeCallWindows(b){
+  const hc = b?.homeCall || {};
+  const out = [];
+  if(hc.during) out.push("during");
+  if(hc.before) out.push("before");
+  if(hc.after) out.push("after");
+  return out;
+}
+
+// 09:00–18:59 = during ($200), before 09:00 = before ($200), 19:00+ = after ($150)
+function classifyHomeCallTime(timeStr){
+  if(!timeStr) return null;
+  const [h, m] = timeStr.split(":").map(Number);
+  if(isNaN(h)) return null;
+  const mins = h * 60 + (m || 0);
+  if(mins >= 9*60 && mins < 19*60) return "during";
+  if(mins < 9*60) return "before";
+  return "after";
+}
+
+function openHomeCallRequest(barberId){
+  const barber = barbers.find(b => b.id === barberId);
+  if(!barber) return;
+  const windows = barberHomeCallWindows(barber);
+  if(!windows.length){
+    return Swal.fire({icon:"info", title:"Not available", text: (barber.name||"This barber") + " isn't accepting home calls right now.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+  document.getElementById("hcBarberId").value = barberId;
+  document.getElementById("hcBarberName").textContent = barber.name || "Barber";
+  const windowNote = windows.map(w => HOME_CALL_LABELS[w] + " — " + fmtMoney(HOME_CALL_PRICES[w])).join("<br/>");
+  document.getElementById("hcWindowsAvailable").innerHTML = "<strong>Available windows for " + esc(barber.name||"this barber") + ":</strong><br/>" + windowNote;
+  document.getElementById("hcName").value = userProfile?.displayName || "";
+  document.getElementById("hcPhone").value = userProfile?.phone || "";
+  document.getElementById("hcAddress").value = "";
+  document.getElementById("hcDate").value = "";
+  document.getElementById("hcTime").value = "";
+  document.getElementById("hcNotes").value = "";
+  document.getElementById("hcQuote").textContent = "";
+  const dateInput = document.getElementById("hcDate");
+  dateInput.min = new Date().toISOString().slice(0,10);
+  document.getElementById("homeCallModal").classList.add("open");
+}
+
+function updateHomeCallQuote(){
+  const barberId = document.getElementById("hcBarberId").value;
+  const barber = barbers.find(b => b.id === barberId);
+  const time = document.getElementById("hcTime").value;
+  const quoteEl = document.getElementById("hcQuote");
+  if(!time || !barber){ quoteEl.innerHTML = ""; return; }
+  const win = classifyHomeCallTime(time);
+  const allowed = barberHomeCallWindows(barber);
+  if(!allowed.includes(win)){
+    quoteEl.innerHTML = '<span style="color:var(--red-bright);">' + esc(barber.name||"This barber") + " doesn't offer home calls at that time.</span>";
+    return;
+  }
+  quoteEl.innerHTML = '<strong>' + esc(HOME_CALL_LABELS[win]) + '</strong> — <span style="color:var(--red-bright);font-family:Cinzel;">' + fmtMoney(HOME_CALL_PRICES[win]) + '</span>';
+}
+
+async function submitHomeCallRequest(){
+  const barberId = document.getElementById("hcBarberId").value;
+  const barber = barbers.find(b => b.id === barberId);
+  const name = document.getElementById("hcName").value.trim();
+  const phone = document.getElementById("hcPhone").value.trim();
+  const address = document.getElementById("hcAddress").value.trim();
+  const date = document.getElementById("hcDate").value;
+  const time = document.getElementById("hcTime").value;
+  const notes = document.getElementById("hcNotes").value.trim();
+
+  if(!barber || !name || !phone || !address || !date || !time){
+    return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in every field.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+  const win = classifyHomeCallTime(time);
+  const allowed = barberHomeCallWindows(barber);
+  if(!allowed.includes(win)){
+    return Swal.fire({icon:"error", title:"Time not available", text: (barber.name||"This barber") + " doesn't offer home calls at that time. Please pick a different time.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+  const price = HOME_CALL_PRICES[win];
+
+  const user = await requireAuth();
+  if(!user) return;
+
+  const requestNumber = "HC" + Date.now().toString(36).toUpperCase().slice(-6);
+
+  try{
+    await db.collection("homeCallRequests").add({
+      barberId, barberName: barber.name || "", barberEmail: barber.email || "",
+      uid: user.uid, userEmail: user.email || "",
+      requestNumber, name, phone, address, date, time,
+      window: win, price, notes,
+      status: "Pending",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    closeModal("homeCallModal");
+    Swal.fire({
+      icon: "success",
+      title: "Request Sent",
+      html: "Your home call request has been sent to <strong>" + esc(barber.name||"your barber") + "</strong>. You'll get a confirmation email once they accept.",
+      background: "#111", color: "#fff", confirmButtonColor: "#b30000",
+    });
+  }catch(e){
+    Swal.fire({icon:"error", title:"Request failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+}
+function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2) + CURRENCY_SUFFIX; }
 
 /* Build flat service picker from live services list */
 function buildServicePicker(){
