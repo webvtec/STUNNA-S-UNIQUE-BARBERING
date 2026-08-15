@@ -1466,8 +1466,7 @@ function renderBarbers(){
       <h3>${esc(b.name || "Barber")}</h3>
       <p class="specialty">${esc(b.specialty || "")}</p>
       ${vacHtml}
-      <button class="btn-book" onclick="openBarberBooking('${b.id}')">BOOK NOW</button>
-      ${barberHomeCallWindows(b).length ? `<button class="btn-book" style="margin-top:8px;background:transparent;border:1px solid var(--red-bright);color:var(--red-bright);" onclick="openHomeCallRequest('${b.id}')">🏠 REQUEST HOME CALL</button>` : ""}
+      <button class="btn-book" onclick="handleBookNowClick('${b.id}')">BOOK NOW</button>
     </div>`;
   }).join("");
   grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
@@ -1612,6 +1611,31 @@ function barberHomeCallWindows(b){
   if(hc.before) out.push("before");
   if(hc.after) out.push("after");
   return out;
+}
+
+// Pressing "BOOK NOW": if the barber accepts home calls, ask In Shop vs House Call first.
+function handleBookNowClick(barberId){
+  const barber = barbers.find(b => b.id === barberId);
+  if(!barber) return;
+  const hcWindows = barberHomeCallWindows(barber);
+  if(!hcWindows.length){
+    openBarberBooking(barberId);
+    return;
+  }
+  Swal.fire({
+    title: "How would you like to book?",
+    html: `<p style="color:#bbb;font-size:14px;margin-top:-6px;">${esc(barber.name||"This barber")} offers both in-shop appointments and home calls.</p>`,
+    background: "#111", color: "#fff",
+    showDenyButton: true,
+    confirmButtonText: "🏢 IN SHOP",
+    denyButtonText: "🏠 HOUSE CALL",
+    confirmButtonColor: "#b30000",
+    denyButtonColor: "#333",
+    reverseButtons: true,
+  }).then(result => {
+    if(result.isConfirmed) openBarberBooking(barberId);
+    else if(result.isDenied) openHomeCallRequest(barberId);
+  });
 }
 
 // 09:00–18:59 = during ($200), before 09:00 = before ($200), 19:00+ = after ($150)

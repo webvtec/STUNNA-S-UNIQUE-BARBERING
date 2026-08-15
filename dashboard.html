@@ -740,7 +740,7 @@ function buildNav(){
     items.splice(7, 0, { id:"services", label:"Price List" });
     items.push({ id:"inquiries", label:"Inquiries" });
   }
-  if(role === "barber") items.push({ id:"profile", label:"My Profile" });
+  items.push({ id:"profile", label:"My Profile" }); // admin AND barbers can edit their own bookable profile + home call settings
 
   document.getElementById("dashNav").innerHTML = items.map(i =>
     `<button data-sec="${i.id}" class="${i.id===currentSection?'active':''}" onclick="showSection('${i.id}')">${i.label}</button>`
