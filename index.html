@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stunna's Unique Barbering — Premium Barbershop in Welland, Ontario</title>
-<meta name="description" content="Stunna's Unique Barbering offers premium fades, beard grooming, luxury hot towel shaves, and modern styling in Welland, Ontario. Book your appointment online.">
-<meta property="og:title" content="Stunna's Unique Barbering">
-<meta property="og:description" content="Exclusive Cuts From Welland's Best Barbers. Book online now.">
+<title>Stunna's Unique Barbering | Best Barbershop in Welland, Ontario</title>
+<meta name="description" content="Looking for the best barbershop in Welland? Stunna's Unique Barbering offers premium fades, beard grooming, and hot towel shaves from Welland's top barbers. Book online in seconds.">
+<meta property="og:title" content="Stunna's Unique Barbering | Best Barbershop in Welland, Ontario">
+<meta property="og:description" content="Welland's top barbershop for fades, beard trims, and hot towel shaves. Book online now.">
 <meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
 <meta property="og:type" content="website">
 <!-- TODO: confirm this is the live domain, then update this tag + robots.txt + sitemap.xml to match -->
@@ -15,8 +15,8 @@
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Stunna's Unique Barbering — Premium Barbershop in Welland, Ontario">
-<meta name="twitter:description" content="Exclusive cuts from Welland's best barbers. Book online now.">
+<meta name="twitter:title" content="Stunna's Unique Barbering | Best Barbershop in Welland, Ontario">
+<meta name="twitter:description" content="Welland's top barbershop for fades, beard trims, and hot towel shaves. Book online now.">
 <meta name="twitter:image" content="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
 
 <meta name="robots" content="index, follow">
@@ -33,6 +33,8 @@
   "@context": "https://schema.org",
   "@type": "HairSalon",
   "name": "Stunna's Unique Barbering",
+  "alternateName": "Stunna's Unique",
+  "description": "Stunna's Unique Barbering is a top-rated barbershop in Welland, Ontario offering fades, beard trims, hot towel shaves, and kids' haircuts.",
   "image": "https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03",
   "url": "https://www.stunnasuniquebarbering.com/",
   "telephone": "+1-647-707-7600",
@@ -46,8 +48,48 @@
     "postalCode": "L3B 3Y2",
     "addressCountry": "CA"
   },
+  "areaServed": ["Welland", "Niagara Region", "Niagara Falls", "St. Catharines", "Port Colborne"],
+  "sameAs": [
+    "https://www.instagram.com/stunnasunique",
+    "https://www.facebook.com/share/18z67suiPX/"
+  ],
   "openingHoursSpecification": [
     { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], "opens": "09:00", "closes": "19:00" }
+  ]
+}
+</script>
+
+<!-- FAQ structured data (must always match the visible FAQ text on the page) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Do you accept walk-ins?",
+      "acceptedAnswer": { "@type": "Answer", "text": "We're a booking-first shop to keep your wait time at zero. That said, if a chair opens up, walk-ins are welcome — just know that booked clients always get priority." }
+    },
+    {
+      "@type": "Question",
+      "name": "What payment methods do you accept?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Cash, debit, and Interac e-Transfer. No deposit is required when booking — payment is collected in-shop after your service." }
+    },
+    {
+      "@type": "Question",
+      "name": "What's your cancellation policy?",
+      "acceptedAnswer": { "@type": "Answer", "text": "You can cancel any booking up to 2 hours before your appointment time, directly from \"My Bookings\" in your account. After that window, the booking is locked." }
+    },
+    {
+      "@type": "Question",
+      "name": "What if I'm running late?",
+      "acceptedAnswer": { "@type": "Answer", "text": "We hold your slot for 10 minutes. After that, it may be released to the next person. If you know you'll be late, give us a call so we can work something out." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you cut kids' hair?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. We have dedicated pricing for kids under 11 and youth ages 12–16. Our barbers are experienced with younger clients and keep the experience relaxed and fun." }
+    }
   ]
 }
 </script>
@@ -147,7 +189,8 @@ nav a:hover,nav button.link:hover{color:var(--red-bright);}
 .hero .hero-bg.on{opacity:1;}
 .hero::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.72);}
 .hero > div{position:relative;z-index:2;}
-.hero h2{font-size:clamp(36px, 4.5vw, 52px);font-family:Cinzel;letter-spacing:2px;}
+.hero h1{font-size:clamp(36px, 4.5vw, 52px);font-family:Cinzel;letter-spacing:2px;text-transform:uppercase;}
+.hero-sub{color:var(--text-dim);font-size:16px;margin-top:14px;max-width:560px;}
 .hero p{margin-top:20px;font-size:20px;color:var(--text-accent);opacity:.9;}
 
 /* ============ HERO BUTTONS — solid red & white ============ */
@@ -597,7 +640,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   }
   .about,.reviews-wrap{grid-template-columns:1fr;gap:40px;}
   .gallery{grid-template-columns:1fr;}
-  .hero h2{font-size:clamp(28px, 6vw, 38px);}
+  .hero h1{font-size:clamp(28px, 6vw, 38px);}
   .hero p{font-size:16px;}
   .hero-buttons{flex-direction:row;gap:10px;margin-top:28px;}
   .hero-cta,.find-us-btn{padding:12px 18px;font-size:11px;letter-spacing:1px;}
@@ -655,7 +698,8 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 <!-- HERO -->
 <header class="hero" id="home">
   <div>
-    <h2>EXCLUSIVE CUTS FROM WELLAND'S BEST BARBERS.</h2>
+    <h1>Stunna's Unique Barbering — Welland's Best Barbershop</h1>
+    <p class="hero-sub">Exclusive cuts from Welland's top barbers. Book your appointment online.</p>
     <div class="hero-buttons">
       <a class="hero-cta" href="#barbers-sec">Book Appointment</a>
       <a class="find-us-btn" href="https://www.google.com/maps/search/?api=1&query=626+E+Main+St+Welland+ON+L3B+3Y2" target="_blank" rel="noopener">
@@ -723,6 +767,19 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 </section>
 
 <!-- Gallery moved to gallery.html -->
+
+<!-- GOOGLE REVIEWS -->
+<section id="google-reviews-sec" style="background:rgba(10,10,10,.72);">
+  <h2 class="title reveal">What Clients Say</h2>
+  <p class="subtitle reveal">Live from our Google Business Profile</p>
+  <div id="googleReviewsSummary" style="text-align:center;margin-bottom:30px;"></div>
+  <div class="reviews-list" id="googleReviewsList" style="max-width:900px;margin:0 auto;max-height:none;">
+    <div style="color:#666;text-align:center;padding:20px;">Loading reviews…</div>
+  </div>
+  <p style="text-align:center;margin-top:24px;">
+    <a id="googleReviewLink" href="#" target="_blank" rel="noopener" class="btn" style="display:inline-block;text-decoration:none;">Leave us a review on Google</a>
+  </p>
+</section>
 
 <!-- Reviews section removed -->
 <div id="rvStars" style="display:none;"><span data-v="1"></span></div>
@@ -1500,7 +1557,7 @@ function renderGallery(){
     grid.innerHTML = '<div class="gallery-empty">No photos yet.</div>';
     return;
   }
-  grid.innerHTML = shown.map(g => `<img src="${g.url}" alt="Gallery photo" loading="lazy" onclick="openLightbox('${g.url}')">`).join("");
+  grid.innerHTML = shown.map(g => `<img src="${g.url}" alt="Haircut example from Stunna's Unique Barbering, Welland" loading="lazy" onclick="openLightbox('${g.url}')">`).join("");
 }
 function setGalleryCat(c){ galleryCategory = c; renderGallery(); }
 
@@ -1558,6 +1615,64 @@ function renderReviews(){
       </div>
     </div>
   `).join("");
+}
+
+/* =========================================================
+   GOOGLE REVIEWS (live from Google Business Profile)
+========================================================= */
+function initGoogleReviews(){
+  const listEl = document.getElementById("googleReviewsList");
+  const linkEl = document.getElementById("googleReviewLink");
+  if(linkEl) linkEl.href = "https://search.google.com/local/writereview?placeid=" + GOOGLE_PLACE_ID;
+
+  if(!window.google || !google.maps || !google.maps.places){
+    if(listEl) listEl.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Reviews are temporarily unavailable.</div>';
+    return;
+  }
+
+  const service = new google.maps.places.PlacesService(document.createElement("div"));
+  service.getDetails(
+    { placeId: GOOGLE_PLACE_ID, fields: ["name","rating","user_ratings_total","reviews"] },
+    (place, status) => {
+      if(status !== google.maps.places.PlacesServiceStatus.OK || !place){
+        if(listEl) listEl.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Reviews are temporarily unavailable.</div>';
+        return;
+      }
+      const summaryEl = document.getElementById("googleReviewsSummary");
+      if(summaryEl){
+        const rounded = Math.round(place.rating || 0);
+        summaryEl.innerHTML = `
+          <div style="font-family:Cinzel;font-size:42px;color:var(--red-bright);">${(place.rating||0).toFixed(1)}</div>
+          <div class="stars" style="font-size:20px;">${"★".repeat(rounded)}${"☆".repeat(5-rounded)}</div>
+          <div style="color:#888;font-size:13px;margin-top:6px;">${place.user_ratings_total||0} Google reviews</div>
+        `;
+      }
+      const allReviews = place.reviews || [];
+      // Only show reviews at or above this star rating. Google still only ever returns
+      // up to 5 reviews total — filtering can only narrow that down, not add more.
+      const MIN_RATING_TO_SHOW = 4;
+      const reviewsData = allReviews.filter(r => (r.rating||0) >= MIN_RATING_TO_SHOW);
+      if(!listEl) return;
+      if(!reviewsData.length){
+        listEl.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">No reviews yet.</div>';
+        return;
+      }
+      // Google's API returns at most 5 reviews, chosen by Google (usually "most relevant") — this can't be changed on our end.
+      listEl.innerHTML = reviewsData.map(r => `
+        <div class="review">
+          <div class="top">
+            <div class="name">${esc(r.author_name||"Google User")}</div>
+            <div class="stars">${"★".repeat(r.rating||0)}${"☆".repeat(5-(r.rating||0))}</div>
+          </div>
+          <div class="comment">${esc(r.text||"")}</div>
+          <div class="meta">
+            <span>${esc(r.relative_time_description||"")}</span>
+            <span>via Google</span>
+          </div>
+        </div>
+      `).join("");
+    }
+  );
 }
 
 /* =========================================================
@@ -2385,5 +2500,22 @@ document.querySelectorAll("#navlist a, #navlist button").forEach(el => {
   el.addEventListener("click", () => document.getElementById("navlist").classList.remove("open"));
 });
 </script>
+
+<!--
+  ===== GOOGLE REVIEWS SETUP (2 things to fill in below) =====
+  1. GOOGLE_PLACE_ID — the Place ID for Stunna's Google Business Profile.
+     Find it here: https://developers.google.com/maps/documentation/places/web-service/place-id
+     (search your business name/address, copy the Place ID it gives you).
+  2. YOUR_GOOGLE_MAPS_API_KEY — from Google Cloud Console, with "Maps JavaScript API"
+     and "Places API" enabled. Restrict the key to your site's domain(s) under
+     "API restrictions" for security. Billing must be enabled on the project, but
+     Google gives a $200/month free credit that comfortably covers a site this size.
+  This tag is placed at the end of the page (after the script that defines
+  initGoogleReviews) on purpose — it must load after that function exists.
+-->
+<script>
+  const GOOGLE_PLACE_ID = "YOUR_PLACE_ID_HERE";
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initGoogleReviews" async></script>
 </body>
 </html>
