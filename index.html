@@ -442,6 +442,8 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 .time-empty{color:#666;padding:10px 0;font-size:14px;}
 .field-error{outline:2px solid var(--red-bright) !important;outline-offset:3px;border-radius:10px;animation:fieldPulse .6s ease-in-out 2;}
 @keyframes fieldPulse{0%,100%{box-shadow:0 0 0 rgba(230,0,0,0);}50%{box-shadow:0 0 18px rgba(230,0,0,.65);}}
+@keyframes toastIn{0%{opacity:0;transform:translateY(12px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes toastOut{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(12px);}}
 .services-picker{
   background:var(--dark);border-radius:15px;padding:20px;border:1px solid var(--border);
 }
@@ -1375,7 +1377,7 @@ async function emailLogin(){
   if(!email) return flagField(document.getElementById("loginEmail"), "");
   if(!pass) return flagField(document.getElementById("loginPass"), "");
   try{ await auth.signInWithEmailAndPassword(email, pass); }
-  catch(e){ Swal.fire({icon:"error",title:"Sign-in failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
+  catch(e){ showToast({icon:"error",title:"Sign-in failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
 async function emailSignup(){
   const name = document.getElementById("signupName").value.trim();
@@ -1385,26 +1387,26 @@ async function emailSignup(){
   if(!name) return flagField(document.getElementById("signupName"), "");
   if(!email) return flagField(document.getElementById("signupEmail"), "");
   if(!pass) return flagField(document.getElementById("signupPass"), "");
-  if(pass !== pass2) return Swal.fire({icon:"warning",title:"Passwords don't match",text:"Please re-enter.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  if(pass.length < 6) return Swal.fire({icon:"warning",title:"Weak password",text:"At least 6 characters.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  if(pass !== pass2) return showToast({icon:"warning",title:"Passwords don't match",text:"Please re-enter.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  if(pass.length < 6) return showToast({icon:"warning",title:"Weak password",text:"At least 6 characters.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
   try{
     const res = await auth.createUserWithEmailAndPassword(email, pass);
     await res.user.updateProfile({ displayName: name });
     await res.user.sendEmailVerification();
-    Swal.fire({icon:"success",title:"Account created!",text:"Check your email to verify.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }catch(e){ Swal.fire({icon:"error",title:"Signup failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
+    showToast({icon:"success",title:"Account created!",text:"Check your email to verify.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  }catch(e){ showToast({icon:"error",title:"Signup failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
 async function googleSignIn(){
   try{ await auth.signInWithPopup(provider); }
-  catch(e){ Swal.fire({icon:"error",title:"Sign-in failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
+  catch(e){ showToast({icon:"error",title:"Sign-in failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
 async function forgotPassword(){
   const email = document.getElementById("loginEmail").value.trim();
-  if(!email) return Swal.fire({icon:"info",title:"Enter your email first",text:"Type your email above, then click forgot password.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  if(!email) return showToast({icon:"info",title:"Enter your email first",text:"Type your email above, then click forgot password.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
   try{
     await auth.sendPasswordResetEmail(email);
-    Swal.fire({icon:"success",title:"Email sent",text:"Check your inbox for a reset link.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
-  }catch(e){ Swal.fire({icon:"error",title:"Error",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
+    showToast({icon:"success",title:"Email sent",text:"Check your inbox for a reset link.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  }catch(e){ showToast({icon:"error",title:"Error",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
 function toggleProfileMenu(){ document.getElementById("profileDropdown").classList.toggle("open"); }
 document.addEventListener("click", e => {
@@ -1420,7 +1422,7 @@ async function requireAuth(){
     return cred.user;
   }catch(err){
     console.error("Guest sign-in failed:", err);
-    Swal.fire({icon:"error", title:"Something went wrong", text:"We couldn't process your booking as a guest. Please try again, or sign in.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    showToast({icon:"error", title:"Something went wrong", text:"We couldn't process your booking as a guest. Please try again, or sign in.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
     return null;
   }
 }
@@ -1449,7 +1451,7 @@ document.getElementById("profPhotoFile").addEventListener("change", async e => {
     document.getElementById("profAvatar").src = url;
     document.getElementById("navAvatar").src = url;
     document.getElementById("navAvatar").style.display = "block";
-  }catch(err){ Swal.fire({icon:"error",title:"Upload failed",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
+  }catch(err){ showToast({icon:"error",title:"Upload failed",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 });
 /* saveProfile moved below with barber self-rename support */
 
@@ -1741,7 +1743,7 @@ function openHomeCallRequest(barberId){
   if(!barber) return;
   const windows = barberHomeCallWindows(barber);
   if(!windows.length){
-    return Swal.fire({icon:"info", title:"Not available", text: (barber.name||"This barber") + " isn't accepting home calls right now.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    return showToast({icon:"info", title:"Not available", text: (barber.name||"This barber") + " isn't accepting home calls right now.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
   document.getElementById("hcBarberId").value = barberId;
   document.getElementById("hcBarberName").textContent = barber.name || "Barber";
@@ -1790,7 +1792,7 @@ async function submitHomeCallRequest(){
   const notes = document.getElementById("hcNotes").value.trim();
 
   if(!barber){
-    return Swal.fire({icon:"error", title:"No barber selected", text:"Please close this window and select a barber first.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    return showToast({icon:"error", title:"No barber selected", text:"Please close this window and select a barber first.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
   if(!name){
     return flagField(document.getElementById("hcName"), "Please enter your name.");
@@ -1810,7 +1812,7 @@ async function submitHomeCallRequest(){
   const win = classifyHomeCallTime(time);
   const allowed = barberHomeCallWindows(barber);
   if(!allowed.includes(win)){
-    return Swal.fire({icon:"error", title:"Time not available", text: (barber.name||"This barber") + " doesn't offer home calls at that time. Please pick a different time.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    return showToast({icon:"error", title:"Time not available", text: (barber.name||"This barber") + " doesn't offer home calls at that time. Please pick a different time.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
   const price = HOME_CALL_PRICES[win];
 
@@ -1835,14 +1837,14 @@ async function submitHomeCallRequest(){
     });
 
     closeModal("homeCallModal");
-    Swal.fire({
+    showToast({
       icon: "success",
       title: "Request Sent",
       html: "Your home call request has been sent to <strong>" + esc(barber.name||"your barber") + "</strong>. You'll get a confirmation email once they accept.",
       background: "#111", color: "#fff", confirmButtonColor: "#b30000",
     });
   }catch(e){
-    Swal.fire({icon:"error", title:"Request failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    showToast({icon:"error", title:"Request failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }finally{
     homeCallSubmitting = false;
     if(hcBtn){ hcBtn.disabled = false; hcBtn.textContent = origHcBtnText || "Send Request"; }
@@ -2169,6 +2171,44 @@ function parseTime(str){
 ========================================================= */
 /* Scrolls the offending field into view, highlights it briefly, and focuses it.
    No popup — the highlight + scroll is enough to show what's missing. */
+/* Lightweight, non-blocking notification — replaces full-screen Swal popups
+   for anything that's just informing the person of something (success/error/etc).
+   No backdrop, no "OK" click required, auto-dismisses on its own. */
+function showToast(opts){
+  opts = opts || {};
+  const icon = opts.icon || "info";
+  const title = opts.title || "";
+  const bodyHtml = opts.html || "";
+  const bodyText = opts.text || "";
+  let container = document.getElementById("toastContainer");
+  if(!container){
+    container = document.createElement("div");
+    container.id = "toastContainer";
+    container.style.cssText = "position:fixed;bottom:24px;right:24px;z-index:100000;display:flex;flex-direction:column;gap:10px;max-width:340px;width:calc(100% - 48px);";
+    document.body.appendChild(container);
+  }
+  const colors = { error:"#e60000", success:"#2ecc71", warning:"#f8bb86", info:"#3fc3ee", question:"#3fc3ee" };
+  const borderColor = colors[icon] || colors.info;
+  const toast = document.createElement("div");
+  toast.style.cssText = `background:#111;border-left:4px solid ${borderColor};border-radius:8px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#fff;font-family:Poppins,sans-serif;animation:toastIn .3s ease;`;
+  const bodyInner = bodyHtml || (bodyText ? esc(bodyText) : "");
+  toast.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+      <div style="min-width:0;">
+        ${title ? `<div style="font-weight:600;font-size:14px;${bodyInner ? "margin-bottom:4px;" : ""}">${esc(title)}</div>` : ""}
+        ${bodyInner ? `<div style="font-size:13px;color:#ccc;line-height:1.5;">${bodyInner}</div>` : ""}
+      </div>
+      <button aria-label="Dismiss" style="background:none;border:none;color:#666;font-size:18px;cursor:pointer;line-height:1;padding:0;flex-shrink:0;">&times;</button>
+    </div>`;
+  const dismiss = () => {
+    toast.style.animation = "toastOut .25s ease forwards";
+    setTimeout(() => toast.remove(), 250);
+  };
+  toast.querySelector("button").addEventListener("click", dismiss);
+  container.appendChild(toast);
+  setTimeout(dismiss, icon === "error" ? 5000 : 3500);
+}
+
 function flagField(el, message, focusIt){
   if(el){
     el.scrollIntoView({behavior:"smooth", block:"center"});
@@ -2211,7 +2251,7 @@ async function submitBooking(){
     return flagField(document.getElementById("bkEmail"), "Please enter a valid email address.");
   }
   if(!barberId){
-    return Swal.fire({icon:"error", title:"No barber selected", text:"Please close this window and select a barber first.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    return showToast({icon:"error", title:"No barber selected", text:"Please close this window and select a barber first.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
   if(!time){
     return flagField(document.getElementById("bkTimes"), "Please pick a time slot for your appointment.", false);
@@ -2227,7 +2267,7 @@ async function submitBooking(){
   const endMin = startMin + getBookingDuration();
   const blocked = getBlockedRanges(barberId, date).some(([a,b]) => !(endMin<=a || startMin>=b));
   if(blocked){
-    return Swal.fire({icon:"error", title:"Slot just taken", text:"That time was just booked. Please pick another.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    return showToast({icon:"error", title:"Slot just taken", text:"That time was just booked. Please pick another.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
 
   const total = picked.reduce((s,i) => s + i.price, 0);
@@ -2276,7 +2316,7 @@ async function submitBooking(){
     renderCal();
     rebuildTimeSlots();
   }catch(e){
-    Swal.fire({icon:"error", title:"Booking failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    showToast({icon:"error", title:"Booking failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }finally{
     bookingSubmitting = false;
     if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = origBtnText || "Confirm Booking"; }
@@ -2411,9 +2451,9 @@ async function submitInquiry(){
     document.getElementById("inqPhone").value = "";
     document.getElementById("inqExperience").value = "";
     document.getElementById("inqPortfolio").value = "";
-    Swal.fire({icon:"success", title:"Inquiry Submitted!", text:"Thanks for your interest! Our team will review your inquiry and get back to you.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    showToast({icon:"success", title:"Inquiry Submitted!", text:"Thanks for your interest! Our team will review your inquiry and get back to you.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }catch(e){
-    Swal.fire({icon:"error", title:"Submission failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    showToast({icon:"error", title:"Submission failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
   }
 }
 
@@ -2427,7 +2467,7 @@ async function saveProfile(){
   if(!currentUser) return;
   const name = document.getElementById("profName").value.trim();
   const phone = document.getElementById("profPhone").value.trim();
-  if(!name) return Swal.fire({icon:"warning",title:"Name required",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  if(!name) return showToast({icon:"warning",title:"Name required",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
   try{
     await db.collection("users").doc(currentUser.uid).update({ displayName: name, phone });
     /* If this user is a barber, also update the barber doc so clients see the new name */
@@ -2437,8 +2477,8 @@ async function saveProfile(){
     userProfile.displayName = name; userProfile.phone = phone;
     document.getElementById("navDisplayName").textContent = name.split(" ")[0];
     closeModal("profileModal");
-    Swal.fire({icon:"success",title:"Profile saved!",timer:1500,showConfirmButton:false,background:"#111",color:"#fff"});
-  }catch(err){ Swal.fire({icon:"error",title:"Error",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
+    showToast({icon:"success",title:"Profile saved!",timer:1500,showConfirmButton:false,background:"#111",color:"#fff"});
+  }catch(err){ showToast({icon:"error",title:"Error",text:err.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
 
 document.querySelectorAll("#navlist a, #navlist button").forEach(el => {
