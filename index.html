@@ -397,6 +397,8 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 .time-slot.selected{background:var(--red);border-color:var(--red);}
 .time-slot:disabled{opacity:.25;cursor:not-allowed;}
 .time-empty{color:#666;padding:10px 0;font-size:14px;}
+.field-error{outline:2px solid var(--red-bright) !important;outline-offset:3px;border-radius:10px;animation:fieldPulse .6s ease-in-out 2;}
+@keyframes fieldPulse{0%,100%{box-shadow:0 0 0 rgba(230,0,0,0);}50%{box-shadow:0 0 18px rgba(230,0,0,.65);}}
 .services-picker{
   background:var(--dark);border-radius:15px;padding:20px;border:1px solid var(--border);
 }
@@ -865,7 +867,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
         <input type="file" id="profPhotoFile" accept="image/*" style="display:none;">
       </div>
       <div class="auth-field"><label>Display Name</label><input type="text" id="profName" placeholder="Your name"></div>
-      <div class="auth-field"><label>Phone</label><input type="tel" id="profPhone" placeholder="(647) 000-0000" maxlength="14"></div>
+      <div class="auth-field"><label>Phone</label><input type="tel" id="profPhone" placeholder="(647) 000-0000" maxlength="17"></div>
       <div class="auth-field"><label>Email</label><input type="email" id="profEmail" disabled style="opacity:.6;"></div>
       <button class="btn" style="width:100%;margin-top:16px;" onclick="saveProfile()">Save Profile</button>
     </div>
@@ -890,7 +892,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       </div>
       <div class="field" style="margin-bottom:18px;">
         <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
-        <input type="tel" id="bkPhone" placeholder="(647) 000-0000" maxlength="14" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+        <input type="tel" id="bkPhone" placeholder="(647) 000-0000" maxlength="17" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
 
       <div class="field" style="margin-bottom:18px;">
@@ -929,7 +931,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       </div>
 
       <input type="hidden" id="bkBarber">
-      <button class="btn" style="width:100%;margin-top:8px;" onclick="submitBooking()">Confirm Booking</button>
+      <button class="btn" id="bkSubmitBtn" style="width:100%;margin-top:8px;" onclick="submitBooking()">Confirm Booking</button>
       <p style="text-align:center;color:var(--text-muted);margin-top:14px;font-size:12px;">You'll be asked to sign in with Google to confirm.</p>
     </div>
   </div>
@@ -954,7 +956,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       </div>
       <div class="field" style="margin-bottom:18px;">
         <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
-        <input type="tel" id="hcPhone" placeholder="(647) 000-0000" maxlength="14" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+        <input type="tel" id="hcPhone" placeholder="(647) 000-0000" maxlength="17" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div class="field" style="margin-bottom:18px;">
         <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Address</label>
@@ -977,7 +979,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 
       <div style="text-align:center;margin-bottom:16px;font-size:14px;" id="hcQuote"></div>
 
-      <button class="btn" style="width:100%;" onclick="submitHomeCallRequest()">Send Request</button>
+      <button class="btn" id="hcSubmitBtn" style="width:100%;" onclick="submitHomeCallRequest()">Send Request</button>
       <p style="text-align:center;color:var(--text-muted);margin-top:14px;font-size:12px;">You'll be asked to sign in with Google to confirm. The barber must accept before it's booked.</p>
     </div>
   </div>
@@ -1039,7 +1041,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:24px;">Interested in joining our team? Fill out the form below and our admin will review your inquiry.</p>
       <div class="auth-field"><label>Full Name</label><input type="text" id="inqName" placeholder="Your full name"></div>
       <div class="auth-field"><label>Email</label><input type="email" id="inqEmail" placeholder="you@email.com"></div>
-      <div class="auth-field"><label>Phone Number</label><input type="tel" id="inqPhone" placeholder="(647) 000-0000" maxlength="14"></div>
+      <div class="auth-field"><label>Phone Number</label><input type="tel" id="inqPhone" placeholder="(647) 000-0000" maxlength="17"></div>
       <div class="auth-field"><label>Experience</label><textarea id="inqExperience" placeholder="Tell us about your barbering experience, specialties, and why you'd like to join Stunna's…" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;resize:vertical;min-height:120px;"></textarea></div>
       <div class="auth-field"><label>Portfolio / Social Media Link <span style="color:#666;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="url" id="inqPortfolio" placeholder="https://instagram.com/yourhandle"></div>
       <button class="btn" style="width:100%;margin-top:16px;" onclick="submitInquiry()">Submit Inquiry</button>
@@ -1394,6 +1396,7 @@ db.collection("unavailableDays").onSnapshot(snap => {
 let slots = [];
 db.collection("slots").onSnapshot(snap => {
   slots = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  if(typeof bookingSubmitting !== "undefined" && bookingSubmitting) return; // don't disturb the UI mid-submit
   renderCal();
   rebuildTimeSlots();
 });
@@ -1687,18 +1690,36 @@ function updateHomeCallQuote(){
   quoteEl.innerHTML = '<strong>' + esc(HOME_CALL_LABELS[win]) + '</strong> — <span style="color:var(--red-bright);font-family:Cinzel;">' + fmtMoney(HOME_CALL_PRICES[win]) + '</span>';
 }
 
+let homeCallSubmitting = false;
 async function submitHomeCallRequest(){
+  if(homeCallSubmitting) return;
   const barberId = document.getElementById("hcBarberId").value;
   const barber = barbers.find(b => b.id === barberId);
   const name = document.getElementById("hcName").value.trim();
   const phone = document.getElementById("hcPhone").value.trim();
+  const phoneDigits = phone.replace(/\D/g,"");
   const address = document.getElementById("hcAddress").value.trim();
   const date = document.getElementById("hcDate").value;
   const time = document.getElementById("hcTime").value;
   const notes = document.getElementById("hcNotes").value.trim();
 
-  if(!barber || !name || !phone || !address || !date || !time){
-    return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in every field.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  if(!barber){
+    return Swal.fire({icon:"error", title:"No barber selected", text:"Please close this window and select a barber first.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+  if(!name){
+    return flagField(document.getElementById("hcName"), "Please enter your name.");
+  }
+  if(!phone || phoneDigits.length < 10 || phoneDigits.length > 11){
+    return flagField(document.getElementById("hcPhone"), "Please enter a valid phone number (10 or 11 digits).");
+  }
+  if(!address){
+    return flagField(document.getElementById("hcAddress"), "Please enter the address for the home call.");
+  }
+  if(!date){
+    return flagField(document.getElementById("hcDate"), "Please pick a date.");
+  }
+  if(!time){
+    return flagField(document.getElementById("hcTime"), "Please pick a time.");
   }
   const win = classifyHomeCallTime(time);
   const allowed = barberHomeCallWindows(barber);
@@ -1711,6 +1732,11 @@ async function submitHomeCallRequest(){
   if(!user) return;
 
   const requestNumber = "HC" + Date.now().toString(36).toUpperCase().slice(-6);
+
+  homeCallSubmitting = true;
+  const hcBtn = document.getElementById("hcSubmitBtn");
+  const origHcBtnText = hcBtn ? hcBtn.textContent : "";
+  if(hcBtn){ hcBtn.disabled = true; hcBtn.textContent = "Sending…"; }
 
   try{
     await db.collection("homeCallRequests").add({
@@ -1731,6 +1757,9 @@ async function submitHomeCallRequest(){
     });
   }catch(e){
     Swal.fire({icon:"error", title:"Request failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }finally{
+    homeCallSubmitting = false;
+    if(hcBtn){ hcBtn.disabled = false; hcBtn.textContent = origHcBtnText || "Send Request"; }
   }
 }
 function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2) + CURRENCY_SUFFIX; }
@@ -1812,15 +1841,30 @@ function updateSummary(){
   if(durEl) durEl.value = getBookingDuration() + " min";
 }
 
-/* Phone auto-format */
-document.getElementById("bkPhone").addEventListener("input", e => {
-  const v = e.target.value.replace(/\D/g,"").slice(0,10);
-  let out = "";
-  if(v.length > 0) out = "(" + v.slice(0,3);
-  if(v.length >= 4) out += ") " + v.slice(3,6);
-  if(v.length >= 7) out += "-" + v.slice(6,10);
-  e.target.value = out;
-});
+/* Phone auto-format — supports both 10-digit and 11-digit (leading country/area code) numbers */
+function formatPhoneValue(raw){
+  const v = raw.replace(/\D/g,"").slice(0,11);
+  if(v.length <= 10){
+    let out = "";
+    if(v.length > 0) out = "(" + v.slice(0,3);
+    if(v.length >= 4) out += ") " + v.slice(3,6);
+    if(v.length >= 7) out += "-" + v.slice(6,10);
+    return out;
+  }
+  // 11 digits: leading digit (e.g. country code) + standard 10-digit format
+  let out = v.slice(0,1) + " (" + v.slice(1,4);
+  if(v.length >= 5) out += ") " + v.slice(4,7);
+  if(v.length >= 8) out += "-" + v.slice(7,11);
+  return out;
+}
+function attachPhoneFormatter(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("input", e => { e.target.value = formatPhoneValue(e.target.value); });
+}
+attachPhoneFormatter("bkPhone");
+attachPhoneFormatter("hcPhone");
+attachPhoneFormatter("profPhone");
 
 /* =========================================================
    BOOKING CALENDAR
@@ -1903,6 +1947,7 @@ function renderCal(){
 }
 function pickDate(dstr){
   document.getElementById("bkDate").value = dstr;
+  document.getElementById("bkTime").value = "";
   renderCal();
   rebuildTimeSlots();
 }
@@ -1915,6 +1960,9 @@ function rebuildTimeSlots(){
   const date = document.getElementById("bkDate")?.value;
   const container = document.getElementById("bkTimes");
   if(!container) return;
+  // Remember whatever the user already picked so a live Firestore update
+  // (e.g. someone else's booking coming in) doesn't silently wipe their selection.
+  const prevTime = document.getElementById("bkTime").value;
   if(!barberId || !date){
     container.innerHTML = '<div class="time-empty">Pick a date on the calendar to see available times.</div>';
     return;
@@ -1923,6 +1971,7 @@ function rebuildTimeSlots(){
   const taken = getBlockedRanges(barberId, date);
   const now = new Date();
   const isToday = date === now.toISOString().slice(0,10);
+  let stillAvailable = false;
   const html = timeSlots.map(s => {
     const dur = getBookingDuration();
     const startMin = s.h*60 + s.m;
@@ -1931,10 +1980,16 @@ function rebuildTimeSlots(){
     const past = isToday && startMin <= (now.getHours()*60 + now.getMinutes());
     if(blocked || past) return "";
     const label = fmtTime(s.h, s.m);
-    return `<button class="time-slot" onclick="pickTime('${label}',this)">${label}</button>`;
+    const isSelected = label === prevTime;
+    if(isSelected) stillAvailable = true;
+    return `<button class="time-slot${isSelected ? " selected" : ""}" onclick="pickTime('${label}',this)">${label}</button>`;
   }).join("");
   container.innerHTML = html || '<div class="time-empty">No slots available on this date.</div>';
-  document.getElementById("bkTime").value = "";
+  // Only clear the stored time if it's genuinely no longer offered.
+  // submitBooking() already catches a true double-booking race at confirm time.
+  if(prevTime && !stillAvailable){
+    document.getElementById("bkTime").value = "";
+  }
 }
 function getBookingDuration(){
   const picked = getSelectedMenuItems();
@@ -2013,19 +2068,51 @@ function parseTime(str){
 /* =========================================================
    SUBMIT BOOKING
 ========================================================= */
+/* Scrolls the offending field into view, highlights it briefly, focuses it,
+   and shows a message naming exactly what's missing. */
+function flagField(el, message, focusIt){
+  if(el){
+    el.scrollIntoView({behavior:"smooth", block:"center"});
+    el.classList.add("field-error");
+    setTimeout(() => el.classList.remove("field-error"), 2500);
+    if(focusIt !== false && typeof el.focus === "function"){
+      setTimeout(() => el.focus(), 350);
+    }
+  }
+  return Swal.fire({icon:"warning", title:"Missing info", text: message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+}
+
+let bookingSubmitting = false;
 async function submitBooking(){
+  if(bookingSubmitting) return; // ignore double-clicks / double taps
   const name = document.getElementById("bkName").value.trim();
   const phone = document.getElementById("bkPhone").value.trim();
+  const phoneDigits = phone.replace(/\D/g,"");
   const barberId = document.getElementById("bkBarber").value;
   const date = document.getElementById("bkDate").value;
   const time = document.getElementById("bkTime").value;
 
-  if(!name || !phone || !barberId || !date || !time){
-    return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in every field and pick a time.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  // Validate field-by-field, in the order they appear on screen, so the
+  // message and scroll always point at the actual thing that's missing.
+  if(!name){
+    return flagField(document.getElementById("bkName"), "Please enter your name.");
+  }
+  if(!phone || phoneDigits.length < 10 || phoneDigits.length > 11){
+    return flagField(document.getElementById("bkPhone"), "Please enter a valid phone number (10 or 11 digits).");
   }
   if(!selectedServices.size){
-    return Swal.fire({icon:"warning", title:"Choose a service", text:"Pick at least one service from the menu.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    return flagField(document.getElementById("menuPicker"), "Pick at least one service from the menu.", false);
   }
+  if(!barberId){
+    return Swal.fire({icon:"error", title:"No barber selected", text:"Please close this window and select a barber first.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }
+  if(!date){
+    return flagField(document.getElementById("bkCalendar"), "Please pick a date for your appointment.", false);
+  }
+  if(!time){
+    return flagField(document.getElementById("bkTimes"), "Please pick a time slot for your appointment.", false);
+  }
+
   const picked = getSelectedMenuItems();
 
   const user = await requireAuth();
@@ -2042,6 +2129,11 @@ async function submitBooking(){
   const total = picked.reduce((s,i) => s + i.price, 0);
   const serviceList = picked.map(i => i.name).join(", ");
   const bookingNumber = "SB" + Date.now().toString(36).toUpperCase().slice(-6);
+
+  bookingSubmitting = true;
+  const submitBtn = document.getElementById("bkSubmitBtn");
+  const origBtnText = submitBtn ? submitBtn.textContent : "";
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = "Booking…"; }
 
   try{
     const slotRef = db.collection("slots").doc(barberId + "_" + date + "_" + time.replace(/\s/g,""));
@@ -2080,6 +2172,9 @@ async function submitBooking(){
     rebuildTimeSlots();
   }catch(e){
     Swal.fire({icon:"error", title:"Booking failed", text:e.message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+  }finally{
+    bookingSubmitting = false;
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = origBtnText || "Confirm Booking"; }
   }
 }
 
@@ -2226,14 +2321,7 @@ function openInquiryModal(){
 }
 
 /* Phone auto-format for inquiry form */
-document.getElementById("inqPhone").addEventListener("input", e => {
-  const v = e.target.value.replace(/\D/g,"").slice(0,10);
-  let out = "";
-  if(v.length > 0) out = "(" + v.slice(0,3);
-  if(v.length >= 4) out += ") " + v.slice(3,6);
-  if(v.length >= 7) out += "-" + v.slice(6,10);
-  e.target.value = out;
-});
+attachPhoneFormatter("inqPhone");
 
 async function submitInquiry(){
   const name = document.getElementById("inqName").value.trim();
