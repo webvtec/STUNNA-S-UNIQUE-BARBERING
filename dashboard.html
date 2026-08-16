@@ -252,6 +252,15 @@ td{color:#ddd;}
 .b-approved{background:#0a4d0a;color:#7fff7f;}
 .b-declined{background:#4d0a0a;color:#ff8080;}
 
+/* ---------- TOGGLE SWITCH ---------- */
+.tswitch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.tswitch input{opacity:0;width:0;height:0;position:absolute;}
+.tslider{position:absolute;cursor:pointer;inset:0;background:#333;border-radius:26px;transition:.25s;}
+.tslider::before{content:"";position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;}
+.tswitch input:checked + .tslider{background:var(--red);}
+.tswitch input:checked + .tslider::before{transform:translateX(20px);}
+.tswitch input:focus-visible + .tslider{outline:2px solid var(--red-bright);outline-offset:2px;}
+
 @media(max-width:900px){
   header{padding:16px 20px;}
   main{padding:20px;}
@@ -381,6 +390,18 @@ td{color:#ddd;}
 
       <h3 style="margin-top:24px;">Current Vacations</h3>
       <div id="vacationList"></div>
+    </div>
+  </section>
+
+  <!-- MY SERVICES (barber-toggleable add-ons only — everything else is admin-controlled) -->
+  <section class="section" id="sec-myservices">
+    <div class="panel">
+      <h2>My Services</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">
+        These two add-on services are optional — turn one on if you offer it, off if you don't.
+        The name, price, and everything else on the menu is set by the shop admin only.
+      </p>
+      <div id="myServicesList"></div>
     </div>
   </section>
 
@@ -602,8 +623,24 @@ const DEFAULT_SERVICES = [
   { id:"svc_basic_kids",        name:"Basic Kids Haircut",        price:20,  duration:20,  note:"Under 11 Years" },
   { id:"svc_kids_fade",         name:"Kids Fade Haircut",         price:22,  duration:25,  note:"Under 11 Years" },
   { id:"svc_youth",             name:"Youth Haircut",             price:25,  duration:30,  note:"12 Years – 16 Years" },
-  { id:"svc_signature",         name:"Stunna's Signature Service",price:96,  duration:60,  note:"" }
+  { id:"svc_facial",            name:"Men's Facial",              price:37,  duration:40,  note:"" },
+  { id:"svc_signature",         name:"Stunna's Signature Service",price:96,  duration:60,  note:"" },
+  { id:"svc_perm",              name:"Hair Perm",                 price:147, duration:120, note:"" }
 ];
+
+/* These two services are the only ones a barber can toggle on/off for themselves.
+   Everything else (name, price, visibility) is set here in the Price List by the
+   admin only. Matched by known id first, falling back to name so this keeps
+   working even if the admin renames one slightly. */
+function isBarberToggleableService(svc){
+  if(!svc) return false;
+  if(svc.id === "svc_perm" || svc.id === "svc_facial") return true;
+  // Exact-name fallback only — must match the service name precisely
+  // (capitalization + apostrophe included), not just contain "facial" or "perm"
+  // as a substring, so unrelated services never get swept in by accident.
+  const n = (svc.name || "").trim();
+  return n === "Men's Facial" || n === "Hair Perm";
+}
 
 const SHOP = {
   name: "Stunna's Unique Barbering",
@@ -717,10 +754,13 @@ function buildNav(){
     { id:"earnings",     label:"My Earnings" },
     { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" }
   ];
+  if(myBarberId){
+    items.splice(items.findIndex(i => i.id === "clients"), 0, { id:"myservices", label:"My Services" });
+  }
   if(role === "admin"){
-    items.splice(4, 0, { id:"gallery", label:"Website Gallery" });
-    items.splice(6, 0, { id:"barbers", label:"Barbers" });
-    items.splice(7, 0, { id:"services", label:"Price List" });
+    items.splice(items.findIndex(i => i.id === "clients"), 0, { id:"gallery", label:"Website Gallery" });
+    items.push({ id:"barbers", label:"Barbers" });
+    items.push({ id:"services", label:"Price List" });
     items.push({ id:"inquiries", label:"Inquiries" });
   }
 
@@ -751,6 +791,7 @@ function showSection(id){
   if(id === "clients") renderClients();
   if(id === "barbers") renderBarbersList();
   if(id === "services") renderServicesList();
+  if(id === "myservices") renderMyServicesPanel();
   if(id === "inquiries") renderInquiries();
   if(id === "homecall"){ loadHomeCallAvailability(); renderHomeCallRequests(); }
 }
@@ -765,6 +806,7 @@ function attachListeners(){
     renderBarberChips();
     renderReservations();
     if(currentSection === "barbers") renderRevenue();
+    if(currentSection === "myservices") renderMyServicesPanel();
   });
   const bookingsQuery = role === "barber"
     ? db.collection("bookings").where("barberId","==",myBarberId)
@@ -788,12 +830,13 @@ function attachListeners(){
     gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderGallery();
   });
-  if(role === "admin"){
-    db.collection("services").orderBy("order","asc").onSnapshot(snap => {
-      services = snap.docs.map(d => ({id:d.id, ...d.data()}));
-      renderServicesList();
-    });
-  }
+  // Every signed-in staff member needs live service data — barbers use it (read-only)
+  // for the "My Services" toggle panel; admins use it for full Price List CRUD.
+  db.collection("services").orderBy("order","asc").onSnapshot(snap => {
+    services = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderServicesList();
+    if(currentSection === "myservices") renderMyServicesPanel();
+  });
   if(role === "admin"){
     db.collection("barberInquiries").orderBy("timestamp","desc").onSnapshot(snap => {
       inquiries = snap.docs.map(d => ({id:d.id, ...d.data()}));
@@ -925,6 +968,52 @@ function renderServicesList(){
       <button class="btn small ghost" onclick="toggleServiceActive('${s.id}')">${s.active!==false ? 'Hide' : 'Show'}</button>
       <button class="btn small danger" onclick="deleteService('${s.id}')">Remove</button>
     </div>`).join("");
+}
+
+/* =========================================================
+   MY SERVICES — barber-only toggle for Hair Perm & Men's Facial
+   (everything else stays admin-controlled via the Price List above)
+========================================================= */
+function renderMyServicesPanel(){
+  const wrap = document.getElementById("myServicesList");
+  if(!wrap || !myBarberId) return;
+  const me = barbers.find(b => b.id === myBarberId);
+  const toggles = (me && me.serviceToggles) || {};
+  const toggleable = services.filter(isBarberToggleableService);
+
+  if(!toggleable.length){
+    wrap.innerHTML = '<div style="color:#666;padding:20px;">Hair Perm and Men\'s Facial haven\'t been added to the shop menu yet — ask the admin to add them from the Price List.</div>';
+    return;
+  }
+
+  wrap.innerHTML = toggleable.map(s => {
+    const on = toggles[s.id] !== false; // default ON until explicitly turned off
+    return `
+      <div class="menu-readonly-row">
+        <div>
+          <div class="svc-name">${esc(s.name)}</div>
+          <div class="svc-note">
+            <span style="color:var(--red-bright);font-family:Cinzel;">${fmtMoney(s.price)}</span>
+            &nbsp;·&nbsp; ${s.duration} min${s.note ? " · " + esc(s.note) : ""}
+          </div>
+        </div>
+        <label class="tswitch">
+          <input type="checkbox" ${on?"checked":""} onchange="toggleMyService('${s.id}', this.checked)">
+          <span class="tslider"></span>
+        </label>
+      </div>`;
+  }).join("");
+}
+
+async function toggleMyService(serviceId, enabled){
+  if(!myBarberId) return;
+  try{
+    await db.collection("barbers").doc(myBarberId).update({ ["serviceToggles." + serviceId]: enabled });
+    toast(enabled ? "Turned on — clients booking with you can now pick it" : "Turned off — hidden for clients booking with you", "green");
+  }catch(e){
+    toast("Update failed: " + e.message, "red");
+    renderMyServicesPanel(); // revert the switch visually on failure
+  }
 }
 
 /* =========================================================

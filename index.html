@@ -122,6 +122,7 @@
   --text-accent:#c9d8ff;
   --border:rgba(255,255,255,.08);
   --border-light:rgba(255,255,255,.12);
+  --webbar-h:22px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth;}
@@ -405,7 +406,7 @@ section{padding:120px 8%;}
 .gallery-back-link:hover{color:var(--red-bright);}
 
 /* ============ FOOTER ============ */
-footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30px;}
+footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30px;padding-bottom:calc(30px + var(--webbar-h));}
 .footer-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;margin-bottom:40px;}
 .footer-col h4{font-family:Cinzel;font-size:14px;letter-spacing:2px;margin-bottom:18px;color:var(--gold);}
 .footer-col p,.footer-col a{color:var(--text-muted);font-size:13px;text-decoration:none;line-height:2;}
@@ -591,7 +592,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 
 /* ============ STICKY MOBILE CTA ============ */
 .sticky-cta{
-  position:fixed;bottom:24px;right:24px;z-index:998;
+  position:fixed;bottom:calc(var(--webbar-h) + 16px);right:24px;z-index:998;
   padding:14px 28px;background:#fff;color:var(--red);border:none;
   font-family:Poppins;font-size:14px;font-weight:600;letter-spacing:1px;cursor:pointer;
   box-shadow:0 8px 30px rgba(0,0,0,.4);transition:.3s;display:none;
@@ -599,6 +600,24 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 }
 .sticky-cta.show{display:block;}
 .sticky-cta:hover{background:#f2f2f2;transform:translateY(-3px);box-shadow:0 8px 30px rgba(255,255,255,.35);}
+
+/* ============ PERSISTENT WEBVTEC BAR ============ */
+.webvtec-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:1000;height:var(--webbar-h);
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  background:linear-gradient(135deg,#c40000,#7a0000);
+  color:#fff;text-decoration:none;
+  padding:0 14px;
+  font-family:Poppins,sans-serif;font-size:9.5px;font-weight:600;letter-spacing:1px;
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  box-shadow:0 -2px 10px rgba(0,0,0,.4);
+  transition:filter .25s;
+}
+.webvtec-bar:hover{filter:brightness(1.15);}
+.webvtec-bar .wv-brand{color:#ffd7d7;font-weight:800;}
+@media(max-width:600px){
+  .webvtec-bar{font-size:8.5px;letter-spacing:.6px;padding:0 8px;}
+}
 
 /* ============ MOBILE ============ */
 @media(max-width:900px){
@@ -770,20 +789,12 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 <!-- GOOGLE REVIEWS -->
 <section id="google-reviews-sec" style="background:rgba(10,10,10,.72);">
   <h2 class="title reveal">What Clients Say</h2>
-  <p class="subtitle reveal">Live from our Google Business Profile</p>
-  <div id="googleReviewsSummary" style="text-align:center;margin-bottom:30px;"></div>
-  <div class="reviews-list" id="googleReviewsList" style="max-width:900px;margin:0 auto;max-height:none;">
-    <div style="color:#666;text-align:center;padding:20px;">Loading reviews…</div>
+  <p class="subtitle reveal">Straight from our Google Business Profile</p>
+  <div class="reveal" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:30px;">
+    <a href="https://share.google/uVaaFCT6wSkV8eFoa" target="_blank" rel="noopener" class="btn ghost" style="display:inline-block;text-decoration:none;">VIEW REVIEWS</a>
+    <a href="https://share.google/uVaaFCT6wSkV8eFoa" target="_blank" rel="noopener" class="btn" style="display:inline-block;text-decoration:none;">LEAVE US A REVIEW</a>
   </div>
-  <p style="text-align:center;margin-top:24px;">
-    <a id="googleReviewLink" href="#" target="_blank" rel="noopener" class="btn" style="display:inline-block;text-decoration:none;">Leave us a review on Google</a>
-  </p>
 </section>
-
-<!-- Reviews section removed -->
-<div id="rvStars" style="display:none;"><span data-v="1"></span></div>
-<div id="reviewsList" style="display:none;"></div>
-<input id="rvName" type="hidden"><textarea id="rvComment" style="display:none;"></textarea>
 
 <!-- FAQ -->
 <section id="faq-sec" style="background:rgba(10,10,10,.72);">
@@ -865,12 +876,17 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 
   </div>
   <div class="footer-bottom">
-    © 2026 Stunna's Unique Barbering. All rights reserved. &nbsp;·&nbsp; <button onclick="document.getElementById('privacyModal').classList.add('open')" style="background:none;border:none;color:var(--text-muted);text-decoration:underline;font-family:Poppins;font-size:inherit;cursor:pointer;padding:0;">Privacy Policy</button>
-    <div style="margin-top:10px;font-size:11px;letter-spacing:2px;">
-      <a href="https://webvtec.com" target="_blank" rel="noopener" style="color:#555;text-decoration:none;transition:color .3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">CLICK TO REQUEST YOUR OWN WEBSITE &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600;">WEBVTEC.COM</span></a>
-    </div>
+    © <span id="copyYear">2026</span> Stunna's Unique Barbering. All rights reserved. &nbsp;·&nbsp; <button onclick="document.getElementById('privacyModal').classList.add('open')" style="background:none;border:none;color:var(--text-muted);text-decoration:underline;font-family:Poppins;font-size:inherit;cursor:pointer;padding:0;">Privacy Policy</button>
+  </div>
+  <div style="text-align:center;margin-top:6px;opacity:.6;font-size:11px;letter-spacing:1px;color:#555;">
+    Created by <a href="https://webvtec.com" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:underline;">WebVTec</a>
   </div>
 </footer>
+
+<!-- PERSISTENT WEBVTEC BAR — always visible, doesn't scroll away -->
+<a class="webvtec-bar" href="https://webvtec.com" target="_blank" rel="noopener">
+  CLICK TO REQUEST YOUR OWN WEBSITE &nbsp;·&nbsp; <span class="wv-brand">WEBVTEC.COM</span>
+</a>
 
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -884,7 +900,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
     <div class="modal auth-modal">
       <button class="close" onclick="closeModal('authModal')">×</button>
       <h3 style="text-align:center;margin-bottom:4px;">Welcome</h3>
-      <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:24px;">Sign in to book appointments</p>
+      <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:24px;">Optional — create an account to save your info and view your bookings. You can also book as a guest without signing in.</p>
       <div class="auth-tabs">
         <button class="active" onclick="switchAuthTab('login',this)">Sign In</button>
         <button onclick="switchAuthTab('signup',this)">Create Account</button>
@@ -950,6 +966,11 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
         <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
         <input type="tel" id="bkPhone" placeholder="(647) 000-0000" maxlength="17" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Email</label>
+        <input type="email" id="bkEmail" placeholder="you@email.com" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+        <p style="color:#666;font-size:11px;margin-top:8px;">No account needed — we'll send your confirmation here.</p>
+      </div>
 
       <div class="field" style="margin-bottom:18px;">
         <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Select Service — Men's Grooming</label>
@@ -1013,6 +1034,10 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <div class="field" style="margin-bottom:18px;">
         <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
         <input type="tel" id="hcPhone" placeholder="(647) 000-0000" maxlength="17" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Email</label>
+        <input type="email" id="hcEmail" placeholder="you@email.com" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div class="field" style="margin-bottom:18px;">
         <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Address</label>
@@ -1149,11 +1174,30 @@ const DEFAULT_SERVICES = [
   { id:"svc_basic_kids",        name:"Basic Kids Haircut",        price:23,  duration:25,  note:"Under 11 Years" },
   { id:"svc_kids_fade",         name:"Kids Fade Haircut",         price:25,  duration:30,  note:"Under 11 Years" },
   { id:"svc_youth",             name:"Youth Haircut",             price:28,  duration:30,  note:"12 Years – 16 Years" },
-  { id:"svc_facial",            name:"Men's Facial",              price:40,  duration:40,  note:"" },
+  { id:"svc_facial",            name:"Men's Facial",              price:37,  duration:40,  note:"" },
   { id:"svc_signature",         name:"Stunna's Signature Service",price:99,  duration:75,  note:"" },
-  { id:"svc_perm",              name:"Hair Perm",                 price:150, duration:120, note:"" }
+  { id:"svc_perm",              name:"Hair Perm",                 price:147, duration:120, note:"" }
 ];
 let services = DEFAULT_SERVICES;
+
+/* These two services are the only ones a barber can toggle on/off for themselves
+   (from their dashboard). Every other service — name, price, visibility — is set
+   by the shop admin only. Matched by known id first, falling back to name so this
+   keeps working even if the admin renames them slightly. */
+function isBarberToggleableService(svc){
+  if(!svc) return false;
+  if(svc.id === "svc_perm" || svc.id === "svc_facial") return true;
+  // Exact-name fallback only — must match the service name precisely
+  // (capitalization + apostrophe included), not just contain "facial" or "perm"
+  // as a substring, so unrelated services never get swept in by accident.
+  const n = (svc.name || "").trim();
+  return n === "Men's Facial" || n === "Hair Perm";
+}
+function barberOffersService(barber, svc){
+  if(!isBarberToggleableService(svc)) return true; // everything else is admin-controlled only
+  const toggles = (barber && barber.serviceToggles) || {};
+  return toggles[svc.id] !== false; // default ON until a barber explicitly turns it off
+}
 
 const SHOP = {
   name: "Stunna's Unique Barbering",
@@ -1178,11 +1222,9 @@ let currentUser = null;
 let barbers = [];
 let unavailable = [];
 let vacations = [];
-let reviews = [];
 let gallery = [];
 let selectedServices = new Set();
 let myBarberId = null;
-let selectedRating = 0;
 let galleryCategory = "All";
 
 /* =========================================================
@@ -1307,12 +1349,10 @@ auth.onAuthStateChanged(async u => {
     document.getElementById("staffBtn").style.display = (userRole === "admin" || userRole === "barber") ? "block" : "none";
     closeModal("authModal");
     loadUserBookings();
-    renderReviews();
   } else {
     userProfile = null; userRole = null; bookings = [];
     document.getElementById("navLogin").style.display = "block";
     document.getElementById("navProfile").style.display = "none";
-    renderReviews();
   }
 });
 
@@ -1370,7 +1410,16 @@ document.addEventListener("click", e => {
 });
 async function requireAuth(){
   if(currentUser) return currentUser;
-  openAuthModal(); return null;
+  // No account? Book as a guest — sign in anonymously behind the scenes so the
+  // booking still has a valid uid, without ever forcing account creation.
+  try{
+    const cred = await auth.signInAnonymously();
+    return cred.user;
+  }catch(err){
+    console.error("Guest sign-in failed:", err);
+    Swal.fire({icon:"error", title:"Something went wrong", text:"We couldn't process your booking as a guest. Please try again, or sign in.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    return null;
+  }
 }
 
 /* PROFILE MODAL */
@@ -1463,10 +1512,6 @@ function loadUserBookings(){
     bookings = snap.docs.map(d => ({id:d.id, ...d.data()}));
   });
 }
-db.collection("reviews").orderBy("timestamp","desc").onSnapshot(snap => {
-  reviews = snap.docs.map(d => ({id:d.id, ...d.data()}));
-  renderReviews();
-});
 db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
   gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderGallery();
@@ -1593,88 +1638,6 @@ document.querySelector('#navlist a[href="#home"]').addEventListener("click", fun
 });
 
 /* =========================================================
-   RENDER: REVIEWS
-========================================================= */
-function renderReviews(){
-  const list = document.getElementById("reviewsList");
-  if(!reviews.length){
-    list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Be the first to leave a review.</div>';
-    return;
-  }
-  list.innerHTML = reviews.map(r => `
-    <div class="review">
-      <div class="top">
-        <div class="name">${esc(r.name||"Anonymous")}</div>
-        <div class="stars">${"★".repeat(r.rating||0)}${"☆".repeat(5-(r.rating||0))}</div>
-      </div>
-      <div class="comment">${esc(r.comment||"")}</div>
-      <div class="meta">
-        <span>${relTime(r.timestamp)}</span>
-        ${currentUser && (r.uid === currentUser.uid || userRole === "admin" || userRole === "barber") ? `<button class="del" onclick="deleteReview('${r.id}')">Delete</button>` : ""}
-      </div>
-    </div>
-  `).join("");
-}
-
-/* =========================================================
-   GOOGLE REVIEWS (live from Google Business Profile)
-========================================================= */
-function initGoogleReviews(){
-  const listEl = document.getElementById("googleReviewsList");
-  const linkEl = document.getElementById("googleReviewLink");
-  if(linkEl) linkEl.href = "https://search.google.com/local/writereview?placeid=" + GOOGLE_PLACE_ID;
-
-  if(!window.google || !google.maps || !google.maps.places){
-    if(listEl) listEl.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Reviews are temporarily unavailable.</div>';
-    return;
-  }
-
-  const service = new google.maps.places.PlacesService(document.createElement("div"));
-  service.getDetails(
-    { placeId: GOOGLE_PLACE_ID, fields: ["name","rating","user_ratings_total","reviews"] },
-    (place, status) => {
-      if(status !== google.maps.places.PlacesServiceStatus.OK || !place){
-        if(listEl) listEl.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Reviews are temporarily unavailable.</div>';
-        return;
-      }
-      const summaryEl = document.getElementById("googleReviewsSummary");
-      if(summaryEl){
-        const rounded = Math.round(place.rating || 0);
-        summaryEl.innerHTML = `
-          <div style="font-family:Cinzel;font-size:42px;color:var(--red-bright);">${(place.rating||0).toFixed(1)}</div>
-          <div class="stars" style="font-size:20px;">${"★".repeat(rounded)}${"☆".repeat(5-rounded)}</div>
-          <div style="color:#888;font-size:13px;margin-top:6px;">${place.user_ratings_total||0} Google reviews</div>
-        `;
-      }
-      const allReviews = place.reviews || [];
-      // Only show reviews at or above this star rating. Google still only ever returns
-      // up to 5 reviews total — filtering can only narrow that down, not add more.
-      const MIN_RATING_TO_SHOW = 4;
-      const reviewsData = allReviews.filter(r => (r.rating||0) >= MIN_RATING_TO_SHOW);
-      if(!listEl) return;
-      if(!reviewsData.length){
-        listEl.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">No reviews yet.</div>';
-        return;
-      }
-      // Google's API returns at most 5 reviews, chosen by Google (usually "most relevant") — this can't be changed on our end.
-      listEl.innerHTML = reviewsData.map(r => `
-        <div class="review">
-          <div class="top">
-            <div class="name">${esc(r.author_name||"Google User")}</div>
-            <div class="stars">${"★".repeat(r.rating||0)}${"☆".repeat(5-(r.rating||0))}</div>
-          </div>
-          <div class="comment">${esc(r.text||"")}</div>
-          <div class="meta">
-            <span>${esc(r.relative_time_description||"")}</span>
-            <span>via Google</span>
-          </div>
-        </div>
-      `).join("");
-    }
-  );
-}
-
-/* =========================================================
    BOOKING FLOW — UNIVERSAL MENU (no categories)
 ========================================================= */
 function openBarberBooking(barberId){
@@ -1706,9 +1669,13 @@ function openBarberBooking(barberId){
   document.getElementById("bkTime").value = "";
   renderCal();
   document.getElementById("bkTimes").innerHTML = '<div class="time-empty">Pick a date to see available times.</div>';
+  document.getElementById("bkEmail").value = "";
   if(userProfile){
     if(userProfile.displayName) document.getElementById("bkName").value = userProfile.displayName;
     if(userProfile.phone) document.getElementById("bkPhone").value = userProfile.phone;
+  }
+  if(currentUser && !currentUser.isAnonymous && currentUser.email){
+    document.getElementById("bkEmail").value = currentUser.email;
   }
   document.getElementById("barberBookingModal").classList.add("open");
 }
@@ -1779,6 +1746,7 @@ function openHomeCallRequest(barberId){
   document.getElementById("hcWindowsAvailable").innerHTML = "<strong>Available windows for " + esc(barber.name||"this barber") + ":</strong><br/>" + windowNote;
   document.getElementById("hcName").value = userProfile?.displayName || "";
   document.getElementById("hcPhone").value = userProfile?.phone || "";
+  document.getElementById("hcEmail").value = (currentUser && !currentUser.isAnonymous && currentUser.email) ? currentUser.email : "";
   document.getElementById("hcAddress").value = "";
   document.getElementById("hcDate").value = "";
   document.getElementById("hcTime").value = "";
@@ -1812,6 +1780,7 @@ async function submitHomeCallRequest(){
   const name = document.getElementById("hcName").value.trim();
   const phone = document.getElementById("hcPhone").value.trim();
   const phoneDigits = phone.replace(/\D/g,"");
+  const email = document.getElementById("hcEmail").value.trim();
   const address = document.getElementById("hcAddress").value.trim();
   const date = document.getElementById("hcDate").value;
   const time = document.getElementById("hcTime").value;
@@ -1825,6 +1794,9 @@ async function submitHomeCallRequest(){
   }
   if(!phone || phoneDigits.length < 10 || phoneDigits.length > 11){
     return flagField(document.getElementById("hcPhone"), "Please enter a valid phone number (10 or 11 digits).");
+  }
+  if(!email || !isValidEmail(email)){
+    return flagField(document.getElementById("hcEmail"), "Please enter a valid email address.");
   }
   if(!address){
     return flagField(document.getElementById("hcAddress"), "Please enter the address for the home call.");
@@ -1855,7 +1827,7 @@ async function submitHomeCallRequest(){
   try{
     await db.collection("homeCallRequests").add({
       barberId, barberName: barber.name || "", barberEmail: barber.email || "",
-      uid: user.uid, userEmail: user.email || "",
+      uid: user.uid, userEmail: email, isGuest: !!user.isAnonymous,
       requestNumber, name, phone, address, date, time,
       window: win, price, notes,
       status: "Pending",
@@ -1878,11 +1850,18 @@ async function submitHomeCallRequest(){
 }
 function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2) + CURRENCY_SUFFIX; }
 
-/* Build flat service picker from live services list */
+/* Build flat service picker from live services list — filtered to what the
+   currently-selected barber actually offers (see barberOffersService above). */
 function buildServicePicker(){
   const picker = document.getElementById("menuPicker");
   if(!picker) return;
-  picker.innerHTML = services.map(svc => {
+  const barber = getSelectedBarber();
+  const visibleServices = services.filter(svc => barberOffersService(barber, svc));
+  // Drop anything that's no longer offered (e.g. barber just turned it off) from the selection
+  [...selectedServices].forEach(id => {
+    if(!visibleServices.some(s => s.id === id)) selectedServices.delete(id);
+  });
+  picker.innerHTML = visibleServices.map(svc => {
     const sel = selectedServices.has(svc.id);
     return `
       <div class="svc-row ${sel?'selected':''}" onclick="toggleService('${svc.id}')">
@@ -1933,6 +1912,12 @@ function toggleService(id){
     const conflicts = SERVICE_CONFLICTS[id] || [];
     conflicts.forEach(c => selectedServices.delete(c));
     selectedServices.add(id);
+  }
+  // As soon as something is picked, clear the "missing info" highlight right away
+  // instead of waiting for it to time out on its own.
+  if(selectedServices.size){
+    const picker = document.getElementById("menuPicker");
+    if(picker) picker.classList.remove("field-error");
   }
   buildServicePicker();
   renderCal();
@@ -2196,12 +2181,21 @@ function flagField(el, message, focusIt){
   return Swal.fire({icon:"warning", title:"Missing info", text: message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
 }
 
+// Footer copyright year — always current, updates automatically each year.
+const copyYearEl = document.getElementById("copyYear");
+if(copyYearEl) copyYearEl.textContent = new Date().getFullYear();
+
+function isValidEmail(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 let bookingSubmitting = false;
 async function submitBooking(){
   if(bookingSubmitting) return; // ignore double-clicks / double taps
   const name = document.getElementById("bkName").value.trim();
   const phone = document.getElementById("bkPhone").value.trim();
   const phoneDigits = phone.replace(/\D/g,"");
+  const email = document.getElementById("bkEmail").value.trim();
   const barberId = document.getElementById("bkBarber").value;
   const date = document.getElementById("bkDate").value;
   const time = document.getElementById("bkTime").value;
@@ -2214,8 +2208,8 @@ async function submitBooking(){
   if(!phone || phoneDigits.length < 10 || phoneDigits.length > 11){
     return flagField(document.getElementById("bkPhone"), "Please enter a valid phone number (10 or 11 digits).");
   }
-  if(!selectedServices.size){
-    return flagField(document.getElementById("menuPicker"), "Pick at least one service from the menu.", false);
+  if(!email || !isValidEmail(email)){
+    return flagField(document.getElementById("bkEmail"), "Please enter a valid email address.");
   }
   if(!barberId){
     return Swal.fire({icon:"error", title:"No barber selected", text:"Please close this window and select a barber first.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
@@ -2257,7 +2251,7 @@ async function submitBooking(){
       const bookingRef = db.collection("bookings").doc();
       tx.set(slotRef, { barberId, date, time, duration: getBookingDuration(), bookingId: bookingRef.id, uid: user.uid, createdAt: new Date().toISOString() });
       tx.set(bookingRef, {
-        barberId, uid:user.uid, userEmail: user.email || "", bookingNumber, name, phone, date, time,
+        barberId, uid:user.uid, userEmail: email, isGuest: !!user.isAnonymous, bookingNumber, name, phone, date, time,
         service: serviceList, duration: getBookingDuration(), total,
         deposit: "No", status: "Active", cancelledBy: null,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -2279,6 +2273,7 @@ async function submitBooking(){
     selectedServices.clear();
     document.getElementById("bkName").value = "";
     document.getElementById("bkPhone").value = "";
+    document.getElementById("bkEmail").value = "";
     document.getElementById("bkTime").value = "";
     document.getElementById("bkDate").value = "";
     buildServicePicker();
@@ -2289,50 +2284,6 @@ async function submitBooking(){
   }finally{
     bookingSubmitting = false;
     if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = origBtnText || "Confirm Booking"; }
-  }
-}
-
-/* =========================================================
-   REVIEWS
-========================================================= */
-document.getElementById("rvStars").addEventListener("click", e => {
-  if(e.target.dataset.v){
-    selectedRating = parseInt(e.target.dataset.v,10);
-    document.querySelectorAll("#rvStars span").forEach(s => {
-      s.classList.toggle("on", parseInt(s.dataset.v,10) <= selectedRating);
-    });
-  }
-});
-async function submitReview(){
-  const name = document.getElementById("rvName").value.trim();
-  const comment = document.getElementById("rvComment").value.trim();
-  if(!name || !comment || !selectedRating){
-    return Swal.fire({icon:"warning", title:"Missing info", text:"Please add your name, a rating, and a comment.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
-  }
-  const user = await requireAuth();
-  if(!user) return;
-  await db.collection("reviews").add({
-    name, comment, rating: selectedRating, uid: user.uid, barberId: null,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  document.getElementById("rvName").value = "";
-  document.getElementById("rvComment").value = "";
-  selectedRating = 0;
-  document.querySelectorAll("#rvStars span").forEach(s => s.classList.remove("on"));
-  Swal.fire({icon:"success", title:"Thanks!", text:"Review posted.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
-}
-async function deleteReview(id){
-  const res = await Swal.fire({
-    icon:"warning", title:"Delete review?", showCancelButton:true,
-    background:"#111", color:"#fff",
-    confirmButtonColor:"#b30000", cancelButtonColor:"#333",
-    confirmButtonText:"Delete"
-  });
-  if(res.isConfirmed){
-    const r = reviews.find(x => x.id === id);
-    if(r && currentUser && (r.uid === currentUser.uid || userRole === "admin" || userRole === "barber")){
-      await db.collection("reviews").doc(id).delete();
-    }
   }
 }
 
@@ -2499,22 +2450,5 @@ document.querySelectorAll("#navlist a, #navlist button").forEach(el => {
   el.addEventListener("click", () => document.getElementById("navlist").classList.remove("open"));
 });
 </script>
-
-<!--
-  ===== GOOGLE REVIEWS SETUP (2 things to fill in below) =====
-  1. GOOGLE_PLACE_ID — the Place ID for Stunna's Google Business Profile.
-     Find it here: https://developers.google.com/maps/documentation/places/web-service/place-id
-     (search your business name/address, copy the Place ID it gives you).
-  2. YOUR_GOOGLE_MAPS_API_KEY — from Google Cloud Console, with "Maps JavaScript API"
-     and "Places API" enabled. Restrict the key to your site's domain(s) under
-     "API restrictions" for security. Billing must be enabled on the project, but
-     Google gives a $200/month free credit that comfortably covers a site this size.
-  This tag is placed at the end of the page (after the script that defines
-  initGoogleReviews) on purpose — it must load after that function exists.
--->
-<script>
-  const GOOGLE_PLACE_ID = "YOUR_PLACE_ID_HERE";
-</script>
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initGoogleReviews" async></script>
 </body>
 </html>
