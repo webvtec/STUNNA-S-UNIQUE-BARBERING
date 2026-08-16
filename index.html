@@ -716,7 +716,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 <!-- HERO -->
 <header class="hero" id="home">
   <div>
-    <h1>Stunna's Unique Barbering — Welland's Best Barbershop</h1>
+    <h1>Stunna's Unique Barbering</h1>
     <p class="hero-sub">Exclusive cuts from Welland's top barbers. Book your appointment online.</p>
     <div class="hero-buttons">
       <a class="hero-cta" href="#barbers-sec">Book Appointment</a>
@@ -1372,7 +1372,8 @@ function switchAuthTab(tab, btn){
 async function emailLogin(){
   const email = document.getElementById("loginEmail").value.trim();
   const pass = document.getElementById("loginPass").value;
-  if(!email || !pass) return Swal.fire({icon:"warning",title:"Missing info",text:"Enter email and password.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  if(!email) return flagField(document.getElementById("loginEmail"), "");
+  if(!pass) return flagField(document.getElementById("loginPass"), "");
   try{ await auth.signInWithEmailAndPassword(email, pass); }
   catch(e){ Swal.fire({icon:"error",title:"Sign-in failed",text:e.message,background:"#111",color:"#fff",confirmButtonColor:"#b30000"}); }
 }
@@ -1381,7 +1382,9 @@ async function emailSignup(){
   const email = document.getElementById("signupEmail").value.trim();
   const pass = document.getElementById("signupPass").value;
   const pass2 = document.getElementById("signupPass2").value;
-  if(!name || !email || !pass) return Swal.fire({icon:"warning",title:"Missing info",text:"Fill in all fields.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
+  if(!name) return flagField(document.getElementById("signupName"), "");
+  if(!email) return flagField(document.getElementById("signupEmail"), "");
+  if(!pass) return flagField(document.getElementById("signupPass"), "");
   if(pass !== pass2) return Swal.fire({icon:"warning",title:"Passwords don't match",text:"Please re-enter.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
   if(pass.length < 6) return Swal.fire({icon:"warning",title:"Weak password",text:"At least 6 characters.",background:"#111",color:"#fff",confirmButtonColor:"#b30000"});
   try{
@@ -1801,9 +1804,6 @@ async function submitHomeCallRequest(){
   if(!address){
     return flagField(document.getElementById("hcAddress"), "Please enter the address for the home call.");
   }
-  if(!date){
-    return flagField(document.getElementById("hcDate"), "Please pick a date.");
-  }
   if(!time){
     return flagField(document.getElementById("hcTime"), "Please pick a time.");
   }
@@ -2167,8 +2167,8 @@ function parseTime(str){
 /* =========================================================
    SUBMIT BOOKING
 ========================================================= */
-/* Scrolls the offending field into view, highlights it briefly, focuses it,
-   and shows a message naming exactly what's missing. */
+/* Scrolls the offending field into view, highlights it briefly, and focuses it.
+   No popup — the highlight + scroll is enough to show what's missing. */
 function flagField(el, message, focusIt){
   if(el){
     el.scrollIntoView({behavior:"smooth", block:"center"});
@@ -2178,7 +2178,6 @@ function flagField(el, message, focusIt){
       setTimeout(() => el.focus(), 350);
     }
   }
-  return Swal.fire({icon:"warning", title:"Missing info", text: message, background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
 }
 
 // Footer copyright year — always current, updates automatically each year.
@@ -2213,9 +2212,6 @@ async function submitBooking(){
   }
   if(!barberId){
     return Swal.fire({icon:"error", title:"No barber selected", text:"Please close this window and select a barber first.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
-  }
-  if(!date){
-    return flagField(document.getElementById("bkCalendar"), "Please pick a date for your appointment.", false);
   }
   if(!time){
     return flagField(document.getElementById("bkTimes"), "Please pick a time slot for your appointment.", false);
@@ -2395,11 +2391,12 @@ async function submitInquiry(){
   const experience = document.getElementById("inqExperience").value.trim();
   const portfolio = document.getElementById("inqPortfolio").value.trim();
 
-  if(!name || !email || !phone || !experience){
-    return Swal.fire({icon:"warning", title:"Missing info", text:"Please fill in your name, email, phone, and experience.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
-  }
+  if(!name) return flagField(document.getElementById("inqName"), "");
+  if(!email) return flagField(document.getElementById("inqEmail"), "");
+  if(!phone) return flagField(document.getElementById("inqPhone"), "");
+  if(!experience) return flagField(document.getElementById("inqExperience"), "");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    return Swal.fire({icon:"warning", title:"Invalid email", text:"Please enter a valid email address.", background:"#111", color:"#fff", confirmButtonColor:"#b30000"});
+    return flagField(document.getElementById("inqEmail"), "");
   }
 
   try{
