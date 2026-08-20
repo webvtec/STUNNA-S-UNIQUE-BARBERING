@@ -261,6 +261,20 @@ td{color:#ddd;}
 .tswitch input:checked + .tslider::before{transform:translateX(20px);}
 .tswitch input:focus-visible + .tslider{outline:2px solid var(--red-bright);outline-offset:2px;}
 
+/* ---------- NAV NOTIFICATION BADGE ---------- */
+.dash-nav button{position:relative;}
+.nav-badge{
+  position:absolute;top:-7px;right:-7px;
+  background:var(--red-bright);color:#fff;
+  font-size:10px;font-weight:700;line-height:1;
+  min-width:18px;height:18px;border-radius:50px;
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:0 4px;border:2px solid var(--dark);
+  pointer-events:none;
+  animation:badge-pop .25s ease;
+}
+@keyframes badge-pop{from{transform:scale(0);}to{transform:scale(1);}}
+
 @media(max-width:900px){
   header{padding:16px 20px;}
   main{padding:20px;}
@@ -654,7 +668,7 @@ const SHOP = {
     Thursday:  { open:"09:00", close:"19:00", closed:false },
     Friday:    { open:"09:00", close:"19:00", closed:false },
     Saturday:  { open:"09:00", close:"19:00", closed:false },
-    Sunday:    { open:"09:00", close:"19:00", closed:true }
+    Sunday:    { open:"09:00", close:"19:00", closed:false }
   }
 };
 
@@ -662,6 +676,10 @@ function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2); }
 
 let currentUser = null;
 let role = null;
+// Notification badge counts per section
+const navBadgeCounts = {};
+// Track which item IDs have been seen (opened) per section
+const seenIds = JSON.parse(localStorage.getItem("stunna_seen_ids") || "{}");
 let myBarberId = null;
 let barbers = [];
 let bookings = [];
@@ -744,6 +762,36 @@ function initApp(){
 function doLogout(){ auth.signOut().then(() => window.location.href = "index.html"); }
 
 /* =========================================================
+   NOTIFICATION BADGES
+========================================================= */
+function markSeen(section, ids){
+  if(!seenIds[section]) seenIds[section] = [];
+  ids.forEach(id => { if(!seenIds[section].includes(id)) seenIds[section].push(id); });
+  try{ localStorage.setItem("stunna_seen_ids", JSON.stringify(seenIds)); } catch(e){}
+}
+function unseenCount(section, ids){
+  const seen = seenIds[section] || [];
+  return ids.filter(id => !seen.includes(id)).length;
+}
+function setNavBadge(secId, count){
+  navBadgeCounts[secId] = count;
+  const btn = document.querySelector(`.dash-nav button[data-sec="${secId}"]`);
+  if(!btn) return;
+  let badge = btn.querySelector(".nav-badge");
+  if(count > 0){
+    if(!badge){ badge = document.createElement("span"); badge.className = "nav-badge"; btn.appendChild(badge); }
+    badge.textContent = count > 99 ? "99+" : count;
+  } else {
+    if(badge) badge.remove();
+  }
+}
+// Call when a section is opened — marks all visible items as seen and clears badge
+function clearSectionBadge(secId, ids){
+  markSeen(secId, ids);
+  setNavBadge(secId, 0);
+}
+
+/* =========================================================
    NAV
 ========================================================= */
 function buildNav(){
@@ -787,13 +835,15 @@ function showSection(id){
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   document.getElementById("sec-" + id).classList.add("active");
   document.querySelectorAll(".dash-nav button").forEach(b => b.classList.toggle("active", b.dataset.sec === id));
+  // Clear badge for the section being opened
+  if(id === "reservations") clearSectionBadge("reservations", bookings.map(b=>b.id));
+  if(id === "homecall"){ clearSectionBadge("homecall", homeCallRequests.map(r=>r.id)); loadHomeCallAvailability(); renderHomeCallRequests(); }
+  if(id === "inquiries"){ clearSectionBadge("inquiries", inquiries.map(i=>i.id)); renderInquiries(); }
   if(id === "earnings") renderEarnings();
   if(id === "clients") renderClients();
   if(id === "barbers") renderBarbersList();
   if(id === "services") renderServicesList();
   if(id === "myservices") renderMyServicesPanel();
-  if(id === "inquiries") renderInquiries();
-  if(id === "homecall"){ loadHomeCallAvailability(); renderHomeCallRequests(); }
 }
 
 /* =========================================================
@@ -817,6 +867,12 @@ function attachListeners(){
     if(currentSection === "earnings") renderEarnings();
     if(currentSection === "clients") renderClients();
     if(currentSection === "barbers") renderRevenue();
+    // Badge: count new (unseen) bookings
+    if(currentSection !== "reservations"){
+      setNavBadge("reservations", unseenCount("reservations", bookings.map(b=>b.id)));
+    } else {
+      markSeen("reservations", bookings.map(b=>b.id));
+    }
   });
   db.collection("unavailableDays").onSnapshot(snap => {
     const all = snap.docs.map(d => ({id:d.id, ...d.data()}));
@@ -840,7 +896,14 @@ function attachListeners(){
   if(role === "admin"){
     db.collection("barberInquiries").orderBy("timestamp","desc").onSnapshot(snap => {
       inquiries = snap.docs.map(d => ({id:d.id, ...d.data()}));
-      if(currentSection === "inquiries") renderInquiries();
+      if(currentSection === "inquiries"){
+        markSeen("inquiries", inquiries.map(i=>i.id));
+        renderInquiries();
+      } else {
+        // Badge: pending inquiries that haven't been seen
+        const pendingIds = inquiries.filter(i => !i.status || i.status === "pending").map(i=>i.id);
+        setNavBadge("inquiries", unseenCount("inquiries", pendingIds));
+      }
     });
   }
   const hcQuery = role === "barber"
@@ -849,7 +912,14 @@ function attachListeners(){
   hcQuery.onSnapshot(snap => {
     homeCallRequests = snap.docs.map(d => ({id:d.id, ...d.data()}));
     homeCallRequests.sort((a,b) => (b.timestamp?.toMillis?.()||0) - (a.timestamp?.toMillis?.()||0));
-    if(currentSection === "homecall") renderHomeCallRequests();
+    if(currentSection === "homecall"){
+      markSeen("homecall", homeCallRequests.map(r=>r.id));
+      renderHomeCallRequests();
+    } else {
+      // Badge: pending home call requests that haven't been seen
+      const pendingIds = homeCallRequests.filter(r => !r.status || r.status === "Pending").map(r=>r.id);
+      setNavBadge("homecall", unseenCount("homecall", pendingIds));
+    }
   });
 }
 
