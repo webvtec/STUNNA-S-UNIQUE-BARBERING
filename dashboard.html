@@ -407,18 +407,6 @@ td{color:#ddd;}
     </div>
   </section>
 
-  <!-- MY SERVICES (barber-toggleable add-ons only — everything else is admin-controlled) -->
-  <section class="section" id="sec-myservices">
-    <div class="panel">
-      <h2>My Services</h2>
-      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">
-        These two add-on services are optional — turn one on if you offer it, off if you don't.
-        The name, price, and everything else on the menu is set by the shop admin only.
-      </p>
-      <div id="myServicesList"></div>
-    </div>
-  </section>
-
   <!-- GALLERY -->
   <section class="section" id="sec-gallery">
     <div class="panel">
@@ -462,24 +450,26 @@ td{color:#ddd;}
   <!-- PRICE LIST (admin) -->
   <section class="section" id="sec-services">
     <div class="panel">
-      <h2>Price List</h2>
-      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">This is the shop-wide menu everyone sees on the booking page. Add new styles, edit prices, or hide something without deleting it.</p>
+      <h2 id="servicesTitle">Price List</h2>
+      <p id="servicesDesc" style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">This is the shop-wide menu everyone sees on the booking page. Add new styles, edit prices, or hide something without deleting it.</p>
 
-      <div class="two-col">
-        <div class="field"><label>Service Name</label><input type="text" id="svcName" placeholder="e.g. Skin Fade"></div>
-        <div class="field"><label>Price ($)</label><input type="number" id="svcPrice" placeholder="35" step="0.01" min="0"></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>Duration (minutes)</label><input type="number" id="svcDuration" placeholder="35" step="5" min="5"></div>
-        <div class="field"><label>Note <span style="color:#666;text-transform:none;letter-spacing:0;">(optional, e.g. "Under 11 Years")</span></label><input type="text" id="svcNote" placeholder=""></div>
-      </div>
-      <button class="btn" onclick="saveService()">Save Service</button>
-      <button class="btn ghost" onclick="resetServiceForm()" style="margin-left:8px;">Cancel Edit</button>
-      <input type="hidden" id="svcEditId">
+      <div id="svcAdminForm">
+        <div class="two-col">
+          <div class="field"><label>Service Name</label><input type="text" id="svcName" placeholder="e.g. Skin Fade"></div>
+          <div class="field"><label>Price ($)</label><input type="number" id="svcPrice" placeholder="35" step="0.01" min="0"></div>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>Duration (minutes)</label><input type="number" id="svcDuration" placeholder="35" step="5" min="5"></div>
+          <div class="field"><label>Note <span style="color:#666;text-transform:none;letter-spacing:0;">(optional, e.g. "Under 11 Years")</span></label><input type="text" id="svcNote" placeholder=""></div>
+        </div>
+        <button class="btn" onclick="saveService()">Save Service</button>
+        <button class="btn ghost" onclick="resetServiceForm()" style="margin-left:8px;">Cancel Edit</button>
+        <input type="hidden" id="svcEditId">
 
-      <div id="svcSeedWrap" style="display:none;margin-top:20px;padding:16px;border:1px dashed var(--border);border-radius:12px;">
-        <p style="color:var(--text-muted);font-size:13px;margin-bottom:10px;">No services yet — load the starting price list to get going, then edit it below.</p>
-        <button class="btn ghost small" onclick="seedDefaultServices()">Load Default Price List</button>
+        <div id="svcSeedWrap" style="display:none;margin-top:20px;padding:16px;border:1px dashed var(--border);border-radius:12px;">
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:10px;">No services yet — load the starting price list to get going, then edit it below.</p>
+          <button class="btn ghost small" onclick="seedDefaultServices()">Load Default Price List</button>
+        </div>
       </div>
 
       <h3 style="margin-top:32px;">Current Menu</h3>
@@ -673,6 +663,12 @@ const SHOP = {
 };
 
 function fmtMoney(n){ return CURRENCY + Number(n||0).toFixed(2); }
+function fmtDate(dateStr){
+  if(!dateStr) return "";
+  const d = new Date(dateStr + "T00:00:00");
+  if(isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" }).toUpperCase();
+}
 
 let currentUser = null;
 let role = null;
@@ -802,8 +798,8 @@ function buildNav(){
     { id:"earnings",     label:"My Earnings" },
     { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" }
   ];
-  if(myBarberId){
-    items.splice(items.findIndex(i => i.id === "clients"), 0, { id:"myservices", label:"My Services" });
+  if(role === "barber"){
+    items.splice(items.findIndex(i => i.id === "clients"), 0, { id:"services", label:"Price List" });
   }
   if(role === "admin"){
     items.splice(items.findIndex(i => i.id === "clients"), 0, { id:"gallery", label:"Website Gallery" });
@@ -824,6 +820,12 @@ function buildNav(){
   document.getElementById("clientsTitle").textContent = role === "admin" ? "Clients" : "My Clients";
   document.getElementById("clientsDesc").textContent = role === "admin"
     ? "Everyone who has booked at the shop." : "Everyone who has booked with you.";
+  const svcAdminForm = document.getElementById("svcAdminForm");
+  if(svcAdminForm) svcAdminForm.style.display = role === "admin" ? "" : "none";
+  const svcDesc = document.getElementById("servicesDesc");
+  if(svcDesc) svcDesc.textContent = role === "admin"
+    ? "This is the shop-wide menu everyone sees on the booking page. Add new styles, edit prices, or hide something without deleting it."
+    : "This is the shop-wide menu. The admin sets the name, price, and everything else — the toggle on Hair Perm and Men's Facial is the only thing you control, for whether you personally offer that add-on.";
   if(role === "admin"){
     document.getElementById("barberChips").style.display = "flex";
     document.getElementById("uaScopeWrap").style.display = "";
@@ -843,7 +845,6 @@ function showSection(id){
   if(id === "clients") renderClients();
   if(id === "barbers") renderBarbersList();
   if(id === "services") renderServicesList();
-  if(id === "myservices") renderMyServicesPanel();
 }
 
 /* =========================================================
@@ -856,7 +857,7 @@ function attachListeners(){
     renderBarberChips();
     renderReservations();
     if(currentSection === "barbers") renderRevenue();
-    if(currentSection === "myservices") renderMyServicesPanel();
+    if(currentSection === "services") renderServicesList();
   });
   const bookingsQuery = role === "barber"
     ? db.collection("bookings").where("barberId","==",myBarberId)
@@ -886,12 +887,12 @@ function attachListeners(){
     gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderGallery();
   });
-  // Every signed-in staff member needs live service data — barbers use it (read-only)
-  // for the "My Services" toggle panel; admins use it for full Price List CRUD.
+  // Every signed-in staff member needs live service data — barbers see it read-only
+  // on the Price List, with a personal on/off toggle for Hair Perm & Men's Facial only;
+  // admins use it for full Price List CRUD.
   db.collection("services").orderBy("order","asc").onSnapshot(snap => {
     services = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderServicesList();
-    if(currentSection === "myservices") renderMyServicesPanel();
   });
   if(role === "admin"){
     db.collection("barberInquiries").orderBy("timestamp","desc").onSnapshot(snap => {
@@ -1020,7 +1021,29 @@ function renderServicesList(){
     return;
   }
   const sorted = [...services].sort((a,b) => (a.order??0) - (b.order??0));
-  wrap.innerHTML = sorted.map((s, i) => `
+  const me = role === "barber" ? barbers.find(b => b.id === myBarberId) : null;
+  const myToggles = (me && me.serviceToggles) || {};
+
+  wrap.innerHTML = sorted.map((s, i) => {
+    const myToggleable = role === "barber" && isBarberToggleableService(s);
+    const on = myToggles[s.id] !== false; // default ON until explicitly turned off
+
+    // Barber-only toggle switch, shown only on the two toggleable services.
+    const myToggleControl = myToggleable ? `
+      <label class="tswitch" title="Turn this on if you offer it, off if you don't">
+        <input type="checkbox" ${on?"checked":""} onchange="toggleMyService('${s.id}', this.checked)">
+        <span class="tslider"></span>
+      </label>` : "";
+
+    // Admin-only management controls.
+    const adminControls = role === "admin" ? `
+      <button class="btn small ghost" onclick="moveService('${s.id}', -1)" ${i===0?'disabled':''}>↑</button>
+      <button class="btn small ghost" onclick="moveService('${s.id}', 1)" ${i===sorted.length-1?'disabled':''}>↓</button>
+      <button class="btn small ghost" onclick="editService('${s.id}')">Edit</button>
+      <button class="btn small ghost" onclick="toggleServiceActive('${s.id}')">${s.active!==false ? 'Hide' : 'Show'}</button>
+      <button class="btn small danger" onclick="deleteService('${s.id}')">Remove</button>` : "";
+
+    return `
     <div class="barber-item" style="${s.active===false?'opacity:.5;':''}">
       <div class="meta">
         <strong>${esc(s.name)}</strong>
@@ -1028,50 +1051,12 @@ function renderServicesList(){
         <small>
           <span style="color:var(--red-bright);font-family:Cinzel;">${fmtMoney(s.price)}</span>
           &nbsp;·&nbsp; ${s.duration} min
-          &nbsp;·&nbsp;
-          <span style="color:${s.active!==false?'#7fff7f':'var(--text-muted)'};">${s.active!==false ? "Visible on Site" : "Hidden from Site"}</span>
+          ${role === "admin" ? `&nbsp;·&nbsp;
+          <span style="color:${s.active!==false?'#7fff7f':'var(--text-muted)'};">${s.active!==false ? "Visible on Site" : "Hidden from Site"}</span>` : ""}
         </small>
       </div>
-      <button class="btn small ghost" onclick="moveService('${s.id}', -1)" ${i===0?'disabled':''}>↑</button>
-      <button class="btn small ghost" onclick="moveService('${s.id}', 1)" ${i===sorted.length-1?'disabled':''}>↓</button>
-      <button class="btn small ghost" onclick="editService('${s.id}')">Edit</button>
-      <button class="btn small ghost" onclick="toggleServiceActive('${s.id}')">${s.active!==false ? 'Hide' : 'Show'}</button>
-      <button class="btn small danger" onclick="deleteService('${s.id}')">Remove</button>
-    </div>`).join("");
-}
-
-/* =========================================================
-   MY SERVICES — barber-only toggle for Hair Perm & Men's Facial
-   (everything else stays admin-controlled via the Price List above)
-========================================================= */
-function renderMyServicesPanel(){
-  const wrap = document.getElementById("myServicesList");
-  if(!wrap || !myBarberId) return;
-  const me = barbers.find(b => b.id === myBarberId);
-  const toggles = (me && me.serviceToggles) || {};
-  const toggleable = services.filter(isBarberToggleableService);
-
-  if(!toggleable.length){
-    wrap.innerHTML = '<div style="color:#666;padding:20px;">Hair Perm and Men\'s Facial haven\'t been added to the shop menu yet — ask the admin to add them from the Price List.</div>';
-    return;
-  }
-
-  wrap.innerHTML = toggleable.map(s => {
-    const on = toggles[s.id] !== false; // default ON until explicitly turned off
-    return `
-      <div class="menu-readonly-row">
-        <div>
-          <div class="svc-name">${esc(s.name)}</div>
-          <div class="svc-note">
-            <span style="color:var(--red-bright);font-family:Cinzel;">${fmtMoney(s.price)}</span>
-            &nbsp;·&nbsp; ${s.duration} min${s.note ? " · " + esc(s.note) : ""}
-          </div>
-        </div>
-        <label class="tswitch">
-          <input type="checkbox" ${on?"checked":""} onchange="toggleMyService('${s.id}', this.checked)">
-          <span class="tslider"></span>
-        </label>
-      </div>`;
+      ${myToggleControl}${adminControls}
+    </div>`;
   }).join("");
 }
 
@@ -1082,7 +1067,7 @@ async function toggleMyService(serviceId, enabled){
     toast(enabled ? "Turned on — clients booking with you can now pick it" : "Turned off — hidden for clients booking with you", "green");
   }catch(e){
     toast("Update failed: " + e.message, "red");
-    renderMyServicesPanel(); // revert the switch visually on failure
+    renderServicesList(); // revert the switch visually on failure
   }
 }
 
@@ -1103,7 +1088,7 @@ function setBarberChip(id){ resBarberFilter = id; renderBarberChips(); renderRes
 function renderReservations(){
   const list = document.getElementById("reservationsList");
   const search = (document.getElementById("resSearch")?.value || "").toLowerCase().trim();
-  let mine = bookings.slice();
+  let mine = bookings.filter(b => !b.archived);
   if(role === "barber") mine = mine.filter(b => b.barberId === myBarberId);
   if(role === "admin" && resBarberFilter) mine = mine.filter(b => b.barberId === resBarberFilter);
   if(search){
@@ -1150,7 +1135,7 @@ function bookingCard(b, isToday){
         </div>
       </div>
       <div class="name"><strong>${esc(b.name)}</strong> — ${esc(b.phone||"")}</div>
-      <div class="info-row"><strong>${b.date}</strong> @ ${b.time} · ${b.duration||SLOT_MINUTES} min</div>
+      <div class="info-row"><strong>${fmtDate(b.date)}</strong> @ ${b.time} · ${b.duration||SLOT_MINUTES} min</div>
       <div class="info-row" style="color:#999;">${esc(b.service||"")}</div>
       <div class="info-row" style="color:var(--red-bright);font-family:Cinzel;font-size:16px;">${fmtMoney(b.total||0)}</div>
       ${cancelled ? `<div class="info-row" style="color:var(--text-muted);font-size:11px;margin-top:6px;">Cancelled by ${b.cancelledBy||"—"}</div>` : ""}
@@ -1180,8 +1165,8 @@ function promptCancel(id){
 function promptPayment(id){
   const b = bookings.find(x => x.id === id);
   openAM("Payment Status", `
-    <div class="radio-opt"><input type="radio" name="pay" value="Yes" ${b.deposit==='Yes'?'checked':''}> Payment Made</div>
-    <div class="radio-opt"><input type="radio" name="pay" value="No" ${b.deposit!=='Yes'?'checked':''}> Not Paid</div>
+    <label class="radio-opt"><input type="radio" name="pay" value="Yes" ${b.deposit==='Yes'?'checked':''}> Payment Made</label>
+    <label class="radio-opt"><input type="radio" name="pay" value="No" ${b.deposit!=='Yes'?'checked':''}> Not Paid</label>
   `, async () => {
     const val = document.querySelector('input[name="pay"]:checked')?.value || "No";
     await db.collection("bookings").doc(id).update({ deposit: val });
@@ -1191,9 +1176,9 @@ function promptPayment(id){
 }
 function promptStatus(id){
   openAM("Update Status", `
-    <div class="radio-opt"><input type="radio" name="st" value="Completed" checked> Completed</div>
-    <div class="radio-opt"><input type="radio" name="st" value="No-show"> No-show</div>
-    <div class="radio-opt"><input type="radio" name="st" value="Active"> Active (reset)</div>
+    <label class="radio-opt"><input type="radio" name="st" value="Completed" checked> Completed</label>
+    <label class="radio-opt"><input type="radio" name="st" value="No-show"> No-show</label>
+    <label class="radio-opt"><input type="radio" name="st" value="Active"> Active (reset)</label>
   `, async () => {
     const val = document.querySelector('input[name="st"]:checked')?.value || "Active";
     await db.collection("bookings").doc(id).update({ status: val });
@@ -1204,18 +1189,19 @@ function promptStatus(id){
 
 async function clearPast(){
   openAM("Clear Past Reservations", `
-    <p>Type <strong style="color:var(--red-bright);">CONFIRM</strong> to permanently delete all your past bookings.</p>
+    <p>Type <strong style="color:var(--red-bright);">CONFIRM</strong> to clear all your past bookings from this list.
+    They'll stay counted in Earnings and Clients — this only tidies up the reservations view.</p>
     <input id="confirmField" placeholder="Type CONFIRM">
   `, async () => {
     if(document.getElementById("confirmField").value !== "CONFIRM"){ toast("You must type CONFIRM exactly", "red"); return; }
     const today = new Date(); today.setHours(0,0,0,0);
-    let scope = bookings;
+    let scope = bookings.filter(b => !b.archived);
     if(role === "barber") scope = scope.filter(b => b.barberId === myBarberId);
     const past = scope.filter(b => b.date && new Date(b.date + "T00:00:00") < today);
     const batch = db.batch();
-    past.forEach(b => { batch.delete(db.collection("bookings").doc(b.id)); const sr = slotRefFor(b); if(sr) batch.delete(sr); });
+    past.forEach(b => { batch.update(db.collection("bookings").doc(b.id), { archived: true }); });
     await batch.commit();
-    toast(`Deleted ${past.length} past bookings`, "green");
+    toast(`Cleared ${past.length} past bookings from the list`, "green");
     closeAM();
   });
 }
@@ -1363,7 +1349,7 @@ function renderUnavailable(){
     return `
       <div class="unavail-item">
         <div class="info">
-          <strong>${u.date}</strong> · ${u.allDay ? "All Day" : `${u.startTime} – ${u.endTime}`}
+          <strong>${fmtDate(u.date)}</strong> · ${u.allDay ? "All Day" : `${u.startTime} – ${u.endTime}`}
           <small>${esc(scope)}</small>
         </div>
         ${canRemove ? `<button class="btn small danger" onclick="removeUnavailable('${u.id}')">Remove</button>` : ""}
@@ -1660,7 +1646,7 @@ function renderRevenue(){
   } else {
     const recent = ranged.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
     wrap.innerHTML = `<h3 style="margin-top:24px;">Completed Bookings${rangeNote}</h3>${recent.length ? recent.map(b => `
-      <div class="unavail-item"><div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
+      <div class="unavail-item"><div class="info"><strong>${fmtDate(b.date)}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
       <div style="color:var(--red-bright);font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}</div></div>`).join("") : '<div style="color:#666;padding:20px;">No completed bookings.</div>'}`;
   }
 }
@@ -1686,7 +1672,7 @@ function renderEarnings(){
     ? 'You are not set up as a barber yet — your profile will be created when an admin adds you.'
     : 'No completed cuts yet. Mark bookings as Completed to see them here.';
   document.getElementById("earnBreakdown").innerHTML = list.length ? list.map(b => `
-    <div class="unavail-item"><div class="info"><strong>${b.date}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
+    <div class="unavail-item"><div class="info"><strong>${fmtDate(b.date)}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
     <div style="color:var(--red-bright);font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}</div></div>
   `).join("") : `<div style="color:#666;padding:20px;">${emptyMsg}</div>`;
 }
@@ -1743,7 +1729,7 @@ function renderClients(){
     if(b.phone) clientMap[b.uid].phone = b.phone;
     if(b.userEmail) clientMap[b.uid].email = b.userEmail;
   });
-  const clients = Object.values(clientMap).sort((a,b) => b.spent - a.spent);
+  const clients = Object.values(clientMap).sort((a,b) => b.count - a.count || b.spent - a.spent);
   const list = document.getElementById("clientsList");
   if(!clients.length){ list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">No clients yet.</div>'; return; }
   list.innerHTML = `<table><thead><tr>
@@ -1853,7 +1839,7 @@ function renderHomeCallRequests(){
         ${role === "admin" ? `<div class="inq-detail"><strong>Barber:</strong> ${esc(r.barberName || "—")}</div>` : ""}
         <div class="inq-detail"><strong>Phone:</strong> ${esc(r.phone)}</div>
         <div class="inq-detail"><strong>Address:</strong> ${esc(r.address)}</div>
-        <div class="inq-detail"><strong>Date:</strong> ${esc(r.date)} · <strong>Time:</strong> ${esc(r.time)}</div>
+        <div class="inq-detail"><strong>Date:</strong> ${esc(fmtDate(r.date))} · <strong>Time:</strong> ${esc(r.time)}</div>
         <div class="inq-detail"><strong>Window:</strong> ${esc(HC_WINDOW_LABELS[r.window] || r.window)}</div>
         <div class="inq-detail"><strong>Price:</strong> $${Number(r.price||0).toFixed(2)} CAD</div>
         ${r.notes ? `<div class="inq-exp">${esc(r.notes)}</div>` : ""}
