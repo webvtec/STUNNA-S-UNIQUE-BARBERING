@@ -63,6 +63,21 @@ header h1{font-family:Cinzel;letter-spacing:3px;font-size:22px;}
 }
 .dash-nav button:hover,.dash-nav button.active{background:var(--red);color:white;}
 
+/* ---------- LOCATION SWITCHER ---------- */
+.location-switcher{padding-bottom:0;border-bottom:none;align-items:center;}
+.location-switcher::before{
+  content:"LOCATION";color:var(--text-muted);font-size:10px;letter-spacing:2px;
+  display:flex;align-items:center;margin-right:4px;
+}
+.location-switcher button{
+  background:transparent;border:1px solid var(--gold);color:var(--gold);
+  padding:9px 18px;border-radius:50px;font-family:Poppins;cursor:pointer;font-size:12px;
+  letter-spacing:.5px;transition:.3s;
+}
+.location-switcher button:hover,.location-switcher button.active{background:var(--gold);color:#111;}
+.location-switcher button.add-loc{border-style:dashed;color:var(--text-dim);border-color:var(--border);}
+.location-switcher button.add-loc:hover{border-color:var(--gold);color:var(--gold);background:transparent;}
+
 /* ---------- LAYOUT ---------- */
 main{padding:40px;}
 .panel{background:var(--dark-panel);border:1px solid var(--border);border-radius:20px;padding:32px;margin-bottom:24px;}
@@ -323,6 +338,9 @@ td{color:#ddd;}
   </div>
 </header>
 
+<!-- LOCATION SWITCHER (admin only, appears once 2+ locations exist) -->
+<nav class="dash-nav location-switcher" id="locationSwitcher" style="display:none;"></nav>
+
 <!-- NAV -->
 <nav class="dash-nav" id="dashNav" style="display:none;"></nav>
 
@@ -486,12 +504,16 @@ td{color:#ddd;}
         <div class="field"><label>Name</label><input type="text" id="bmName" placeholder="Full name"></div>
         <div class="field"><label>Email</label><input type="email" id="bmEmail" placeholder="barber@email.com"></div>
       </div>
+      <div class="field" id="bmLocationWrap" style="max-width:420px;">
+        <label>Location</label>
+        <select id="bmLocation"></select>
+      </div>
       <button class="btn" onclick="saveBarber()">Save Barber</button>
       <button class="btn ghost" onclick="resetBarberForm()" style="margin-left:8px;">Cancel Edit</button>
       <input type="hidden" id="bmEditId">
 
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:32px;flex-wrap:wrap;gap:10px;">
-        <h3 style="margin:0;">Current Barbers</h3>
+        <h3 style="margin:0;" id="barbersListTitle">Current Barbers</h3>
         <button class="btn ghost small" onclick="showRevenue(null)">All Barbers Revenue</button>
       </div>
       <div id="barbersList" style="margin-top:14px;"></div>
@@ -512,6 +534,24 @@ td{color:#ddd;}
         </div>
         <div id="revTableWrap"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- LOCATION MANAGEMENT (admin) -->
+  <section class="section" id="sec-locations">
+    <div class="panel">
+      <h2>Locations</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Every location you add here shows up as a switcher button at the top of the dashboard, and as a location choice on the booking page. Assign each barber to a location from the Barbers tab.</p>
+      <div class="two-col">
+        <div class="field"><label>Location Name</label><input type="text" id="locName" placeholder="e.g. Welland — 626 E Main St"></div>
+        <div class="field"><label>Address</label><input type="text" id="locAddress" placeholder="626 E Main St, Welland, ON"></div>
+      </div>
+      <button class="btn" onclick="saveLocation()">Save Location</button>
+      <button class="btn ghost" onclick="resetLocationForm()" style="margin-left:8px;">Cancel Edit</button>
+      <input type="hidden" id="locEditId">
+
+      <h3 style="margin-top:32px;">Current Locations</h3>
+      <div id="locationsList" style="margin-top:14px;"></div>
     </div>
   </section>
 
@@ -615,6 +655,7 @@ const provider = new firebase.auth.GoogleAuthProvider();
 const ADMIN_UID = "7kV7eY9vrHUwoywlDItY7644R063";
 const SLOT_MINUTES = 35;
 const CURRENCY = "$";
+const DEFAULT_LOCATION_ID = "welland-626-main";
 
 /* Default menu, used only to seed the "services" collection the first time */
 const DEFAULT_SERVICES = [
@@ -677,6 +718,8 @@ const navBadgeCounts = {};
 // Track which item IDs have been seen (opened) per section
 const seenIds = JSON.parse(localStorage.getItem("stunna_seen_ids") || "{}");
 let myBarberId = null;
+let locations = [];
+let currentLocationId = null;
 let barbers = [];
 let bookings = [];
 let unavailable = [];
@@ -804,6 +847,7 @@ function buildNav(){
   if(role === "admin"){
     items.splice(items.findIndex(i => i.id === "clients"), 0, { id:"gallery", label:"Website Gallery" });
     items.push({ id:"barbers", label:"Barbers" });
+    items.push({ id:"locations", label:"Locations" });
     items.push({ id:"services", label:"Price List" });
     items.push({ id:"inquiries", label:"Inquiries" });
   }
@@ -836,7 +880,7 @@ function showSection(id){
   currentSection = id;
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   document.getElementById("sec-" + id).classList.add("active");
-  document.querySelectorAll(".dash-nav button").forEach(b => b.classList.toggle("active", b.dataset.sec === id));
+  document.querySelectorAll("#dashNav button").forEach(b => b.classList.toggle("active", b.dataset.sec === id));
   // Clear badge for the section being opened
   if(id === "reservations") clearSectionBadge("reservations", bookings.map(b=>b.id));
   if(id === "homecall"){ clearSectionBadge("homecall", homeCallRequests.map(r=>r.id)); loadHomeCallAvailability(); renderHomeCallRequests(); }
@@ -844,6 +888,7 @@ function showSection(id){
   if(id === "earnings") renderEarnings();
   if(id === "clients") renderClients();
   if(id === "barbers") renderBarbersList();
+  if(id === "locations") renderLocationsList();
   if(id === "services") renderServicesList();
 }
 
@@ -851,8 +896,26 @@ function showSection(id){
    LISTENERS
 ========================================================= */
 function attachListeners(){
+  db.collection("locations").orderBy("order","asc").onSnapshot(snap => {
+    locations = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    if(!locations.length && role === "admin") seedDefaultLocation();
+    if(!currentLocationId && locations.length){
+      let saved = null;
+      try{ saved = localStorage.getItem("stunna_dash_location"); }catch(e){}
+      currentLocationId = (saved && locations.some(l => l.id === saved)) ? saved : locations[0].id;
+    }
+    renderLocationSwitcher();
+    renderLocationsList();
+    renderBarberLocationOptions();
+    renderBarbersList();
+    renderBarberChips();
+    renderReservations();
+    if(currentSection === "earnings") renderEarnings();
+    if(currentSection === "barbers") renderRevenue();
+  });
   db.collection("barbers").onSnapshot(snap => {
     barbers = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderBarberLocationOptions();
     renderBarbersList();
     renderBarberChips();
     renderReservations();
@@ -1077,8 +1140,9 @@ async function toggleMyService(serviceId, enabled){
 function renderBarberChips(){
   if(role !== "admin") return;
   const wrap = document.getElementById("barberChips");
-  if(resBarberFilter && !barbers.some(b => b.id === resBarberFilter)) resBarberFilter = "";
-  const opts = [{ id:"", name:"All Barbers" }, ...barbers];
+  const scoped = barbersAtCurrentLocation();
+  if(resBarberFilter && !scoped.some(b => b.id === resBarberFilter)) resBarberFilter = "";
+  const opts = [{ id:"", name:"All Barbers" }, ...scoped];
   wrap.innerHTML = opts.map(b =>
     `<button class="chip ${resBarberFilter===b.id?'active':''}" onclick="setBarberChip('${b.id}')">${esc(b.name)}</button>`
   ).join("");
@@ -1090,7 +1154,11 @@ function renderReservations(){
   const search = (document.getElementById("resSearch")?.value || "").toLowerCase().trim();
   let mine = bookings.filter(b => !b.archived);
   if(role === "barber") mine = mine.filter(b => b.barberId === myBarberId);
-  if(role === "admin" && resBarberFilter) mine = mine.filter(b => b.barberId === resBarberFilter);
+  if(role === "admin"){
+    const scopedIds = new Set(barbersAtCurrentLocation().map(b => b.id));
+    mine = mine.filter(b => scopedIds.has(b.barberId));
+    if(resBarberFilter) mine = mine.filter(b => b.barberId === resBarberFilter);
+  }
   if(search){
     mine = mine.filter(b =>
       (b.name||"").toLowerCase().includes(search) ||
@@ -1502,6 +1570,150 @@ async function commitOrder(grid){
 }
 
 /* =========================================================
+   LOCATIONS (admin)
+========================================================= */
+function barberLocationId(b){ return (b && b.locationId) || DEFAULT_LOCATION_ID; }
+function locationName(id){
+  const loc = locations.find(l => l.id === id);
+  if(loc) return loc.name;
+  if(id === DEFAULT_LOCATION_ID || !id) return "Welland — 626 E Main St";
+  return "Unassigned Location";
+}
+// The set of barbers that belong to whichever location the admin currently has selected.
+// Barbers get filtered against this whenever the admin is viewing scoped data (reservations,
+// revenue, earnings, unavailable days). If nothing is selected yet, or the viewer is a barber,
+// no filtering happens — barbers already only ever see their own data via myBarberId.
+function barbersAtCurrentLocation(){
+  if(role !== "admin" || !currentLocationId || locations.length <= 1) return barbers;
+  return barbers.filter(b => barberLocationId(b) === currentLocationId);
+}
+async function seedDefaultLocation(){
+  try{
+    await db.collection("locations").doc(DEFAULT_LOCATION_ID).set({
+      name: "Welland — 626 E Main St",
+      address: "626 E Main St, Welland, ON L3B 3Y2",
+      active: true,
+      order: 1,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  }catch(e){ /* silent — will retry on next load if it failed */ }
+}
+function renderLocationSwitcher(){
+  const nav = document.getElementById("locationSwitcher");
+  if(!nav) return;
+  if(role !== "admin" || locations.length <= 1){ nav.style.display = "none"; return; }
+  nav.style.display = "flex";
+  nav.innerHTML = locations.map(l => `
+    <button class="${l.id===currentLocationId?'active':''}" onclick="switchLocation('${l.id}')">
+      ${esc(l.name)}${l.active===false ? ' (hidden)' : ''}
+    </button>`).join("")
+    + `<button class="add-loc" onclick="showSection('locations')">+ Add Location</button>`;
+}
+function switchLocation(id){
+  currentLocationId = id;
+  try{ localStorage.setItem("stunna_dash_location", id); }catch(e){}
+  renderLocationSwitcher();
+  renderBarbersList();
+  renderBarberChips();
+  renderReservations();
+  if(currentSection === "earnings") renderEarnings();
+  if(currentSection === "barbers") renderRevenue();
+  if(currentSection === "unavail"){ renderUnavailable(); renderVacations(); renderUaCalendar(); }
+  if(currentSection === "clients") renderClients();
+}
+function renderBarberLocationOptions(){
+  const sel = document.getElementById("bmLocation");
+  const wrap = document.getElementById("bmLocationWrap");
+  if(!sel) return;
+  if(role !== "admin" || locations.length <= 1){ if(wrap) wrap.style.display = "none"; return; }
+  if(wrap) wrap.style.display = "";
+  const chosen = sel.value || currentLocationId || DEFAULT_LOCATION_ID;
+  sel.innerHTML = locations.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join("");
+  if(locations.some(l => l.id === chosen)) sel.value = chosen;
+}
+async function saveLocation(){
+  const name = document.getElementById("locName").value.trim();
+  const address = document.getElementById("locAddress").value.trim();
+  const editId = document.getElementById("locEditId").value;
+  if(!name) return toast("Location name is required", "red");
+  try{
+    if(editId){
+      await db.collection("locations").doc(editId).update({ name, address });
+      toast("Location updated", "green");
+    } else {
+      await db.collection("locations").add({
+        name, address, active: true, order: locations.length + 1,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast("Location added — pick it from the switcher up top", "green");
+    }
+    resetLocationForm();
+  }catch(e){ toast("Save failed: " + e.message, "red"); }
+}
+function resetLocationForm(){
+  document.getElementById("locName").value = "";
+  document.getElementById("locAddress").value = "";
+  document.getElementById("locEditId").value = "";
+}
+function editLocation(id){
+  const l = locations.find(x => x.id === id);
+  if(!l) return;
+  document.getElementById("locName").value = l.name || "";
+  document.getElementById("locAddress").value = l.address || "";
+  document.getElementById("locEditId").value = l.id;
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+async function toggleLocationActive(id){
+  const l = locations.find(x => x.id === id);
+  await db.collection("locations").doc(id).update({ active: !l.active });
+  toast(l.active ? "Hidden from booking page" : "Now visible on booking page", "green");
+}
+function removeLocation(id){
+  const l = locations.find(x => x.id === id);
+  if(!l) return;
+  const staff = barbers.filter(b => barberLocationId(b) === id);
+  if(staff.length){
+    return toast(`Reassign or remove ${staff.length} barber(s) from this location first`, "red");
+  }
+  openAM("Remove Location",
+    `<p>Permanently remove <strong style="color:var(--red-bright);">${esc(l.name)}</strong>?</p>`,
+    async () => {
+      try{
+        await db.collection("locations").doc(id).delete();
+        if(currentLocationId === id) currentLocationId = null;
+        toast("Location removed", "green");
+      }catch(e){ toast("Remove failed: " + e.message, "red"); }
+      closeAM();
+    }, "Remove");
+}
+function renderLocationsList(){
+  if(role !== "admin") return;
+  const list = document.getElementById("locationsList");
+  if(!list) return;
+  if(!locations.length){
+    list.innerHTML = '<div style="color:#666;padding:20px;">No locations yet — one will be created automatically.</div>';
+    return;
+  }
+  list.innerHTML = locations.map(l => {
+    const count = barbers.filter(b => barberLocationId(b) === l.id).length;
+    return `
+    <div class="barber-item">
+      <div class="meta">
+        <strong>${esc(l.name)}</strong>
+        <small>${esc(l.address||"")}</small>
+        <small>
+          <span style="color:${l.active!==false?'#7fff7f':'var(--text-muted)'};">${l.active!==false ? "Visible on Site" : "Hidden from Site"}</span>
+          &nbsp;·&nbsp; ${count} barber${count===1?"":"s"}
+        </small>
+      </div>
+      <button class="btn small ghost" onclick="editLocation('${l.id}')">Edit</button>
+      <button class="btn small ghost" onclick="toggleLocationActive('${l.id}')">${l.active!==false?'Hide':'Show'}</button>
+      <button class="btn small danger" onclick="removeLocation('${l.id}')">Remove</button>
+    </div>`;
+  }).join("");
+}
+
+/* =========================================================
    BARBER MANAGEMENT (admin)
 ========================================================= */
 async function saveBarber(){
@@ -1512,14 +1724,16 @@ async function saveBarber(){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast("Enter a valid email address", "red");
   const dup = barbers.find(b => (b.email||"").toLowerCase() === email && b.id !== editId);
   if(dup) return toast("A barber with that email already exists", "red");
+  const locSel = document.getElementById("bmLocation");
+  const locationId = (locSel && locSel.value) || currentLocationId || DEFAULT_LOCATION_ID;
   try{
     if(editId){
-      await db.collection("barbers").doc(editId).update({ name, email });
+      await db.collection("barbers").doc(editId).update({ name, email, locationId });
       toast("Barber updated", "green");
     } else {
       await db.collection("barbers").add({
         name, email, uid: null, active: true,
-        specialty: "", photoURL: null, menu: [],
+        specialty: "", photoURL: null, menu: [], locationId,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       toast("Barber added — they now appear on the booking page", "green");
@@ -1531,6 +1745,8 @@ function resetBarberForm(){
   document.getElementById("bmName").value = "";
   document.getElementById("bmEmail").value = "";
   document.getElementById("bmEditId").value = "";
+  const locSel = document.getElementById("bmLocation");
+  if(locSel && currentLocationId) locSel.value = currentLocationId;
 }
 function editBarber(id){
   const b = barbers.find(x => x.id === id);
@@ -1538,6 +1754,8 @@ function editBarber(id){
   document.getElementById("bmName").value = b.name || "";
   document.getElementById("bmEmail").value = b.email || "";
   document.getElementById("bmEditId").value = b.id;
+  const locSel = document.getElementById("bmLocation");
+  if(locSel) locSel.value = barberLocationId(b);
   window.scrollTo({top:0, behavior:"smooth"});
 }
 async function toggleBarberActive(id){
@@ -1572,11 +1790,14 @@ function renderBarbersList(){
   if(role !== "admin") return;
   const list = document.getElementById("barbersList");
   if(!list) return;
-  if(!barbers.length){
-    list.innerHTML = '<div style="color:#666;padding:20px;">No barbers yet. Add one above.</div>';
+  const scoped = barbersAtCurrentLocation();
+  const titleEl = document.getElementById("barbersListTitle");
+  if(titleEl) titleEl.textContent = locations.length > 1 ? `Current Barbers — ${locationName(currentLocationId)}` : "Current Barbers";
+  if(!scoped.length){
+    list.innerHTML = '<div style="color:#666;padding:20px;">No barbers at this location yet. Add one above.</div>';
     return;
   }
-  list.innerHTML = barbers.map(b => {
+  list.innerHTML = scoped.map(b => {
     const isMe = b.id === myBarberId;
     const toggleLabel = isMe
       ? (b.active ? 'Hide Me from Site' : 'Show Me on Site')
@@ -1590,6 +1811,7 @@ function renderBarbersList(){
           <span style="color:${b.uid?'#7fdfff':'var(--text-muted)'};">${b.uid ? "Linked" : "Awaiting first sign-in"}</span>
           &nbsp;·&nbsp;
           <span style="color:${b.active?'#7fff7f':'var(--text-muted)'};">${b.active ? "Visible on Site" : "Hidden from Site"}</span>
+          ${locations.length > 1 ? `&nbsp;·&nbsp;<span style="color:var(--gold);">${esc(locationName(barberLocationId(b)))}</span>` : ''}
         </small>
       </div>
       <button class="btn small ghost" onclick="showRevenue('${b.id}')">Revenue</button>
@@ -1614,10 +1836,11 @@ function showRevenue(id){
 function renderRevenue(){
   const panel = document.getElementById("revPanel");
   if(!panel || panel.style.display === "none") return;
-  const title = revBarberId ? (barbers.find(b => b.id === revBarberId)?.name || "Barber") : "All Barbers";
+  const title = revBarberId ? (barbers.find(b => b.id === revBarberId)?.name || "Barber") : `All Barbers${locations.length > 1 ? ' — ' + locationName(currentLocationId) : ''}`;
   document.getElementById("revPanelTitle").textContent = "Revenue — " + title;
   let done = bookings.filter(b => b.status === "Completed");
   if(revBarberId) done = done.filter(b => b.barberId === revBarberId);
+  else { const scopedIds = new Set(barbersAtCurrentLocation().map(b => b.id)); done = done.filter(b => scopedIds.has(b.barberId)); }
   const today = new Date(); today.setHours(0,0,0,0);
   const wkStart = new Date(today); wkStart.setDate(wkStart.getDate() - today.getDay());
   const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -1688,6 +1911,7 @@ async function ensureMyBarberDoc(){
     email: (currentUser.email || "").toLowerCase(),
     uid: currentUser.uid,
     active: true, specialty: "", photoURL: null, menu: [],
+    locationId: currentLocationId || DEFAULT_LOCATION_ID,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
   myBarberId = ref.id;
@@ -1719,7 +1943,13 @@ async function saveHomeCallAvailability(){
 ========================================================= */
 function renderClients(){
   const clientMap = {};
-  const source = role === "admin" ? bookings : bookings.filter(b => b.barberId === myBarberId);
+  let source;
+  if(role === "admin"){
+    const scopedIds = new Set(barbersAtCurrentLocation().map(b => b.id));
+    source = bookings.filter(b => scopedIds.has(b.barberId));
+  } else {
+    source = bookings.filter(b => b.barberId === myBarberId);
+  }
   source.forEach(b => {
     if(!b.uid) return;
     if(!clientMap[b.uid]) clientMap[b.uid] = { name: b.name || "—", email: b.userEmail || "", phone: b.phone || "", count: 0, spent: 0 };

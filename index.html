@@ -288,6 +288,10 @@ section{padding:120px 8%;}
   border-color:rgba(179,0,0,.5);
   box-shadow:0 20px 50px rgba(0,0,0,.5), 0 0 30px rgba(179,0,0,.12);
 }
+.location-card{cursor:pointer;padding:28px 20px;}
+.location-card h3{margin-top:0;}
+.location-card.selected{border-color:var(--red-bright);box-shadow:0 0 30px rgba(230,0,0,.25);}
+.location-card.selected .btn-book{background:var(--red-bright);}
 .barber-avatar{
   width:140px;height:140px;border-radius:50%;object-fit:cover;
   border:3px solid rgba(179,0,0,.5);
@@ -769,25 +773,38 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 <section id="how-sec">
   <h2 class="title reveal">BOOKING MADE EASY AS:</h2>
   <div class="steps-grid">
-    <div class="step-card reveal">
+    <div class="step-card reveal" id="stepPickLocation" style="display:none;">
       <span class="step-num">01</span>
+      <span class="step-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--red-bright)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <h3>Pick Your Location</h3>
+      <p>Choose the shop nearest you — every location has its own team and its own booking calendar.</p>
+    </div>
+    <div class="step-card reveal">
+      <span class="step-num" id="stepNumBarber">01</span>
       <span class="step-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--red-bright)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
       <h3>Pick Your Barber</h3>
       <p>Browse our team, check their gallery, and choose the stylist who fits your vibe.</p>
     </div>
     <div class="step-card reveal">
-      <span class="step-num">02</span>
+      <span class="step-num" id="stepNumService">02</span>
       <span class="step-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--red-bright)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></span>
       <h3>Choose Your Service</h3>
       <p>From classic cuts to hot towel shaves — select one or stack a few. Prices are upfront.</p>
     </div>
     <div class="step-card reveal">
-      <span class="step-num">03</span>
+      <span class="step-num" id="stepNumTime">03</span>
       <span class="step-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--red-bright)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
       <h3>Lock Your Time</h3>
       <p>Pick a date and time that works for you. Show up, sit down, walk out looking sharp.</p>
     </div>
   </div>
+</section>
+
+<!-- LOCATIONS (only shown once the shop has more than one) -->
+<section id="locations-sec" style="display:none;">
+  <h2 class="title reveal">Choose a Location</h2>
+  <p class="subtitle reveal">Pick the shop nearest you — barbers and booking times are specific to each location.</p>
+  <div class="barbers" id="locationsGrid"></div>
 </section>
 
 <!-- BARBERS -->
@@ -1190,6 +1207,7 @@ const provider = new firebase.auth.GoogleAuthProvider();
 ========================================================= */
 const ADMIN_UID = "7kV7eY9vrHUwoywlDItY7644R063";
 const SLOT_MINUTES = 35;
+const DEFAULT_LOCATION_ID = "welland-626-main";
 const CURRENCY = "$";
 const CURRENCY_SUFFIX = " CAD";
 const HOME_CALL_PRICES = { during: 200, before: 200, after: 150 };
@@ -1256,6 +1274,8 @@ const SHOP = {
    GLOBAL STATE
 ========================================================= */
 let currentUser = null;
+let locations = [];
+let selectedLocationId = null;
 let barbers = [];
 let unavailable = [];
 let vacations = [];
@@ -1526,6 +1546,25 @@ const HERO_IMAGES = [
 /* =========================================================
    FIRESTORE LISTENERS
 ========================================================= */
+db.collection("locations").orderBy("order","asc").onSnapshot(snap => {
+  locations = snap.docs.map(d => ({id:d.id, ...d.data()})).filter(l => l.active !== false);
+  // Single-location shops (the common case) skip the picker entirely — barbers
+  // just show up like before. Multi-location shops get a location step.
+  if(locations.length <= 1){
+    selectedLocationId = locations.length ? locations[0].id : DEFAULT_LOCATION_ID;
+  } else if(!selectedLocationId || !locations.some(l => l.id === selectedLocationId)){
+    let saved = null;
+    try{ saved = localStorage.getItem("stunna_selected_location"); }catch(e){}
+    selectedLocationId = (saved && locations.some(l => l.id === saved)) ? saved : null;
+  }
+  renderLocationPicker();
+  renderBarbers();
+}, () => {
+  // Rules/collection not set up yet — behave exactly like a single-location shop.
+  locations = [];
+  selectedLocationId = DEFAULT_LOCATION_ID;
+  renderBarbers();
+});
 db.collection("barbers").where("active","==",true).onSnapshot(snap => {
   barbers = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderBarbers();
@@ -1578,18 +1617,57 @@ function isOnVacation(barberId, dateStr){
   return vacations.some(v => v.barberId === barberId && v.start <= dateStr && v.end >= dateStr);
 }
 
+function barberLocationId(b){ return (b && b.locationId) || DEFAULT_LOCATION_ID; }
+
+function renderLocationPicker(){
+  const sec = document.getElementById("locations-sec");
+  const grid = document.getElementById("locationsGrid");
+  const stepLoc = document.getElementById("stepPickLocation");
+  const multi = locations.length > 1;
+  if(stepLoc) stepLoc.style.display = multi ? "" : "none";
+  const n1 = document.getElementById("stepNumBarber"), n2 = document.getElementById("stepNumService"), n3 = document.getElementById("stepNumTime");
+  if(n1) n1.textContent = multi ? "02" : "01";
+  if(n2) n2.textContent = multi ? "03" : "02";
+  if(n3) n3.textContent = multi ? "04" : "03";
+  if(!sec || !grid) return;
+  if(!multi){ sec.style.display = "none"; return; }
+  sec.style.display = "";
+  grid.innerHTML = locations.map(l => `
+    <div class="barber-profile reveal location-card ${l.id===selectedLocationId?'selected':''}" onclick="pickLocation('${l.id}')">
+      <h3>${esc(l.name)}</h3>
+      <p class="specialty">${esc(l.address || "")}</p>
+      <button class="btn-book">${l.id===selectedLocationId ? 'SELECTED' : 'CHOOSE THIS LOCATION'}</button>
+    </div>`).join("");
+  grid.querySelectorAll('.reveal').forEach(el => window._revealObserver?.observe(el));
+}
+function pickLocation(id){
+  selectedLocationId = id;
+  try{ localStorage.setItem("stunna_selected_location", id); }catch(e){}
+  renderLocationPicker();
+  renderBarbers();
+  document.getElementById("barbers-sec")?.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
 /* =========================================================
    RENDER: BARBERS (no hasMenu gate — all active barbers show)
-   Admin's barber profile always appears first.
+   Admin's barber profile always appears first. Filtered to the
+   currently selected location once the shop has more than one.
 ========================================================= */
 function renderBarbers(){
   const grid = document.getElementById("barbersGrid");
-  if(!barbers.length){
+  if(locations.length > 1 && !selectedLocationId){
+    grid.innerHTML = '<div class="gallery-empty" style="width:100%;text-align:center;">Choose a location above to see the barbers there.</div>';
+    return;
+  }
+  const atLocation = (locations.length > 1)
+    ? barbers.filter(b => barberLocationId(b) === selectedLocationId)
+    : barbers;
+  if(!atLocation.length){
     grid.innerHTML = '<div class="gallery-empty" style="width:100%;text-align:center;">No barbers listed yet.</div>';
     return;
   }
   /* Sort: admin barber first (matched by ADMIN_UID), rest keep original order */
-  const sorted = [...barbers].sort((a, b) => {
+  const sorted = [...atLocation].sort((a, b) => {
     const aIsAdmin = a.uid === ADMIN_UID ? 0 : 1;
     const bIsAdmin = b.uid === ADMIN_UID ? 0 : 1;
     return aIsAdmin - bIsAdmin;
@@ -2321,8 +2399,10 @@ async function submitBooking(){
       if(slotSnap.exists) throw new Error("This time slot was just booked by someone else. Please pick another.");
       const bookingRef = db.collection("bookings").doc();
       tx.set(slotRef, { barberId, date, time, duration: getBookingDuration(), bookingId: bookingRef.id, uid: user.uid, createdAt: new Date().toISOString() });
+      const bkBarber = barbers.find(b => b.id === barberId);
+      const locationId = (bkBarber && bkBarber.locationId) || DEFAULT_LOCATION_ID;
       tx.set(bookingRef, {
-        barberId, uid:user.uid, userEmail: email, isGuest: !!user.isAnonymous, bookingNumber, name, phone, date, time,
+        barberId, locationId, uid:user.uid, userEmail: email, isGuest: !!user.isAnonymous, bookingNumber, name, phone, date, time,
         service: serviceList, duration: getBookingDuration(), total,
         deposit: "No", status: "Active", cancelledBy: null,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
