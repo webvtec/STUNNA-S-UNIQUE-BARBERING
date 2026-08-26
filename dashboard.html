@@ -183,6 +183,9 @@ td{color:#ddd;}
 .drop-zone:hover,.drop-zone.drag{border-color:var(--red);background:rgba(179,0,0,.05);}
 .preview{max-width:200px;border-radius:10px;margin-top:14px;display:none;}
 .preview.on{display:inline-block;}
+.preview-grid{display:none;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.preview-grid.on{display:flex;}
+.preview-grid img{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);}
 .progress{height:6px;background:var(--dark);border-radius:3px;overflow:hidden;margin-top:12px;display:none;}
 .progress.on{display:block;}
 .progress-bar{height:100%;background:var(--red);width:0%;transition:.2s;}
@@ -436,16 +439,16 @@ td{color:#ddd;}
           <input type="text" id="galCategory" placeholder="e.g. Fades, Beards, Designs">
         </div>
         <div class="field">
-          <label>Upload Photo</label>
+          <label>Upload Photos</label>
           <div class="drop-zone" id="galDrop" onclick="document.getElementById('galFile').click()">
-            <div>Drop image here or click to browse</div>
-            <img class="preview" id="galPreview">
-            <input type="file" id="galFile" accept="image/*" style="display:none;">
+            <div id="galDropLabel">Drop images here or click to browse (you can select multiple)</div>
+            <div class="preview-grid" id="galPreviewGrid"></div>
+            <input type="file" id="galFile" accept="image/*" multiple style="display:none;">
           </div>
           <div class="progress" id="galProgress"><div class="progress-bar" id="galProgressBar"></div></div>
         </div>
       </div>
-      <button class="btn" onclick="uploadGalleryPhoto()">Upload Photo</button>
+      <button class="btn" onclick="uploadGalleryPhoto()">Upload Photos</button>
       <h3 style="margin-top:32px;">Photos</h3>
       <div id="galList"></div>
     </div>
@@ -1479,47 +1482,77 @@ function renderVacations(){
 /* =========================================================
    GALLERY UPLOAD
 ========================================================= */
-let galFile = null;
+let galFiles = [];
 function setupUploads(){
   const galInput = document.getElementById("galFile");
   const galDrop = document.getElementById("galDrop");
-  const galPrev = document.getElementById("galPreview");
-  galInput.addEventListener("change", e => { galFile = e.target.files[0]; if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }});
+  galInput.addEventListener("change", e => setGalFiles(e.target.files));
   ["dragenter","dragover"].forEach(ev => galDrop.addEventListener(ev, e => { e.preventDefault(); galDrop.classList.add("drag"); }));
   ["dragleave","drop"].forEach(ev => galDrop.addEventListener(ev, e => { e.preventDefault(); galDrop.classList.remove("drag"); }));
-  galDrop.addEventListener("drop", e => { galFile = e.dataTransfer.files[0]; if(galFile){ galPrev.src = URL.createObjectURL(galFile); galPrev.classList.add("on"); }});
+  galDrop.addEventListener("drop", e => setGalFiles(e.dataTransfer.files));
+}
+
+function setGalFiles(fileList){
+  galFiles = Array.from(fileList || []).filter(f => f.type.startsWith("image/"));
+  const grid = document.getElementById("galPreviewGrid");
+  const label = document.getElementById("galDropLabel");
+  if(!galFiles.length){
+    grid.innerHTML = ""; grid.classList.remove("on");
+    label.textContent = "Drop images here or click to browse (you can select multiple)";
+    return;
+  }
+  grid.innerHTML = galFiles.map(f => `<img src="${URL.createObjectURL(f)}">`).join("");
+  grid.classList.add("on");
+  label.textContent = galFiles.length + (galFiles.length > 1 ? " images selected" : " image selected");
 }
 
 async function uploadGalleryPhoto(){
-  if(!galFile) return toast("Choose an image first", "red");
+  if(!galFiles.length) return toast("Choose at least one image first", "red");
   if(role !== "admin") return toast("Only the admin can upload photos", "red");
   const category = document.getElementById("galCategory").value.trim() || "General";
-  const catCount = gallery.filter(g => (g.barberId === "shop" || g.barberId === "admin") && (g.category || "General") === category).length;
-  if(catCount >= 12) return toast("Limit reached — each gallery section can hold a maximum of 12 photos. Remove a photo from \"" + category + "\" before uploading.", "red");
   const barberId = "shop";
-  const path = `gallery/${barberId}/${Date.now()}_${galFile.name}`;
-  const ref = storage.ref(path);
-  const task = ref.put(galFile);
+  const existingCount = gallery.filter(g => (g.barberId === "shop" || g.barberId === "admin") && (g.category || "General") === category).length;
+  if(existingCount + galFiles.length > 12){
+    const room = Math.max(0, 12 - existingCount);
+    return toast(`Limit reached — "${category}" can hold a maximum of 12 photos (${existingCount} already there, room for ${room} more). Select fewer images or remove some first.`, "red");
+  }
+
   const bar = document.getElementById("galProgressBar");
   const wrap = document.getElementById("galProgress");
   wrap.classList.add("on");
-  task.on("state_changed",
-    snap => { bar.style.width = ((snap.bytesTransferred/snap.totalBytes)*100) + "%"; },
-    err => { toast("Upload failed", "red"); wrap.classList.remove("on"); },
-    async () => {
-      const url = await task.snapshot.ref.getDownloadURL();
-      const maxOrder = Math.max(0, ...gallery.filter(g => (g.category||"General") === category).map(g => g.sortOrder || 0));
+  bar.style.width = "0%";
+
+  let maxOrder = Math.max(0, ...gallery.filter(g => (g.category||"General") === category).map(g => g.sortOrder || 0));
+  const total = galFiles.length;
+  let completed = 0, failed = 0;
+
+  for(const file of galFiles){
+    try{
+      const path = `gallery/${barberId}/${Date.now()}_${file.name}`;
+      const ref = storage.ref(path);
+      const snap = await ref.put(file);
+      const url = await snap.ref.getDownloadURL();
+      maxOrder += 1;
       await db.collection("gallery").add({
-        barberId, url, category, sortOrder: maxOrder + 1,
+        barberId, url, category, sortOrder: maxOrder,
         uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      toast("Photo uploaded", "green");
-      document.getElementById("galPreview").classList.remove("on");
-      document.getElementById("galCategory").value = "";
-      galFile = null;
-      wrap.classList.remove("on"); bar.style.width = "0%";
+      completed++;
+    }catch(e){
+      failed++;
     }
-  );
+    bar.style.width = (((completed+failed)/total)*100) + "%";
+  }
+
+  if(failed) toast(completed + " of " + total + " photos uploaded — " + failed + " failed", "red");
+  else toast(completed + (completed > 1 ? " photos uploaded" : " photo uploaded"), "green");
+
+  document.getElementById("galPreviewGrid").innerHTML = "";
+  document.getElementById("galPreviewGrid").classList.remove("on");
+  document.getElementById("galDropLabel").textContent = "Drop images here or click to browse (you can select multiple)";
+  document.getElementById("galCategory").value = "";
+  galFiles = [];
+  wrap.classList.remove("on"); bar.style.width = "0%";
 }
 
 function renderGallery(){
