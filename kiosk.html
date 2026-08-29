@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Stunna's Unique Barbering — Style Preview</title>
+
+<!-- Kiosk hint: on iPad, open this page in Safari, tap Share -> "Add to Home
+     Screen", then launch it from that icon. That gives you a true fullscreen
+     app with no address bar and no way to swipe back to Safari. Pair it with
+     Settings -> Accessibility -> Guided Access (triple-click the side/top
+     button once the page is open) to lock the tablet to this screen only. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#050505">
+<link rel="apple-touch-icon" href="/STUNNA%20BARBERING%20LOGO.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase (compat, matches index.html) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+
+<style>
+:root{
+  --gold:#ffffff;
+  --blue:#2f6bff;
+  --blue-glow:#00c2ff;
+  --red:#b30000;
+  --red-bright:#e60000;
+  --dark:#050505;
+  --dark-card:#0a0a0a;
+  --dark-panel:#111;
+  --text:#f5f7ff;
+  --text-dim:#bbb;
+  --text-muted:#888;
+  --border:rgba(255,255,255,.08);
+  --border-light:rgba(255,255,255,.14);
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{
+  height:100%;overflow:hidden;background:var(--dark);color:var(--text);
+  font-family:Poppins,sans-serif;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  touch-action:manipulation;
+}
+h1,h2,h3{font-family:Cinzel,serif;letter-spacing:2px;text-transform:uppercase;}
+button{font-family:Poppins,sans-serif;border:none;cursor:pointer;background:none;color:inherit;}
+img,video{-webkit-user-drag:none;}
+
+#app{position:fixed;inset:0;background:var(--dark);}
+
+/* ── Screens ───────────────────────────────────────────── */
+.screen{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  padding-top:calc(24px + var(--safe-t));padding-bottom:calc(24px + var(--safe-b));
+  padding-left:24px;padding-right:24px;
+}
+.screen.active{display:flex;}
+
+.crumb{
+  position:absolute;top:calc(18px + var(--safe-t));left:0;right:0;
+  display:flex;justify-content:center;gap:8px;z-index:5;
+}
+.crumb span{width:8px;height:8px;border-radius:50%;background:var(--border-light);transition:.3s;}
+.crumb span.on{background:var(--red-bright);width:22px;border-radius:5px;}
+
+/* ── Attract / welcome ─────────────────────────────────── */
+#scr-attract{align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;}
+.attract-glow{
+  position:absolute;inset:-20%;pointer-events:none;
+  background:radial-gradient(circle at 50% 30%, rgba(230,0,0,.16), transparent 60%);
+  animation:drift 10s ease-in-out infinite alternate;
+}
+@keyframes drift{0%{transform:translateY(-3%) scale(1);}100%{transform:translateY(3%) scale(1.06);}}
+.attract-logo{width:120px;height:120px;border-radius:50%;border:2px solid rgba(230,0,0,.5);position:relative;z-index:1;}
+.attract-title{font-size:clamp(30px,6vw,46px);margin-top:28px;position:relative;z-index:1;}
+.attract-sub{color:var(--text-dim);font-size:16px;margin-top:12px;letter-spacing:.5px;position:relative;z-index:1;max-width:480px;}
+.tap-cta{
+  margin-top:56px;padding:22px 64px;background:var(--red-bright);color:#fff;
+  font-family:Cinzel;font-size:18px;letter-spacing:3px;text-transform:uppercase;
+  border-radius:999px;position:relative;z-index:1;animation:pulse 2.2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(230,0,0,.45);}50%{box-shadow:0 0 0 18px rgba(230,0,0,0);}}
+.attract-foot{position:absolute;bottom:calc(20px + var(--safe-b));color:var(--text-muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;z-index:1;}
+
+/* discreet attendant-only corner tap target */
+#attendant-dot{
+  position:absolute;bottom:0;left:0;width:64px;height:64px;z-index:20;
+  background:transparent;
+}
+
+/* ── Camera ────────────────────────────────────────────── */
+#scr-camera{align-items:center;}
+.cam-title{text-align:center;font-size:20px;margin-top:8px;}
+.cam-sub{text-align:center;color:var(--text-dim);font-size:13px;margin-top:6px;}
+.cam-frame{
+  position:relative;flex:1;width:100%;max-width:560px;margin:20px auto 0;
+  border-radius:28px;overflow:hidden;background:#000;border:1px solid var(--border-light);
+}
+.cam-frame video, .cam-frame canvas, .cam-frame img.freeze{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);
+}
+.cam-guide{
+  position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
+  width:62%;aspect-ratio:3/4;border:2px dashed rgba(255,255,255,.35);border-radius:50%;
+  pointer-events:none;
+}
+.cam-countdown{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:Cinzel;font-size:110px;color:#fff;background:rgba(0,0,0,.25);
+  opacity:0;pointer-events:none;
+}
+.cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+.cam-controls{display:flex;justify-content:center;align-items:center;gap:28px;margin-top:22px;}
+.shutter{
+  width:84px;height:84px;border-radius:50%;background:var(--red-bright);
+  border:5px solid rgba(255,255,255,.85);
+}
+.ghost-btn{
+  padding:14px 26px;border-radius:999px;border:1px solid var(--border-light);
+  color:var(--text-dim);font-size:13px;letter-spacing:1px;text-transform:uppercase;
+}
+
+/* ── Style picker ──────────────────────────────────────── */
+#scr-styles{align-items:stretch;}
+.styles-head{display:flex;align-items:center;gap:14px;margin-top:8px;}
+.styles-thumb{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--red-bright);transform:scaleX(-1);}
+.styles-head h2{font-size:18px;}
+.styles-head p{color:var(--text-dim);font-size:12px;margin-top:2px;}
+.styles-grid{
+  flex:1;margin-top:20px;display:grid;grid-template-columns:repeat(2,1fr);
+  gap:14px;overflow-y:auto;padding-bottom:8px;
+}
+@media(min-width:820px){.styles-grid{grid-template-columns:repeat(4,1fr);}}
+.style-card{
+  background:var(--dark-card);border:1px solid var(--border);border-radius:18px;
+  padding:18px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;min-height:118px;transition:.15s;
+}
+.style-card:active{transform:scale(.96);border-color:var(--red-bright);background:rgba(230,0,0,.08);}
+.style-card .emoji{font-size:30px;}
+.style-card .label{font-family:Cinzel;font-size:12px;letter-spacing:1px;text-align:center;text-transform:uppercase;}
+.styles-foot{display:flex;justify-content:center;margin-top:16px;}
+
+/* ── Loading ───────────────────────────────────────────── */
+#scr-loading{align-items:center;justify-content:center;text-align:center;}
+.spinner{
+  width:64px;height:64px;border-radius:50%;
+  border:4px solid var(--border-light);border-top-color:var(--red-bright);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-msg{margin-top:24px;color:var(--text-dim);font-size:15px;letter-spacing:.5px;min-height:22px;}
+
+/* ── Result (reveal slider) ───────────────────────────────*/
+#scr-result{align-items:center;}
+.result-title{text-align:center;font-size:20px;margin-top:8px;}
+.reveal{
+  position:relative;flex:1;width:100%;max-width:560px;margin:18px auto 0;
+  border-radius:28px;overflow:hidden;background:#000;border:1px solid var(--border-light);
+}
+.reveal img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+.reveal .after-wrap{position:absolute;inset:0;overflow:hidden;}
+.reveal-handle{
+  position:absolute;top:0;bottom:0;width:3px;background:#fff;left:50%;
+  box-shadow:0 0 0 1px rgba(0,0,0,.3);
+}
+.reveal-handle::after{
+  content:"↔";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:44px;height:44px;border-radius:50%;background:#fff;color:#111;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.reveal-tag{
+  position:absolute;top:12px;padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.55);
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+}
+.reveal-tag.before{left:12px;}
+.reveal-tag.after{right:12px;}
+.reveal-slider{width:100%;max-width:560px;margin:14px auto 0;accent-color:var(--red-bright);}
+.result-actions{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;justify-content:center;}
+.btn{
+  padding:16px 22px;border-radius:14px;font-size:13px;letter-spacing:1px;text-transform:uppercase;
+  font-family:Cinzel;
+}
+.btn-primary{background:var(--red-bright);color:#fff;flex:1 1 auto;min-width:180px;text-align:center;}
+.btn-ghost{background:var(--dark-card);border:1px solid var(--border-light);color:var(--text-dim);}
+
+/* ── Email ─────────────────────────────────────────────── */
+#scr-email{align-items:center;justify-content:center;text-align:center;}
+.email-icon{font-size:44px;}
+#scr-email h2{margin-top:16px;font-size:20px;}
+#scr-email p{color:var(--text-dim);font-size:13px;margin-top:8px;max-width:360px;}
+#email-input{
+  margin-top:26px;width:100%;max-width:380px;padding:18px 20px;font-size:20px;
+  background:var(--dark-card);border:1px solid var(--border-light);border-radius:14px;
+  color:var(--text);text-align:center;
+}
+#email-input:focus{outline:2px solid var(--red-bright);}
+.email-actions{display:flex;gap:12px;margin-top:22px;width:100%;max-width:380px;}
+.email-actions .btn{flex:1;}
+.email-note{margin-top:18px;font-size:11px;color:var(--text-muted);max-width:360px;}
+
+/* ── Sent / error ──────────────────────────────────────── */
+#scr-sent, #scr-error{align-items:center;justify-content:center;text-align:center;}
+.result-icon{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;}
+.result-icon.ok{background:rgba(0,180,80,.15);border:2px solid #00b450;}
+.result-icon.bad{background:rgba(230,0,0,.15);border:2px solid var(--red-bright);}
+#scr-sent h2, #scr-error h2{margin-top:20px;font-size:22px;}
+#scr-sent p, #scr-error p{color:var(--text-dim);font-size:14px;margin-top:10px;max-width:340px;}
+.countdown-note{margin-top:26px;color:var(--text-muted);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+
+/* ── Attendant PIN modal / paused screen ──────────────────*/
+#attendant-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;
+  align-items:center;justify-content:center;z-index:50;
+}
+#attendant-modal.open{display:flex;}
+.pin-card{background:var(--dark-panel);border:1px solid var(--border-light);border-radius:18px;padding:28px;width:280px;text-align:center;}
+.pin-card h3{font-size:14px;}
+#pin-input{
+  margin-top:16px;width:100%;padding:14px;font-size:22px;letter-spacing:6px;text-align:center;
+  background:var(--dark-card);border:1px solid var(--border-light);border-radius:10px;color:#fff;
+}
+.pin-actions{display:flex;gap:10px;margin-top:16px;}
+.pin-actions .btn{flex:1;padding:12px;font-size:11px;}
+
+#scr-paused{align-items:center;justify-content:center;text-align:center;}
+#scr-paused p{color:var(--text-dim);font-size:13px;margin-top:10px;max-width:320px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══ ATTRACT / WELCOME ═══ -->
+  <div class="screen active" id="scr-attract">
+    <div class="attract-glow"></div>
+    <img class="attract-logo" alt="Stunna's Unique Barbering"
+      src="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
+    <h1 class="attract-title">See Your Next Cut</h1>
+    <p class="attract-sub">Snap a photo, try on a few styles, and email yourself the one you like before you sit in the chair.</p>
+    <button class="tap-cta" id="btn-start">Tap To Start</button>
+    <div class="attract-foot">Stunna's Unique Barbering · Welland, ON</div>
+    <div id="attendant-dot"></div>
+  </div>
+
+  <!-- ═══ CAMERA ═══ -->
+  <div class="screen" id="scr-camera">
+    <div class="crumb"><span class="on"></span><span></span><span></span><span></span></div>
+    <h2 class="cam-title">Line Yourself Up</h2>
+    <p class="cam-sub">Center your face in the circle, then tap the button.</p>
+    <div class="cam-frame">
+      <video id="video" autoplay playsinline muted></video>
+      <div class="cam-guide"></div>
+      <div class="cam-countdown" id="countdown">3</div>
+      <div class="cam-flash" id="flash"></div>
+    </div>
+    <div class="cam-controls">
+      <button class="ghost-btn" id="btn-cam-back">Back</button>
+      <button class="shutter" id="btn-shutter" aria-label="Take photo"></button>
+      <div style="width:88px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ STYLE PICKER ═══ -->
+  <div class="screen" id="scr-styles">
+    <div class="crumb"><span class="on"></span><span class="on"></span><span></span><span></span></div>
+    <div class="styles-head">
+      <img class="styles-thumb" id="styles-thumb" alt="Your photo">
+      <div>
+        <h2>Pick A Style</h2>
+        <p>Tap one to preview it — try as many as you want.</p>
+      </div>
+    </div>
+    <div class="styles-grid" id="styles-grid"></div>
+    <div class="styles-foot">
+      <button class="ghost-btn" id="btn-retake-from-styles">Retake Photo</button>
+    </div>
+  </div>
+
+  <!-- ═══ LOADING ═══ -->
+  <div class="screen" id="scr-loading">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div class="spinner"></div>
+      <div class="load-msg" id="load-msg">Warming up the clippers...</div>
+    </div>
+  </div>
+
+  <!-- ═══ RESULT ═══ -->
+  <div class="screen" id="scr-result">
+    <div class="crumb"><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+    <h2 class="result-title" id="result-title">Your New Look</h2>
+    <div class="reveal">
+      <img id="result-before" alt="Before">
+      <div class="after-wrap" id="result-after-wrap">
+        <img id="result-after" alt="After">
+      </div>
+      <div class="reveal-handle" id="reveal-handle"></div>
+      <span class="reveal-tag before">Before</span>
+      <span class="reveal-tag after">After</span>
+    </div>
+    <input type="range" class="reveal-slider" id="reveal-slider" min="0" max="100" value="50">
+    <div class="result-actions">
+      <button class="btn btn-primary" id="btn-email-this">Email Me This Look</button>
+      <button class="btn btn-ghost" id="btn-try-another">Try Another Style</button>
+      <button class="btn btn-ghost" id="btn-retake-from-result">Retake Photo</button>
+    </div>
+  </div>
+
+  <!-- ═══ EMAIL ═══ -->
+  <div class="screen" id="scr-email">
+    <div class="email-icon">📧</div>
+    <h2>Where Should We Send It?</h2>
+    <p>We'll email your preview photo — that's all we use it for.</p>
+    <input type="email" id="email-input" inputmode="email" autocomplete="off" autocapitalize="off" placeholder="you@email.com">
+    <div class="email-actions">
+      <button class="btn btn-ghost" id="btn-email-cancel">Back</button>
+      <button class="btn btn-primary" id="btn-email-send">Send</button>
+    </div>
+    <div class="email-note">Your photo isn't saved anywhere — it's only used to generate and send this preview.</div>
+  </div>
+
+  <!-- ═══ SENT ═══ -->
+  <div class="screen" id="scr-sent">
+    <div class="result-icon ok">✓</div>
+    <h2>On Its Way!</h2>
+    <p id="sent-msg">Check your inbox — your new look should land any moment.</p>
+    <div class="countdown-note" id="sent-countdown">Returning to start in 8s</div>
+  </div>
+
+  <!-- ═══ ERROR ═══ -->
+  <div class="screen" id="scr-error">
+    <div class="result-icon bad">!</div>
+    <h2 id="error-title">Something Went Wrong</h2>
+    <p id="error-msg">Please try again.</p>
+    <div class="result-actions" style="margin-top:26px;">
+      <button class="btn btn-primary" id="btn-error-retry">Try Again</button>
+      <button class="btn btn-ghost" id="btn-error-start-over">Start Over</button>
+    </div>
+  </div>
+
+  <!-- ═══ PAUSED (attendant) ═══ -->
+  <div class="screen" id="scr-paused">
+    <h2>Kiosk Paused</h2>
+    <p>Tap below to relaunch the style preview for customers.</p>
+    <button class="tap-cta" id="btn-relaunch" style="margin-top:30px;">Relaunch Kiosk</button>
+  </div>
+
+</div>
+
+<!-- Attendant PIN modal -->
+<div id="attendant-modal">
+  <div class="pin-card">
+    <h3>Staff PIN</h3>
+    <input type="password" id="pin-input" inputmode="numeric" maxlength="4" placeholder="••••">
+    <div class="pin-actions">
+      <button class="btn btn-ghost" id="pin-cancel">Cancel</button>
+      <button class="btn btn-primary" id="pin-submit">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   STUNNA'S UNIQUE BARBERING — Kiosk Style Preview
+   Flow: welcome -> camera -> pick a style -> Gemini generates a preview
+   -> reveal slider -> optional "email me this" -> back to welcome.
+
+   Backed by two Cloud Functions in functions/index.js:
+     generateKioskStyle({ imageBase64, mimeType, styleId }) -> { imageBase64, mimeType, styleLabel }
+     emailKioskPhoto({ to, imageBase64, mimeType, styleName }) -> { sent: true }
+
+   Nothing here is authenticated (a walk-in customer isn't signed in) — the
+   Cloud Functions rate-limit by device instead. See the SETUP comment at
+   the top of functions/index.js for the Gemini key + rate-limit config.
+
+   Privacy: the captured photo and every generated preview live only in
+   memory (`state`) for the current customer's session. Nothing is written
+   to Firestore or Storage from this page, and everything is cleared the
+   moment the kiosk resets to the welcome screen.
+   ========================================================================= */
+
+// ---- Firebase init (same public web config as the main site) ----
+firebase.initializeApp({
+  apiKey: "AIzaSyAWwOglA1fX3JmAbLrRxSXsy6XRwQbCDM0",
+  authDomain: "stunna-s-unique-barbering.firebaseapp.com",
+  projectId: "stunna-s-unique-barbering",
+  storageBucket: "stunna-s-unique-barbering.firebasestorage.app",
+  messagingSenderId: "612288542977",
+  appId: "1:612288542977:web:64bce242f9ecf727318300",
+});
+const functionsClient = firebase.app().functions("us-central1");
+const generateKioskStyle = functionsClient.httpsCallable("generateKioskStyle");
+const emailKioskPhoto = functionsClient.httpsCallable("emailKioskPhoto");
+
+// ---- Style catalog (labels/icons only — real prompts live server-side) ----
+const STYLES = [
+  { id: "skin_fade",   label: "Skin Fade",     emoji: "💈" },
+  { id: "taper_fade",  label: "Taper Fade",    emoji: "✂️" },
+  { id: "afro",        label: "Natural Afro",  emoji: "🌀" },
+  { id: "curly_crop",  label: "Curly Crop",    emoji: "🌊" },
+  { id: "waves_360",   label: "360 Waves",     emoji: "🌐" },
+  { id: "high_top",    label: "High Top Fade", emoji: "📦" },
+  { id: "mohawk_fade", label: "Mohawk Fade",   emoji: "⚡" },
+  { id: "lineup_beard",label: "Beard Line-Up", emoji: "🪒" },
+];
+
+const LOAD_MESSAGES = [
+  "Warming up the clippers...",
+  "Lining up the fade...",
+  "Blending the edges...",
+  "Adding a lil sauce...",
+  "Almost done...",
+];
+
+const IDLE_RESET_MS = 45000;   // reset to welcome after this much inactivity mid-flow
+const SENT_RESET_MS = 8000;    // auto-return-to-welcome delay on the "sent" screen
+const ATTENDANT_PIN = "1234";  // change this before you deploy the tablet
+
+// ---- App state (in-memory only, cleared on every reset) ----
+const state = {
+  photoDataUrl: null,   // mirrored capture, for on-screen "before"
+  photoBase64: null,    // raw base64 sent to Gemini
+  photoMime: "image/jpeg",
+  resultBase64: null,
+  resultMime: null,
+  styleLabel: null,
+  stream: null,
+  idleTimer: null,
+  sentTimer: null,
+};
+
+// ---- Screen helpers ----
+const screens = {};
+document.querySelectorAll(".screen").forEach((el) => (screens[el.id] = el));
+function showScreen(id) {
+  Object.values(screens).forEach((el) => el.classList.remove("active"));
+  screens[id].classList.add("active");
+  restartIdleTimer(id);
+}
+function restartIdleTimer(id) {
+  clearTimeout(state.idleTimer);
+  if (id === "scr-attract" || id === "scr-paused") return;
+  state.idleTimer = setTimeout(resetToWelcome, IDLE_RESET_MS);
+}
+["click", "touchstart", "input"].forEach((evt) =>
+  document.getElementById("app").addEventListener(evt, () => {
+    const active = Object.values(screens).find((s) => s.classList.contains("active"));
+    if (active) restartIdleTimer(active.id);
+  })
+);
+
+function resetToWelcome() {
+  stopCamera();
+  clearTimeout(state.sentTimer);
+  state.photoDataUrl = null;
+  state.photoBase64 = null;
+  state.resultBase64 = null;
+  state.resultMime = null;
+  state.styleLabel = null;
+  document.getElementById("email-input").value = "";
+  showScreen("scr-attract");
+}
+
+// ---- Fullscreen + wake lock on first tap ----
+async function enterKioskMode() {
+  try {
+    if (document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (e) { /* not supported on this device/browser — fine, ignore */ }
+  try {
+    if ("wakeLock" in navigator) {
+      state.wakeLock = await navigator.wakeLock.request("screen");
+    }
+  } catch (e) { /* ignore — some browsers restrict this until a real gesture */ }
+}
+
+// ---- Camera ----
+async function startCamera() {
+  try {
+    state.stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false,
+    });
+    document.getElementById("video").srcObject = state.stream;
+  } catch (e) {
+    showError("Camera Unavailable", "We couldn't access the camera. Please ask a team member for help.");
+  }
+}
+function stopCamera() {
+  if (state.stream) {
+    state.stream.getTracks().forEach((t) => t.stop());
+    state.stream = null;
+  }
+}
+
+function captureFrame() {
+  const video = document.getElementById("video");
+  const w = 900;
+  const h = Math.round(w * (video.videoHeight / video.videoWidth || 0.75));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  // Mirror the capture so it matches what the customer saw in the "mirror" preview.
+  ctx.translate(w, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, w, h);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  state.photoDataUrl = dataUrl;
+  state.photoBase64 = dataUrl.split(",")[1];
+  state.photoMime = "image/jpeg";
+}
+
+function runCountdownThenCapture() {
+  const el = document.getElementById("countdown");
+  const flash = document.getElementById("flash");
+  let n = 3;
+  el.style.opacity = "1";
+  el.textContent = n;
+  const tick = setInterval(() => {
+    n -= 1;
+    if (n === 0) {
+      el.textContent = "📸";
+    } else if (n < 0) {
+      clearInterval(tick);
+      el.style.opacity = "0";
+      flash.style.transition = "none";
+      flash.style.opacity = "0.9";
+      requestAnimationFrame(() => {
+        flash.style.transition = "opacity .4s";
+        flash.style.opacity = "0";
+      });
+      captureFrame();
+      stopCamera();
+      goToStyles();
+      return;
+    } else {
+      el.textContent = n;
+    }
+  }, 700);
+}
+
+// ---- Style picker ----
+function renderStyleGrid() {
+  const grid = document.getElementById("styles-grid");
+  grid.innerHTML = "";
+  STYLES.forEach((s) => {
+    const btn = document.createElement("button");
+    btn.className = "style-card";
+    btn.innerHTML = `<span class="emoji">${s.emoji}</span><span class="label">${s.label}</span>`;
+    btn.addEventListener("click", () => generateStyle(s));
+    grid.appendChild(btn);
+  });
+}
+function goToStyles() {
+  document.getElementById("styles-thumb").src = state.photoDataUrl;
+  showScreen("scr-styles");
+}
+
+let loadMsgTimer = null;
+function startLoadMessages() {
+  const el = document.getElementById("load-msg");
+  let i = 0;
+  el.textContent = LOAD_MESSAGES[0];
+  loadMsgTimer = setInterval(() => {
+    i = (i + 1) % LOAD_MESSAGES.length;
+    el.textContent = LOAD_MESSAGES[i];
+  }, 1600);
+}
+function stopLoadMessages() {
+  clearInterval(loadMsgTimer);
+}
+
+async function generateStyle(style) {
+  showScreen("scr-loading");
+  startLoadMessages();
+  try {
+    const res = await generateKioskStyle({
+      imageBase64: state.photoBase64,
+      mimeType: state.photoMime,
+      styleId: style.id,
+    });
+    state.resultBase64 = res.data.imageBase64;
+    state.resultMime = res.data.mimeType || "image/png";
+    state.styleLabel = res.data.styleLabel || style.label;
+    showResult();
+  } catch (err) {
+    showError("Couldn't Generate That Style", messageFromError(err));
+  } finally {
+    stopLoadMessages();
+  }
+}
+
+function showResult() {
+  document.getElementById("result-title").textContent = state.styleLabel;
+  document.getElementById("result-before").src = state.photoDataUrl;
+  document.getElementById("result-after").src = `data:${state.resultMime};base64,${state.resultBase64}`;
+  document.getElementById("reveal-slider").value = 50;
+  updateReveal(50);
+  showScreen("scr-result");
+}
+function updateReveal(pct) {
+  document.getElementById("result-after-wrap").style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+  document.getElementById("reveal-handle").style.left = pct + "%";
+}
+document.getElementById("reveal-slider").addEventListener("input", (e) => updateReveal(Number(e.target.value)));
+
+// ---- Email ----
+function goToEmail() {
+  showScreen("scr-email");
+  setTimeout(() => document.getElementById("email-input").focus(), 200);
+}
+async function sendEmail() {
+  const input = document.getElementById("email-input");
+  const to = input.value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    input.style.outline = "2px solid var(--red-bright)";
+    return;
+  }
+  showScreen("scr-loading");
+  startLoadMessages();
+  try {
+    await emailKioskPhoto({
+      to,
+      imageBase64: state.resultBase64,
+      mimeType: state.resultMime,
+      styleName: state.styleLabel,
+    });
+    document.getElementById("sent-msg").textContent = `Check ${to} — your ${state.styleLabel} preview should land any moment.`;
+    startSentCountdown();
+    showScreen("scr-sent");
+  } catch (err) {
+    showError("Couldn't Send That Email", messageFromError(err));
+  } finally {
+    stopLoadMessages();
+  }
+}
+function startSentCountdown() {
+  let secs = Math.round(SENT_RESET_MS / 1000);
+  const el = document.getElementById("sent-countdown");
+  el.textContent = `Returning to start in ${secs}s`;
+  const tick = setInterval(() => {
+    secs -= 1;
+    el.textContent = `Returning to start in ${secs}s`;
+    if (secs <= 0) clearInterval(tick);
+  }, 1000);
+  state.sentTimer = setTimeout(resetToWelcome, SENT_RESET_MS);
+}
+
+// ---- Errors ----
+let retryAction = null;
+function showError(title, msg, onRetry) {
+  document.getElementById("error-title").textContent = title;
+  document.getElementById("error-msg").textContent = msg;
+  retryAction = onRetry || null;
+  document.getElementById("btn-error-retry").style.display = onRetry ? "inline-block" : "none";
+  showScreen("scr-error");
+}
+function messageFromError(err) {
+  // Firebase callable errors carry a friendly `message` from HttpsError on the server.
+  return (err && err.message) || "Please try again in a moment.";
+}
+
+// ---- Wiring ----
+document.getElementById("btn-start").addEventListener("click", async () => {
+  await enterKioskMode();
+  showScreen("scr-camera");
+  startCamera();
+});
+document.getElementById("btn-shutter").addEventListener("click", runCountdownThenCapture);
+document.getElementById("btn-cam-back").addEventListener("click", resetToWelcome);
+document.getElementById("btn-retake-from-styles").addEventListener("click", () => {
+  showScreen("scr-camera");
+  startCamera();
+});
+document.getElementById("btn-retake-from-result").addEventListener("click", () => {
+  showScreen("scr-camera");
+  startCamera();
+});
+document.getElementById("btn-try-another").addEventListener("click", goToStyles);
+document.getElementById("btn-email-this").addEventListener("click", goToEmail);
+document.getElementById("btn-email-cancel").addEventListener("click", showResult);
+document.getElementById("btn-email-send").addEventListener("click", sendEmail);
+document.getElementById("btn-error-start-over").addEventListener("click", resetToWelcome);
+document.getElementById("btn-error-retry").addEventListener("click", () => {
+  if (retryAction) retryAction();
+});
+
+renderStyleGrid();
+
+// ---- Attendant escape hatch (5 taps on the bottom-left dot, then PIN) ----
+let tapCount = 0;
+let tapTimer = null;
+document.getElementById("attendant-dot").addEventListener("click", () => {
+  tapCount += 1;
+  clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => (tapCount = 0), 2500);
+  if (tapCount >= 5) {
+    tapCount = 0;
+    document.getElementById("attendant-modal").classList.add("open");
+    document.getElementById("pin-input").value = "";
+    document.getElementById("pin-input").focus();
+  }
+});
+document.getElementById("pin-cancel").addEventListener("click", () => {
+  document.getElementById("attendant-modal").classList.remove("open");
+});
+document.getElementById("pin-submit").addEventListener("click", async () => {
+  const val = document.getElementById("pin-input").value;
+  document.getElementById("attendant-modal").classList.remove("open");
+  if (val === ATTENDANT_PIN) {
+    stopCamera();
+    try {
+      if (document.exitFullscreen) await document.exitFullscreen();
+    } catch (e) { /* ignore */ }
+    showScreen("scr-paused");
+  }
+});
+document.getElementById("btn-relaunch").addEventListener("click", async () => {
+  await enterKioskMode();
+  resetToWelcome();
+});
+</script>
+</body>
+</html>
