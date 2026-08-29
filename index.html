@@ -94,41 +94,6 @@
 }
 </script>
 
-<!-- FAQ structured data (must always match the visible FAQ text on the page) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Do you accept walk-ins?",
-      "acceptedAnswer": { "@type": "Answer", "text": "We're a booking-first shop to keep your wait time at zero. That said, if a chair opens up, walk-ins are welcome — just know that booked clients always get priority." }
-    },
-    {
-      "@type": "Question",
-      "name": "What payment methods do you accept?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Cash, debit, and Interac e-Transfer. No deposit is required when booking — payment is collected in-shop after your service." }
-    },
-    {
-      "@type": "Question",
-      "name": "What's your cancellation policy?",
-      "acceptedAnswer": { "@type": "Answer", "text": "You can cancel any booking up to 2 hours before your appointment time, directly from \"My Bookings\" in your account. After that window, the booking is locked." }
-    },
-    {
-      "@type": "Question",
-      "name": "What if I'm running late?",
-      "acceptedAnswer": { "@type": "Answer", "text": "We hold your slot for 10 minutes. After that, it may be released to the next person. If you know you'll be late, give us a call so we can work something out." }
-    },
-    {
-      "@type": "Question",
-      "name": "Do you cut kids' hair?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. We have dedicated pricing for kids under 11 and youth ages 12–16. Our barbers are experienced with younger clients and keep the experience relaxed and fun." }
-    }
-  ]
-}
-</script>
-
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- Firebase v9 compat -->
@@ -328,6 +293,27 @@ section{padding:120px 8%;}
 
 /* ============ SERVICES & PRICING ============ */
 .pricing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1100px;margin:0 auto;}
+
+/* ============ REVIEW CARDS ============ */
+.reviews-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:20px;max-width:1200px;margin:36px auto 0;
+}
+.review-card{
+  background:var(--dark-card);border:1px solid var(--border);border-radius:16px;
+  padding:24px;text-align:left;transition:.3s;display:flex;flex-direction:column;
+}
+.review-card:hover{border-color:var(--red);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.review-card .rc-stars{color:#ffb400;font-size:15px;letter-spacing:2px;margin-bottom:10px;}
+.review-card .rc-text{color:var(--text-dim);font-size:14px;line-height:1.7;flex-grow:1;}
+.review-card .rc-meta{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.review-card .rc-name{font-family:Cinzel;font-size:13px;letter-spacing:.5px;color:var(--text);}
+.review-card .rc-date{font-size:11px;color:var(--text-muted);}
+.review-card .rc-reply{
+  margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.03);
+  border-left:2px solid var(--red);border-radius:4px;font-size:12.5px;line-height:1.6;color:var(--text-muted);
+}
+.review-card .rc-reply b{color:var(--text-dim);font-family:Poppins;font-weight:600;}
 .price-card{
   background:var(--dark-card);border:1px solid var(--border);padding:24px 28px;
   display:flex;justify-content:space-between;align-items:center;transition:.3s;
@@ -845,7 +831,54 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 <section id="google-reviews-sec" style="background:rgba(10,10,10,.72);">
   <h2 class="title reveal">What Clients Say</h2>
   <p class="subtitle reveal">Straight from our Google Business Profile</p>
-  <div class="reveal" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:30px;">
+
+  <div class="reviews-grid" id="googleReviewsGrid">
+
+    <div class="review-card reveal">
+      <div class="rc-stars">★★★★★</div>
+      <p class="rc-text">Stunna is very talented and always does an amazing fade for my son! My son feels very comfortable sitting in his chair.</p>
+      <div class="rc-meta"><span class="rc-name">Kezia Samuels</span><span class="rc-date">19 hours ago</span></div>
+      <div class="rc-reply"><b>Owner reply:</b> Hey Kezia, I really appreciate the review. Our team tries their very best to ensure each customer comes in feeling welcomed and leaves with the absolute best experience.</div>
+    </div>
+
+    <div class="review-card reveal">
+      <div class="rc-stars">★★★★★</div>
+      <p class="rc-text">We absolutely love this barbershop! It's clean, spacious, his son will welcome you, and the service is always amazing.</p>
+      <div class="rc-meta"><span class="rc-name">Chantelle Belmore</span><span class="rc-date">Yesterday</span></div>
+      <div class="rc-reply"><b>Owner reply:</b> Appreciate the reply Chantelle. Great that you and the family have all had nothing but great experiences when you guys visit.</div>
+    </div>
+
+    <div class="review-card reveal">
+      <div class="rc-stars">★★★★★</div>
+      <p class="rc-text">Great service, amazing barber.</p>
+      <div class="rc-meta"><span class="rc-name">Kaz Khan <span style="color:var(--text-muted);font-weight:400;">· Local Guide</span></span><span class="rc-date">2 days ago</span></div>
+      <div class="rc-reply"><b>Owner reply:</b> Appreciate the reply.</div>
+    </div>
+
+    <div class="review-card reveal">
+      <div class="rc-stars">★★★★★</div>
+      <p class="rc-text">Excellent service, the atmosphere was very welcoming, friendly, clean and comfortable. I highly recommend anyone needing a nice cut, trim etc reach out to Stunna!</p>
+      <div class="rc-meta"><span class="rc-name">Eudena Rolle</span><span class="rc-date">4 days ago</span></div>
+      <div class="rc-reply"><b>Owner reply:</b> Thank you so much for the 5 star review, Eudena. We are thrilled to hear you enjoyed our welcoming atmosphere, cleanliness, and comfort — we look forward to seeing you back in the chair soon.</div>
+    </div>
+
+    <div class="review-card reveal">
+      <div class="rc-stars">★★★★★</div>
+      <p class="rc-text">Best barbershop in the Niagara region. Fresh fades, reasonable prices, sophisticated experiences. — The original AB. 💯</p>
+      <div class="rc-meta"><span class="rc-name">Abdullah</span><span class="rc-date">7 days ago</span></div>
+      <div class="rc-reply"><b>Owner reply:</b> Thank you for the incredible feedback Abdullah. Hearing that we are the best barbershop in the Niagara region means the world to us.</div>
+    </div>
+
+    <div class="review-card reveal">
+      <div class="rc-stars">★★★★★</div>
+      <p class="rc-text">Best barber shop in Welland. Stunna did an amazing job.</p>
+      <div class="rc-meta"><span class="rc-name">Nicardo Courts</span><span class="rc-date">2 weeks ago</span></div>
+      <div class="rc-reply"><b>Owner reply:</b> Appreciate the support, Nicardo, so glad we took great care of you. Thanks for shouting us out as the best barber shop in Welland.</div>
+    </div>
+
+  </div>
+
+  <div class="reveal" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:34px;">
     <a href="https://share.google/uVaaFCT6wSkV8eFoa" target="_blank" rel="noopener" class="btn ghost" style="display:inline-block;text-decoration:none;">VIEW REVIEWS</a>
     <a href="https://share.google/uVaaFCT6wSkV8eFoa" target="_blank" rel="noopener" class="btn" style="display:inline-block;text-decoration:none;">LEAVE US A REVIEW</a>
   </div>
