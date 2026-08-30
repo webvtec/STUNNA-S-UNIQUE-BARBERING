@@ -21,6 +21,7 @@
 
 <!-- Firebase (compat, matches index.html) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 
 <style>
@@ -237,8 +238,23 @@ img,video{-webkit-user-drag:none;}
 
 <div id="app">
 
+  <!-- ═══ STAFF LOCK (must be signed in as the admin account) ═══ -->
+  <div class="screen active" id="scr-lock">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+      <img class="attract-logo" style="width:80px;height:80px;" alt="Stunna's Unique Barbering"
+        src="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
+      <h2 style="margin-top:22px;font-size:18px;">Staff Sign-In Required</h2>
+      <p style="color:var(--text-dim);font-size:13px;margin-top:10px;max-width:320px;">
+        Sign in with the shop's admin Google account once to activate this kiosk for customers.
+      </p>
+      <p id="lock-error" style="color:var(--red-bright);font-size:12px;margin-top:14px;max-width:320px;display:none;"></p>
+      <button class="tap-cta" id="btn-staff-signin" style="margin-top:32px;font-size:14px;padding:18px 44px;">Sign In With Google</button>
+      <p id="lock-checking" style="color:var(--text-muted);font-size:12px;margin-top:20px;">Checking sign-in status…</p>
+    </div>
+  </div>
+
   <!-- ═══ ATTRACT / WELCOME ═══ -->
-  <div class="screen active" id="scr-attract">
+  <div class="screen" id="scr-attract">
     <div class="attract-glow"></div>
     <img class="attract-logo" alt="Stunna's Unique Barbering"
       src="https://firebasestorage.googleapis.com/v0/b/stunna-s-unique-barbering.firebasestorage.app/o/STUNNA%20BARBERING%20LOGO.png?alt=media&token=0245b4b9-4cec-406b-a92e-cb76a46f8a03">
@@ -349,6 +365,7 @@ img,video{-webkit-user-drag:none;}
     <h2>Kiosk Paused</h2>
     <p>Tap below to relaunch the style preview for customers.</p>
     <button class="tap-cta" id="btn-relaunch" style="margin-top:30px;">Relaunch Kiosk</button>
+    <button class="ghost-btn" id="btn-staff-signout" style="margin-top:18px;">Sign Out Staff Account</button>
   </div>
 
 </div>
@@ -375,9 +392,12 @@ img,video{-webkit-user-drag:none;}
      generateKioskStyle({ imageBase64, mimeType, styleId }) -> { imageBase64, mimeType, styleLabel }
      emailKioskPhoto({ to, imageBase64, mimeType, styleName }) -> { sent: true }
 
-   Nothing here is authenticated (a walk-in customer isn't signed in) — the
-   Cloud Functions rate-limit by device instead. See the SETUP comment at
-   the top of functions/index.js for the Gemini key + rate-limit config.
+   Gated behind a one-time staff Google sign-in (ADMIN_UID) — the tablet
+   itself stays signed in after that, so customers just use the flow below
+   without logging in themselves. The Cloud Functions also check ADMIN_UID
+   server-side, so the function URLs are useless to anyone but that account,
+   even called directly. See the SETUP comment at the top of functions/index.js
+   for the Gemini key + rate-limit config.
 
    Privacy: the captured photo and every generated preview live only in
    memory (`state`) for the current customer's session. Nothing is written
@@ -397,6 +417,13 @@ firebase.initializeApp({
 const functionsClient = firebase.app().functions("us-central1");
 const generateKioskStyle = functionsClient.httpsCallable("generateKioskStyle");
 const emailKioskPhoto = functionsClient.httpsCallable("emailKioskPhoto");
+
+// Same admin UID as index.html's Staff Dashboard gate. This client-side check
+// is just what decides which screen to show — the REAL enforcement is
+// server-side in generateKioskStyle/emailKioskPhoto (see index.js), so
+// there's no way to bypass it by editing this page or calling the functions
+// directly.
+const ADMIN_UID = "7kV7eY9vrHUwoywlDItY7644R063";
 
 // ---- Style catalog (labels/icons only — real prompts live server-side) ----
 const STYLES = [
@@ -445,7 +472,7 @@ function showScreen(id) {
 }
 function restartIdleTimer(id) {
   clearTimeout(state.idleTimer);
-  if (id === "scr-attract" || id === "scr-paused") return;
+  if (id === "scr-attract" || id === "scr-paused" || id === "scr-lock") return;
   state.idleTimer = setTimeout(resetToWelcome, IDLE_RESET_MS);
 }
 ["click", "touchstart", "input"].forEach((evt) =>
@@ -464,7 +491,8 @@ function resetToWelcome() {
   state.resultMime = null;
   state.styleLabel = null;
   document.getElementById("email-input").value = "";
-  showScreen("scr-attract");
+  const user = firebase.auth().currentUser;
+  showScreen(user && user.uid === ADMIN_UID ? "scr-attract" : "scr-lock");
 }
 
 // ---- Fullscreen + wake lock on first tap ----
@@ -694,6 +722,52 @@ document.getElementById("btn-error-retry").addEventListener("click", () => {
 });
 
 renderStyleGrid();
+
+// ---- Staff sign-in gate ----
+// The kiosk sits on scr-lock until a signed-in admin is confirmed. Once
+// confirmed, it stays that way (Firebase Auth persists across reloads) —
+// so this is a one-time setup step per tablet, not something staff repeat
+// per customer.
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+
+firebase.auth().onAuthStateChanged((user) => {
+  const errEl = document.getElementById("lock-error");
+  const checkingEl = document.getElementById("lock-checking");
+  checkingEl.style.display = "none";
+
+  if (user && user.uid === ADMIN_UID) {
+    errEl.style.display = "none";
+    if (!screens["scr-lock"].classList.contains("active")) return; // already past the gate
+    showScreen("scr-attract");
+    return;
+  }
+
+  if (user) {
+    // Signed in, but not the admin account — kick them back out immediately.
+    firebase.auth().signOut();
+    errEl.textContent = "That Google account isn't authorized for this kiosk. Ask the shop owner to sign in.";
+    errEl.style.display = "block";
+  }
+
+  showScreen("scr-lock");
+});
+
+document.getElementById("btn-staff-signin").addEventListener("click", async () => {
+  document.getElementById("lock-error").style.display = "none";
+  try {
+    await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    // onAuthStateChanged above handles the rest (including rejecting non-admin accounts).
+  } catch (e) {
+    const errEl = document.getElementById("lock-error");
+    errEl.textContent = "Sign-in didn't go through — please try again.";
+    errEl.style.display = "block";
+  }
+});
+
+document.getElementById("btn-staff-signout").addEventListener("click", () => {
+  stopCamera();
+  firebase.auth().signOut();
+});
 
 // ---- Attendant escape hatch (5 taps on the bottom-left dot, then PIN) ----
 let tapCount = 0;
