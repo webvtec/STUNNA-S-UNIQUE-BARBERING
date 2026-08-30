@@ -304,15 +304,21 @@ section{padding:120px 8%;}
   padding:24px;text-align:left;transition:.3s;display:flex;flex-direction:column;
 }
 .review-card:hover{border-color:var(--red);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.review-card .rc-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.review-card .rc-avatar{
+  width:38px;height:38px;border-radius:50%;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Cinzel;font-size:15px;font-weight:700;color:#fff;
+}
+.review-card .rc-name{font-family:Cinzel;font-size:13px;letter-spacing:.5px;color:var(--text);}
 .review-card .rc-stars{color:#ffb400;font-size:15px;letter-spacing:2px;margin-bottom:10px;}
 .review-card .rc-text{color:var(--text-dim);font-size:14px;line-height:1.7;flex-grow:1;}
-.review-card .rc-meta{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
-.review-card .rc-name{font-family:Cinzel;font-size:13px;letter-spacing:.5px;color:var(--text);}
-.review-card .rc-date{font-size:11px;color:var(--text-muted);}
 .review-card .rc-reply{
   margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.03);
   border-left:2px solid var(--red);border-radius:4px;font-size:12.5px;line-height:1.6;color:var(--text-muted);
+  display:flex;gap:10px;align-items:flex-start;
 }
+.review-card .rc-reply-avatar{width:22px;height:22px;border-radius:50%;flex:none;object-fit:cover;margin-top:1px;background:#000;}
 .review-card .rc-reply b{color:var(--text-dim);font-family:Poppins;font-weight:600;}
 .price-card{
   background:var(--dark-card);border:1px solid var(--border);padding:24px 28px;
@@ -624,7 +630,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   padding:14px 28px;background:#fff;color:var(--red);border:none;
   font-family:Poppins;font-size:14px;font-weight:600;letter-spacing:1px;cursor:pointer;
   box-shadow:0 8px 30px rgba(0,0,0,.4);transition:.3s;display:none;
-  border-radius:50px;
+  border-radius:50px;text-decoration:none;text-align:center;
 }
 .sticky-cta.show{display:block;}
 .sticky-cta:hover{background:#f2f2f2;transform:translateY(-3px);box-shadow:0 8px 30px rgba(255,255,255,.35);}
@@ -729,6 +735,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
         <button onclick="openProfileModal(); closeMobileNav();">My Profile</button>
         <button onclick="openMyBookings(); closeMobileNav();">My Bookings</button>
         <button id="staffBtn" style="display:none;" onclick="closeMobileNav(); window.location.href='dashboard.html'">Staff Dashboard</button>
+        <button id="kioskBtn" style="display:none;" onclick="closeMobileNav(); window.location.href='kiosk.html'">Style Preview Kiosk</button>
         <button onclick="handleLogout(); closeMobileNav();">Logout</button>
       </div>
     </li>
@@ -835,45 +842,63 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   <div class="reviews-grid" id="googleReviewsGrid">
 
     <div class="review-card reveal">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:#E91E63;">K</div>
+        <div class="rc-name">Kezia Samuels</div>
+      </div>
       <div class="rc-stars">★★★★★</div>
       <p class="rc-text">Stunna is very talented and always does an amazing fade for my son! My son feels very comfortable sitting in his chair.</p>
-      <div class="rc-meta"><span class="rc-name">Kezia Samuels</span><span class="rc-date">19 hours ago</span></div>
-      <div class="rc-reply"><b>Owner reply:</b> Hey Kezia, I really appreciate the review. Our team tries their very best to ensure each customer comes in feeling welcomed and leaves with the absolute best experience.</div>
+      <div class="rc-reply"><img class="rc-reply-avatar" src="https://stunnasuniquebarbering.com/STUNNA%20BARBERING%20LOGO.png" alt="Stunna's Unique Barbering"><div><b>Owner reply:</b> Hey Kezia, I really appreciate the review. Our team tries their very best to ensure each customer comes in feeling welcomed and leaves with the absolute best experience.</div></div>
     </div>
 
     <div class="review-card reveal">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:#3F51B5;">C</div>
+        <div class="rc-name">Chantelle Belmore</div>
+      </div>
       <div class="rc-stars">★★★★★</div>
       <p class="rc-text">We absolutely love this barbershop! It's clean, spacious, his son will welcome you, and the service is always amazing.</p>
-      <div class="rc-meta"><span class="rc-name">Chantelle Belmore</span><span class="rc-date">Yesterday</span></div>
-      <div class="rc-reply"><b>Owner reply:</b> Appreciate the reply Chantelle. Great that you and the family have all had nothing but great experiences when you guys visit.</div>
+      <div class="rc-reply"><img class="rc-reply-avatar" src="https://stunnasuniquebarbering.com/STUNNA%20BARBERING%20LOGO.png" alt="Stunna's Unique Barbering"><div><b>Owner reply:</b> Appreciate the reply Chantelle. Great that you and the family have all had nothing but great experiences when you guys visit.</div></div>
     </div>
 
     <div class="review-card reveal">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:#009688;">K</div>
+        <div class="rc-name">Kaz Khan <span style="color:var(--text-muted);font-weight:400;">· Local Guide</span></div>
+      </div>
       <div class="rc-stars">★★★★★</div>
       <p class="rc-text">Great service, amazing barber.</p>
-      <div class="rc-meta"><span class="rc-name">Kaz Khan <span style="color:var(--text-muted);font-weight:400;">· Local Guide</span></span><span class="rc-date">2 days ago</span></div>
-      <div class="rc-reply"><b>Owner reply:</b> Appreciate the reply.</div>
+      <div class="rc-reply"><img class="rc-reply-avatar" src="https://stunnasuniquebarbering.com/STUNNA%20BARBERING%20LOGO.png" alt="Stunna's Unique Barbering"><div><b>Owner reply:</b> Appreciate the reply.</div></div>
     </div>
 
     <div class="review-card reveal">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:#FF9800;">E</div>
+        <div class="rc-name">Eudena Rolle</div>
+      </div>
       <div class="rc-stars">★★★★★</div>
       <p class="rc-text">Excellent service, the atmosphere was very welcoming, friendly, clean and comfortable. I highly recommend anyone needing a nice cut, trim etc reach out to Stunna!</p>
-      <div class="rc-meta"><span class="rc-name">Eudena Rolle</span><span class="rc-date">4 days ago</span></div>
-      <div class="rc-reply"><b>Owner reply:</b> Thank you so much for the 5 star review, Eudena. We are thrilled to hear you enjoyed our welcoming atmosphere, cleanliness, and comfort — we look forward to seeing you back in the chair soon.</div>
+      <div class="rc-reply"><img class="rc-reply-avatar" src="https://stunnasuniquebarbering.com/STUNNA%20BARBERING%20LOGO.png" alt="Stunna's Unique Barbering"><div><b>Owner reply:</b> Thank you so much for the 5 star review, Eudena. We are thrilled to hear you enjoyed our welcoming atmosphere, cleanliness, and comfort — we look forward to seeing you back in the chair soon.</div></div>
     </div>
 
     <div class="review-card reveal">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:#9C27B0;">A</div>
+        <div class="rc-name">Abdullah</div>
+      </div>
       <div class="rc-stars">★★★★★</div>
       <p class="rc-text">Best barbershop in the Niagara region. Fresh fades, reasonable prices, sophisticated experiences. — The original AB. 💯</p>
-      <div class="rc-meta"><span class="rc-name">Abdullah</span><span class="rc-date">7 days ago</span></div>
-      <div class="rc-reply"><b>Owner reply:</b> Thank you for the incredible feedback Abdullah. Hearing that we are the best barbershop in the Niagara region means the world to us.</div>
+      <div class="rc-reply"><img class="rc-reply-avatar" src="https://stunnasuniquebarbering.com/STUNNA%20BARBERING%20LOGO.png" alt="Stunna's Unique Barbering"><div><b>Owner reply:</b> Thank you for the incredible feedback Abdullah. Hearing that we are the best barbershop in the Niagara region means the world to us.</div></div>
     </div>
 
     <div class="review-card reveal">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:#2196F3;">N</div>
+        <div class="rc-name">Nicardo Courts</div>
+      </div>
       <div class="rc-stars">★★★★★</div>
       <p class="rc-text">Best barber shop in Welland. Stunna did an amazing job.</p>
-      <div class="rc-meta"><span class="rc-name">Nicardo Courts</span><span class="rc-date">2 weeks ago</span></div>
-      <div class="rc-reply"><b>Owner reply:</b> Appreciate the support, Nicardo, so glad we took great care of you. Thanks for shouting us out as the best barber shop in Welland.</div>
+      <div class="rc-reply"><img class="rc-reply-avatar" src="https://stunnasuniquebarbering.com/STUNNA%20BARBERING%20LOGO.png" alt="Stunna's Unique Barbering"><div><b>Owner reply:</b> Appreciate the support, Nicardo, so glad we took great care of you. Thanks for shouting us out as the best barber shop in Welland.</div></div>
     </div>
 
   </div>
@@ -975,6 +1000,11 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 <a class="webvtec-bar" href="https://webvtec.com" target="_blank" rel="noopener">
   CLICK TO REQUEST YOUR OWN WEBSITE &nbsp;·&nbsp; <span class="wv-brand">WEBVTEC.COM</span>
 </a>
+
+<!-- STICKY MOBILE BOOK BUTTON — hidden until you scroll past the hero (see initSticky).
+     Was referenced in JS (stickyCta) but missing from markup, which threw
+     "Cannot read properties of null (reading 'classList')" on every page load. -->
+<a class="sticky-cta" id="stickyCta" href="#barbers-sec">Book Now</a>
 
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -1438,6 +1468,7 @@ auth.onAuthStateChanged(async u => {
     else { avatar.style.display = "none"; }
     dispName.textContent = (userProfile.displayName || u.displayName || u.email || "").split(" ")[0];
     document.getElementById("staffBtn").style.display = (userRole === "admin" || userRole === "barber") ? "block" : "none";
+    document.getElementById("kioskBtn").style.display = (userRole === "admin") ? "block" : "none";
     closeModal("authModal");
     loadUserBookings();
   } else {
