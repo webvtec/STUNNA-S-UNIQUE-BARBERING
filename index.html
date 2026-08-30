@@ -624,17 +624,6 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
 .badge.pay-no{background:#4d0a0a;color:#ff8080;}
 .mybk .info-line{color:var(--text-dim);font-size:14px;margin:4px 0;}
 
-/* ============ STICKY MOBILE CTA ============ */
-.sticky-cta{
-  position:fixed;bottom:calc(var(--webbar-h) + 16px);right:24px;z-index:998;
-  padding:14px 28px;background:#fff;color:var(--red);border:none;
-  font-family:Poppins;font-size:14px;font-weight:600;letter-spacing:1px;cursor:pointer;
-  box-shadow:0 8px 30px rgba(0,0,0,.4);transition:.3s;display:none;
-  border-radius:50px;text-decoration:none;text-align:center;
-}
-.sticky-cta.show{display:block;}
-.sticky-cta:hover{background:#f2f2f2;transform:translateY(-3px);box-shadow:0 8px 30px rgba(255,255,255,.35);}
-
 /* ============ PERSISTENT WEBVTEC BAR ============ */
 .webvtec-bar{
   position:fixed;left:0;right:0;bottom:0;z-index:1000;height:var(--webbar-h);
@@ -1001,11 +990,6 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   CLICK TO REQUEST YOUR OWN WEBSITE &nbsp;·&nbsp; <span class="wv-brand">WEBVTEC.COM</span>
 </a>
 
-<!-- STICKY MOBILE BOOK BUTTON — hidden until you scroll past the hero (see initSticky).
-     Was referenced in JS (stickyCta) but missing from markup, which threw
-     "Cannot read properties of null (reading 'classList')" on every page load. -->
-<a class="sticky-cta" id="stickyCta" href="#barbers-sec">Book Now</a>
-
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lb-close" aria-label="Close lightbox">×</button>
@@ -1024,16 +1008,16 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
         <button onclick="switchAuthTab('signup',this)">Create Account</button>
       </div>
       <div id="authLogin">
-        <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@email.com"></div>
-        <div class="auth-field"><label>Password</label><input type="password" id="loginPass" placeholder="Your password"></div>
+        <div class="auth-field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="you@email.com"></div>
+        <div class="auth-field"><label for="loginPass">Password</label><input type="password" id="loginPass" placeholder="Your password"></div>
         <button class="forgot-link" onclick="forgotPassword()">Forgot password?</button>
         <button class="btn" style="width:100%;margin-top:16px;" onclick="emailLogin()">Sign In</button>
       </div>
       <div id="authSignup" style="display:none;">
-        <div class="auth-field"><label>Display Name</label><input type="text" id="signupName" placeholder="Your name"></div>
-        <div class="auth-field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@email.com"></div>
-        <div class="auth-field"><label>Password</label><input type="password" id="signupPass" placeholder="Min 6 characters"></div>
-        <div class="auth-field"><label>Confirm Password</label><input type="password" id="signupPass2" placeholder="Confirm password"></div>
+        <div class="auth-field"><label for="signupName">Display Name</label><input type="text" id="signupName" placeholder="Your name"></div>
+        <div class="auth-field"><label for="signupEmail">Email</label><input type="email" id="signupEmail" placeholder="you@email.com"></div>
+        <div class="auth-field"><label for="signupPass">Password</label><input type="password" id="signupPass" placeholder="Min 6 characters"></div>
+        <div class="auth-field"><label for="signupPass2">Confirm Password</label><input type="password" id="signupPass2" placeholder="Confirm password"></div>
         <button class="btn" style="width:100%;margin-top:16px;" onclick="emailSignup()">Create Account</button>
       </div>
       <div class="auth-divider">OR</div>
@@ -1054,11 +1038,11 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <div class="profile-avatar-wrap">
         <img id="profAvatar" src="" alt="Profile" onclick="document.getElementById('profPhotoFile').click()">
         <p>Click photo to change</p>
-        <input type="file" id="profPhotoFile" accept="image/*" style="display:none;">
+        <input type="file" id="profPhotoFile" accept="image/*" style="display:none;" aria-label="Upload profile photo">
       </div>
-      <div class="auth-field"><label>Display Name</label><input type="text" id="profName" placeholder="Your name"></div>
-      <div class="auth-field"><label>Phone</label><input type="tel" id="profPhone" placeholder="(647) 000-0000" maxlength="17"></div>
-      <div class="auth-field"><label>Email</label><input type="email" id="profEmail" disabled style="opacity:.6;"></div>
+      <div class="auth-field"><label for="profName">Display Name</label><input type="text" id="profName" placeholder="Your name"></div>
+      <div class="auth-field"><label for="profPhone">Phone</label><input type="tel" id="profPhone" placeholder="(647) 000-0000" maxlength="17"></div>
+      <div class="auth-field"><label for="profEmail">Email</label><input type="email" id="profEmail" disabled style="opacity:.6;"></div>
       <button class="btn" style="width:100%;margin-top:16px;" onclick="saveProfile()">Save Profile</button>
     </div>
   </div>
@@ -1077,15 +1061,15 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       </div>
 
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Name</label>
+        <label for="bkName" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Name</label>
         <input type="text" id="bkName" placeholder="Full name" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
+        <label for="bkPhone" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
         <input type="tel" id="bkPhone" placeholder="(647) 000-0000" maxlength="17" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Email</label>
+        <label for="bkEmail" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Email</label>
         <input type="email" id="bkEmail" placeholder="you@email.com" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
         <p style="color:#666;font-size:11px;margin-top:8px;">No account needed — we'll send your confirmation here.</p>
       </div>
@@ -1100,7 +1084,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <div class="field" style="margin-bottom:18px;">
         <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Pick a Date</label>
         <div class="cal" id="bkCalendar"></div>
-        <input type="hidden" id="bkDate">
+        <input type="hidden" id="bkDate" aria-label="Selected booking date">
         <p style="color:#666;font-size:11px;margin-top:8px;">Crossed-out dates are fully booked.</p>
       </div>
 
@@ -1109,12 +1093,12 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
         <div class="time-grid" id="bkTimes">
           <div class="time-empty">Pick a date to see available times.</div>
         </div>
-        <input type="hidden" id="bkTime">
+        <input type="hidden" id="bkTime" aria-label="Selected booking time">
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;align-items:end;">
         <div class="field">
-          <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Estimated Duration</label>
+          <label for="bkDuration" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Estimated Duration</label>
           <input type="text" id="bkDuration" value="35 min" readonly style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:var(--text-muted);padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
         </div>
         <div></div>
@@ -1125,7 +1109,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
         <div class="total" id="summaryTotal">$0</div>
       </div>
 
-      <input type="hidden" id="bkBarber">
+      <input type="hidden" id="bkBarber" aria-label="Selected barber">
       <button class="btn" id="bkSubmitBtn" style="width:100%;margin-top:8px;" onclick="submitBooking()">Confirm Booking</button>
       <p style="text-align:center;color:var(--text-muted);margin-top:14px;font-size:12px;">You'll be asked to sign in with Google to confirm.</p>
     </div>
@@ -1141,38 +1125,38 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
         <h3 style="font-family:Cinzel;">🏠 Request Home Call</h3>
         <p style="color:var(--text-dim);font-size:13px;" id="hcBarberName"></p>
       </div>
-      <input type="hidden" id="hcBarberId">
+      <input type="hidden" id="hcBarberId" aria-label="Selected barber for home call">
 
       <div class="notice-box" style="background:rgba(230,0,0,0.06);border:1px solid rgba(230,0,0,0.2);border-left:3px solid #e60000;padding:12px 16px;margin-bottom:18px;border-radius:6px;font-size:13px;color:#ddd;line-height:1.6;" id="hcWindowsAvailable"></div>
 
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Name</label>
+        <label for="hcName" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Name</label>
         <input type="text" id="hcName" placeholder="Full name" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
+        <label for="hcPhone" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Phone Number</label>
         <input type="tel" id="hcPhone" placeholder="(647) 000-0000" maxlength="17" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Email</label>
+        <label for="hcEmail" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Email</label>
         <input type="email" id="hcEmail" placeholder="you@email.com" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Address</label>
+        <label for="hcAddress" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Address</label>
         <input type="text" id="hcAddress" placeholder="Where should the barber come?" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
         <div class="field">
-          <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Date</label>
+          <label for="hcDate" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Date</label>
           <input type="date" id="hcDate" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
         </div>
         <div class="field">
-          <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Time</label>
+          <label for="hcTime" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Time</label>
           <input type="time" id="hcTime" onchange="updateHomeCallQuote()" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
         </div>
       </div>
       <div class="field" style="margin-bottom:18px;">
-        <label style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Notes (optional)</label>
+        <label for="hcNotes" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Notes (optional)</label>
         <textarea id="hcNotes" rows="3" placeholder="Anything the barber should know" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;resize:vertical;"></textarea>
       </div>
 
@@ -1238,11 +1222,11 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <button class="close" onclick="closeModal('inquiryModal')">×</button>
       <h3 style="text-align:center;">Become a Barber</h3>
       <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:24px;">Interested in joining our team? Fill out the form below and our admin will review your inquiry.</p>
-      <div class="auth-field"><label>Full Name</label><input type="text" id="inqName" placeholder="Your full name"></div>
-      <div class="auth-field"><label>Email</label><input type="email" id="inqEmail" placeholder="you@email.com"></div>
-      <div class="auth-field"><label>Phone Number</label><input type="tel" id="inqPhone" placeholder="(647) 000-0000" maxlength="17"></div>
-      <div class="auth-field"><label>Experience</label><textarea id="inqExperience" placeholder="Tell us about your barbering experience, specialties, and why you'd like to join Stunna's…" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;resize:vertical;min-height:120px;"></textarea></div>
-      <div class="auth-field"><label>Portfolio / Social Media Link <span style="color:#666;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="url" id="inqPortfolio" placeholder="https://instagram.com/yourhandle"></div>
+      <div class="auth-field"><label for="inqName">Full Name</label><input type="text" id="inqName" placeholder="Your full name"></div>
+      <div class="auth-field"><label for="inqEmail">Email</label><input type="email" id="inqEmail" placeholder="you@email.com"></div>
+      <div class="auth-field"><label for="inqPhone">Phone Number</label><input type="tel" id="inqPhone" placeholder="(647) 000-0000" maxlength="17"></div>
+      <div class="auth-field"><label for="inqExperience">Experience</label><textarea id="inqExperience" placeholder="Tell us about your barbering experience, specialties, and why you'd like to join Stunna's…" style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;resize:vertical;min-height:120px;"></textarea></div>
+      <div class="auth-field"><label for="inqPortfolio">Portfolio / Social Media Link <span style="color:#666;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="url" id="inqPortfolio" placeholder="https://instagram.com/yourhandle"></div>
       <button class="btn" style="width:100%;margin-top:16px;" onclick="submitInquiry()">Submit Inquiry</button>
     </div>
   </div>
@@ -1369,18 +1353,6 @@ let galleryCategory = "All";
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   // Re-observe dynamically added .reveal elements
   window._revealObserver = obs;
-})();
-
-/* =========================================================
-   STICKY CTA
-========================================================= */
-(function initSticky(){
-  const hero = document.getElementById("home");
-  const stickyCta = document.getElementById("stickyCta");
-  const obs = new IntersectionObserver(([e]) => {
-    stickyCta.classList.toggle("show", !e.isIntersecting);
-  }, { threshold:0 });
-  obs.observe(hero);
 })();
 
 /* =========================================================
@@ -1794,14 +1766,12 @@ function setGalleryCat(c){ galleryCategory = c; renderGallery(); }
 function showGalleryPage(){
   document.getElementById("homePage").style.display = "none";
   document.getElementById("galleryPage").style.display = "block";
-  document.getElementById("stickyCta").style.display = "none";
   window.scrollTo({ top:0, behavior:"smooth" });
   renderGallery();
 }
 function showHomePage(){
   document.getElementById("galleryPage").style.display = "none";
   document.getElementById("homePage").style.display = "block";
-  document.getElementById("stickyCta").style.display = "";
   window.scrollTo({ top:0, behavior:"smooth" });
 }
 
