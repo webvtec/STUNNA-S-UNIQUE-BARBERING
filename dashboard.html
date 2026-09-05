@@ -140,6 +140,30 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);}
 .cal-day.selected{background:var(--red);color:white;border-color:var(--red);}
 .cal-day.marked::after{content:"";position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--red-bright);}
 .cal-day.selected.marked::after{background:white;}
+.cal-day.full{color:#777;background:#160707;cursor:not-allowed;text-decoration:line-through;border:1px solid rgba(230,0,0,.25);}
+.cal-day.full:hover{border-color:rgba(230,0,0,.25);}
+
+/* ---------- ADD RESERVATION: SERVICE PICKER / TIME SLOTS / SUMMARY ---------- */
+.modal.modal-wide{max-width:640px;}
+.services-picker{background:var(--dark);border-radius:15px;padding:14px;border:1px solid var(--border);max-height:260px;overflow-y:auto;}
+.svc-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--dark-card);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.2s;border:1px solid transparent;}
+.svc-row:last-child{margin-bottom:0;}
+.svc-row:hover{background:#131313;}
+.svc-row.selected{border-color:var(--red);background:#180505;}
+.svc-row .check{width:20px;height:20px;border:2px solid #444;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;}
+.svc-row.selected .check{background:var(--red);border-color:var(--red);}
+.svc-row .lbl{flex:1;padding:0 12px;font-size:13px;}
+.svc-row .lbl .svc-note{display:block;font-size:11px;color:var(--text-muted);margin-top:2px;}
+.svc-row .prc{color:var(--red-bright);font-family:Cinzel;font-size:14px;}
+.time-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px;}
+.time-slot{background:var(--dark);border:1px solid rgba(255,255,255,.1);color:white;padding:10px;border-radius:8px;cursor:pointer;transition:.2s;text-align:center;font-size:13px;}
+.time-slot:hover{border-color:var(--red);}
+.time-slot.selected{background:var(--red);border-color:var(--red);}
+.time-empty{color:#666;padding:10px 0;font-size:13px;}
+.summary-bar{padding:16px;background:var(--dark);border-radius:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border:1px solid var(--border);}
+.summary-bar .chips{display:flex;flex-wrap:wrap;gap:6px;}
+.summary-bar .chip{background:#1a1a1a;padding:5px 12px;border-radius:50px;font-size:12px;color:#ddd;}
+.summary-bar .total{font-family:Cinzel;font-size:22px;color:var(--red-bright);letter-spacing:1px;}
 
 /* ---------- BOOKING CARDS ---------- */
 .group-title{font-family:Cinzel;font-size:14px;letter-spacing:3px;color:var(--text-muted);margin:24px 0 12px;text-transform:uppercase;}
@@ -356,6 +380,7 @@ td{color:#ddd;}
       <div class="search-row">
         <input id="resSearch" placeholder="Search by name, phone, or booking #…">
         <button class="btn ghost" onclick="clearPast()">Clear Past Reservations</button>
+        <button class="btn" onclick="openAddReservation()">+ Add Reservation</button>
       </div>
       <div class="chip-row" id="barberChips" style="display:none;"></div>
       <div id="reservationsList"></div>
@@ -1278,6 +1303,354 @@ async function clearPast(){
 }
 
 /* =========================================================
+   ADD RESERVATION (admin & barbers can manually add a booking
+   for a client over the phone / in person, for any day)
+========================================================= */
+let arCalMonth = null;
+let arSelectedServices = new Set();
+
+// Same conflict map as the public booking page, so a manually-added
+// reservation can't accidentally combine services that don't make sense.
+const AR_HAIRCUTS = ["svc_mens_haircut","svc_senior","svc_basic_kids","svc_kids_fade","svc_youth"];
+const AR_SERVICE_CONFLICTS = {
+  svc_mens_haircut:      [...AR_HAIRCUTS.filter(x=>x!=="svc_mens_haircut"), "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_senior:            [...AR_HAIRCUTS.filter(x=>x!=="svc_senior"),       "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_basic_kids:        [...AR_HAIRCUTS.filter(x=>x!=="svc_basic_kids"),   "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature","svc_beard_trim","svc_hot_towel","svc_facial"],
+  svc_kids_fade:         [...AR_HAIRCUTS.filter(x=>x!=="svc_kids_fade"),    "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature","svc_beard_trim","svc_hot_towel","svc_facial"],
+  svc_youth:             [...AR_HAIRCUTS.filter(x=>x!=="svc_youth"),        "svc_cut_beard","svc_hot_towel_haircut","svc_perm","svc_signature","svc_beard_trim","svc_hot_towel","svc_facial"],
+  svc_beard_trim:        ["svc_cut_beard","svc_signature","svc_basic_kids","svc_kids_fade","svc_youth"],
+  svc_hot_towel:         ["svc_hot_towel_haircut","svc_signature","svc_basic_kids","svc_kids_fade","svc_youth"],
+  svc_cut_beard:         [...AR_HAIRCUTS,"svc_beard_trim","svc_hot_towel_haircut","svc_perm","svc_signature"],
+  svc_hot_towel_haircut: [...AR_HAIRCUTS,"svc_hot_towel","svc_cut_beard","svc_perm","svc_signature"],
+  svc_perm:              [...AR_HAIRCUTS,"svc_cut_beard","svc_hot_towel_haircut","svc_signature"],
+  svc_signature:         ["svc_mens_haircut","svc_beard_trim","svc_cut_beard","svc_hot_towel","svc_hot_towel_haircut","svc_senior","svc_basic_kids","svc_kids_fade","svc_youth","svc_facial","svc_perm"],
+  svc_facial:            ["svc_signature","svc_basic_kids","svc_kids_fade","svc_youth"]
+};
+
+function barberOffersServiceAr(barberId, svc){
+  if(!isBarberToggleableService(svc)) return true; // everything else is admin-controlled only
+  const b = barbers.find(x => x.id === barberId);
+  const toggles = (b && b.serviceToggles) || {};
+  return toggles[svc.id] !== false; // default ON until a barber explicitly turns it off
+}
+
+function openAddReservation(){
+  arSelectedServices = new Set();
+  arCalMonth = null;
+  const scoped = role === "admin" ? barbersAtCurrentLocation() : barbers.filter(b => b.id === myBarberId);
+  const barberField = role === "admin"
+    ? `<div class="field">
+         <label>Barber</label>
+         <select id="arBarber" onchange="onArBarberChange()">
+           <option value="">Select a barber…</option>
+           ${scoped.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}
+         </select>
+       </div>`
+    : `<div class="field"><label>Barber</label><input value="${esc((barbers.find(b=>b.id===myBarberId)||{}).name || "You")}" disabled>
+         <input type="hidden" id="arBarber" value="${myBarberId||""}"></div>`;
+
+  const body = `
+    <div class="field"><label>Client Name</label><input id="arName" placeholder="Full name"></div>
+    <div class="two-col">
+      <div class="field"><label>Phone Number</label><input id="arPhone" placeholder="(555) 555-5555"></div>
+      <div class="field"><label>Email <span style="color:#666;text-transform:none;letter-spacing:0;font-weight:400;">(optional)</span></label><input id="arEmail" type="email" placeholder="client@email.com"></div>
+    </div>
+    ${barberField}
+    <div class="field">
+      <label>Select Service(s)</label>
+      <div class="services-picker" id="arServicePicker"></div>
+    </div>
+    <div class="field">
+      <label>Pick a Date</label>
+      <div class="cal" id="arCalendar"></div>
+      <input type="hidden" id="arDate">
+    </div>
+    <div class="field">
+      <label>Pick a Time</label>
+      <div class="time-grid" id="arTimes"><div class="time-empty">Select a barber and pick a date to see available times.</div></div>
+      <input type="hidden" id="arTime">
+    </div>
+    <div class="summary-bar" style="margin-top:6px;">
+      <div class="chips" id="arSummaryChips"><span style="color:#666;font-size:13px;">No services selected</span></div>
+      <div class="total" id="arSummaryTotal">$0.00</div>
+    </div>
+  `;
+  openAM("Add Reservation", body, submitAddReservation, "Confirm Booking");
+  document.querySelector("#actionModal .modal")?.classList.add("modal-wide");
+  buildArServicePicker();
+  renderArCalendar();
+  rebuildArTimeSlots();
+}
+
+function onArBarberChange(){
+  document.getElementById("arDate").value = "";
+  document.getElementById("arTime").value = "";
+  buildArServicePicker();
+  renderArCalendar();
+  rebuildArTimeSlots();
+}
+
+function getArBarberId(){ return document.getElementById("arBarber")?.value || ""; }
+
+function buildArServicePicker(){
+  const picker = document.getElementById("arServicePicker");
+  if(!picker) return;
+  const barberId = getArBarberId();
+  const visible = services.filter(s => s.active !== false && (!barberId || barberOffersServiceAr(barberId, s)));
+  [...arSelectedServices].forEach(id => { if(!visible.some(s => s.id === id)) arSelectedServices.delete(id); });
+  picker.innerHTML = visible.map(svc => {
+    const sel = arSelectedServices.has(svc.id);
+    return `
+      <div class="svc-row ${sel?'selected':''}" onclick="toggleArService('${svc.id}')">
+        <div class="check">${sel?"✓":""}</div>
+        <div class="lbl">${esc(svc.name)}${svc.note ? `<span class="svc-note">${esc(svc.note)}</span>` : ''}</div>
+        <div class="prc">${fmtMoney(svc.price)}</div>
+      </div>`;
+  }).join("") || '<div style="color:#666;padding:10px;">No services available.</div>';
+  updateArSummary();
+}
+
+function toggleArService(id){
+  if(arSelectedServices.has(id)){
+    arSelectedServices.delete(id);
+  } else {
+    const conflicts = AR_SERVICE_CONFLICTS[id] || [];
+    conflicts.forEach(c => arSelectedServices.delete(c));
+    arSelectedServices.add(id);
+  }
+  buildArServicePicker();
+  renderArCalendar();
+  rebuildArTimeSlots();
+}
+
+function getArSelectedMenuItems(){ return services.filter(s => arSelectedServices.has(s.id)); }
+function getArBookingDuration(){
+  const picked = getArSelectedMenuItems();
+  if(!picked.length) return SLOT_MINUTES;
+  const total = picked.reduce((s,i) => s + (i.duration||0), 0);
+  return Math.max(total, 20) || SLOT_MINUTES;
+}
+function updateArSummary(){
+  const picked = getArSelectedMenuItems();
+  const total = picked.reduce((s,i) => s + i.price, 0);
+  const chips = document.getElementById("arSummaryChips");
+  if(chips) chips.innerHTML = picked.length ? picked.map(i => `<span class="chip">${esc(i.name)}</span>`).join("") : '<span style="color:#666;font-size:13px;">No services selected</span>';
+  const totalEl = document.getElementById("arSummaryTotal");
+  if(totalEl) totalEl.textContent = fmtMoney(total);
+}
+
+function arLocalStr(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function getHoursForDateAr(dateStr){
+  if(!dateStr) return { start:0, end:0, closed:true };
+  const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const dayName = dayNames[new Date(dateStr + "T12:00:00").getDay()];
+  const h = SHOP.hours[dayName];
+  if(!h || h.closed) return { start:0, end:0, closed:true };
+  const [oh,om] = (h.open||"09:00").split(":").map(Number);
+  const [ch,cm] = (h.close||"19:00").split(":").map(Number);
+  return { start:oh, startMin:om||0, end:ch, endMin:cm||0, closed:false };
+}
+function isBarberOnVacationAr(barberId, dateStr){
+  return vacations.some(v => (v.barberId===barberId||v.barberId==="global") && v.start<=dateStr && v.end>=dateStr);
+}
+function getBlockedRangesAr(barberId, date){
+  const ranges = [];
+  bookings.forEach(b => {
+    if(b.barberId !== barberId || b.date !== date || b.status === "Cancelled" || b.archived) return;
+    const [h,m] = parseTimeAmPm(b.time);
+    const start = h*60+m;
+    ranges.push([start, start + (b.duration||SLOT_MINUTES)]);
+  });
+  unavailable.forEach(u => {
+    if(u.date !== date) return;
+    if(u.barberId !== barberId && u.barberId !== "global") return;
+    if(u.allDay){ ranges.push([0, 24*60]); return; }
+    const [sh,sm] = parseTime24(u.startTime);
+    const [eh,em] = parseTime24(u.endTime);
+    ranges.push([sh*60+sm, eh*60+em]);
+  });
+  if(isBarberOnVacationAr(barberId, date)) ranges.push([0, 24*60]);
+  return ranges;
+}
+function arDayIsFull(barberId, dstr){
+  const hrs = getHoursForDateAr(dstr);
+  if(hrs.closed) return false;
+  const dur = getArBookingDuration();
+  const taken = getBlockedRangesAr(barberId, dstr);
+  const dayStart = hrs.start*60 + (hrs.startMin||0);
+  const dayEnd = hrs.end*60 + (hrs.endMin||0);
+  for(let mins = dayStart; mins + dur <= dayEnd; mins += 30){
+    const blocked = taken.some(([a,b]) => !(mins + dur <= a || mins >= b));
+    if(!blocked) return false;
+  }
+  return true;
+}
+function arCalBounds(){
+  const n = new Date();
+  return { min: new Date(n.getFullYear(), n.getMonth(), 1), max: new Date(n.getFullYear(), n.getMonth() + 2, 1) };
+}
+function arCalShift(dir){
+  const { min, max } = arCalBounds();
+  const next = new Date(arCalMonth.getFullYear(), arCalMonth.getMonth() + dir, 1);
+  if(next < min || next > max) return;
+  arCalMonth = next;
+  renderArCalendar();
+}
+function renderArCalendar(){
+  const wrap = document.getElementById("arCalendar");
+  if(!wrap) return;
+  const barberId = getArBarberId();
+  if(!arCalMonth){ const n = new Date(); arCalMonth = new Date(n.getFullYear(), n.getMonth(), 1); }
+  const { min, max } = arCalBounds();
+  const y = arCalMonth.getFullYear(), mo = arCalMonth.getMonth();
+  const monthName = arCalMonth.toLocaleString("en-CA", { month:"long", year:"numeric" });
+  const startDow = new Date(y, mo, 1).getDay();
+  const daysInMonth = new Date(y, mo + 1, 0).getDate();
+  const todayStr = arLocalStr(new Date());
+  const selected = document.getElementById("arDate")?.value;
+
+  let html = `
+    <div class="cal-head">
+      <button onclick="arCalShift(-1)" ${arCalMonth.getTime() <= min.getTime() ? "disabled" : ""}>‹</button>
+      <span class="cal-title">${monthName}</span>
+      <button onclick="arCalShift(1)" ${arCalMonth.getTime() >= max.getTime() ? "disabled" : ""}>›</button>
+    </div>
+    <div class="cal-grid">
+      ${["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => `<div class="cal-dow">${d}</div>`).join("")}
+      ${'<div class="cal-day blank"></div>'.repeat(startDow)}`;
+
+  for(let day = 1; day <= daysInMonth; day++){
+    const dstr = arLocalStr(new Date(y, mo, day));
+    const past = dstr < todayStr;
+    const closed = getHoursForDateAr(dstr).closed;
+    const onVac = barberId && isBarberOnVacationAr(barberId, dstr);
+    let cls = "cal-day", click = "";
+    if(past || closed || onVac){
+      cls += " muted";
+    } else if(barberId && arDayIsFull(barberId, dstr)){
+      cls += " full";
+    } else {
+      if(dstr === selected) cls += " selected";
+      click = ` onclick="pickArDate('${dstr}')"`;
+    }
+    html += `<div class="${cls}"${click}>${day}</div>`;
+  }
+  wrap.innerHTML = html + "</div>";
+}
+function pickArDate(dstr){
+  document.getElementById("arDate").value = dstr;
+  document.getElementById("arTime").value = "";
+  renderArCalendar();
+  rebuildArTimeSlots();
+}
+function generateArSlots(){
+  const date = document.getElementById("arDate")?.value;
+  const hrs = getHoursForDateAr(date);
+  if(hrs.closed) return [];
+  const dur = getArBookingDuration();
+  const out = [];
+  let mins = hrs.start * 60 + (hrs.startMin||0);
+  const end = hrs.end * 60 + (hrs.endMin||0);
+  while(mins + dur <= end){ out.push({ h: Math.floor(mins/60), m: mins%60 }); mins += 30; }
+  return out;
+}
+function fmtTimeAr(h,m){
+  const pd = n => String(n).padStart(2,"0");
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hh = ((h + 11) % 12) + 1;
+  return `${hh}:${pd(m)} ${ampm}`;
+}
+function rebuildArTimeSlots(){
+  const barberId = getArBarberId();
+  const date = document.getElementById("arDate")?.value;
+  const container = document.getElementById("arTimes");
+  if(!container) return;
+  const prevTime = document.getElementById("arTime")?.value;
+  if(!barberId || !date){
+    container.innerHTML = '<div class="time-empty">Select a barber and pick a date to see available times.</div>';
+    return;
+  }
+  const slots = generateArSlots();
+  const taken = getBlockedRangesAr(barberId, date);
+  let stillAvailable = false;
+  const html = slots.map(s => {
+    const dur = getArBookingDuration();
+    const startMin = s.h*60 + s.m;
+    const endMin = startMin + dur;
+    const blocked = taken.some(([a,b]) => !(endMin <= a || startMin >= b));
+    if(blocked) return "";
+    const label = fmtTimeAr(s.h, s.m);
+    const isSelected = label === prevTime;
+    if(isSelected) stillAvailable = true;
+    return `<button class="time-slot${isSelected ? " selected" : ""}" onclick="pickArTime('${label}',this)">${label}</button>`;
+  }).join("");
+  container.innerHTML = html || '<div class="time-empty">No slots available on this date.</div>';
+  if(prevTime && !stillAvailable) document.getElementById("arTime").value = "";
+}
+function pickArTime(t, btn){
+  document.getElementById("arTime").value = t;
+  document.querySelectorAll("#arTimes .time-slot").forEach(el => el.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+
+async function submitAddReservation(){
+  const name = document.getElementById("arName").value.trim();
+  const phone = document.getElementById("arPhone").value.trim();
+  const email = document.getElementById("arEmail").value.trim();
+  const barberId = getArBarberId();
+  const date = document.getElementById("arDate").value;
+  const time = document.getElementById("arTime").value;
+
+  if(!name) return toast("Please enter the client's name", "red");
+  if(!phone) return toast("Please enter a phone number", "red");
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast("Please enter a valid email, or leave it blank", "red");
+  if(!barberId) return toast("Please select a barber", "red");
+  if(!date) return toast("Please pick a date", "red");
+  if(!time) return toast("Please pick a time", "red");
+
+  const picked = getArSelectedMenuItems();
+  const duration = getArBookingDuration();
+  const [h,m] = parseTimeAmPm(time);
+  const startMin = h*60+m;
+  const endMin = startMin + duration;
+  const blocked = getBlockedRangesAr(barberId, date).some(([a,b]) => !(endMin<=a || startMin>=b));
+  if(blocked){ toast("That time was just booked — pick another", "red"); rebuildArTimeSlots(); return; }
+
+  const total = picked.reduce((s,i) => s + i.price, 0);
+  const serviceList = picked.map(i => i.name).join(", ");
+  const bookingNumber = "SB" + Date.now().toString(36).toUpperCase().slice(-6);
+  const bkBarber = barbers.find(b => b.id === barberId);
+  const locationId = (bkBarber && bkBarber.locationId) || DEFAULT_LOCATION_ID;
+
+  const btn = document.getElementById("modalConfirm");
+  if(btn){ btn.disabled = true; btn.textContent = "Booking…"; }
+
+  try{
+    const slotRef = db.collection("slots").doc(barberId + "_" + date + "_" + time.replace(/\s/g,""));
+    await db.runTransaction(async tx => {
+      const slotSnap = await tx.get(slotRef);
+      if(slotSnap.exists) throw new Error("This time slot was just booked. Please pick another.");
+      const bookingRef = db.collection("bookings").doc();
+      tx.set(slotRef, { barberId, date, time, duration, bookingId: bookingRef.id, createdBy: role, createdAt: new Date().toISOString() });
+      tx.set(bookingRef, {
+        barberId, locationId, uid: null, userEmail: email || "", isGuest: true, manualEntry: true, createdBy: role,
+        bookingNumber, name, phone, date, time,
+        service: serviceList || "Not specified", duration, total,
+        deposit: "No", status: "Active", cancelledBy: null,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+    toast(`Reservation added for ${name}`, "green");
+    closeAM();
+    showSection("reservations");
+  }catch(e){
+    toast("Booking failed: " + e.message, "red");
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = "Confirm Booking"; }
+  }
+}
+
+/* =========================================================
    SEARCH
 ========================================================= */
 function setupSearch(){
@@ -2134,7 +2507,10 @@ function openAM(title, bodyHTML, onConfirm, confirmLabel){
   btn.onclick = onConfirm;
   document.getElementById("actionModal").classList.add("open");
 }
-function closeAM(){ document.getElementById("actionModal").classList.remove("open"); }
+function closeAM(){
+  document.getElementById("actionModal").classList.remove("open");
+  document.querySelector("#actionModal .modal")?.classList.remove("modal-wide");
+}
 document.getElementById("actionModal").addEventListener("click", e => { if(e.target.id === "actionModal") closeAM(); });
 
 /* =========================================================
