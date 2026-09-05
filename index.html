@@ -744,7 +744,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
     <p class="hero-sub">Exclusive cuts from Welland's top barbers. Book your appointment online.</p>
     <div class="hero-buttons">
       <a class="hero-cta" href="#barbers-sec">Book Appointment</a>
-      <a class="find-us-btn" href="https://www.google.com/maps/search/?api=1&query=626+E+Main+St+Welland+ON+L3B+3Y2" target="_blank" rel="noopener">
+      <a class="find-us-btn" href="https://maps.app.goo.gl/F6E8dEZ4Z7AhtHNR7" target="_blank" rel="noopener">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         FIND US NOW
       </a>
@@ -1315,6 +1315,11 @@ const SHOP = {
     Friday:    { open:"09:00", close:"19:00", closed:false },
     Saturday:  { open:"09:00", close:"22:00", closed:false },
     Sunday:    { open:"09:00", close:"19:00", closed:false }
+  },
+  // One-off overrides for specific calendar dates (YYYY-MM-DD).
+  // If a date appears here, it replaces that day's normal hours entirely.
+  dateOverrides: {
+    "2026-09-05": { open:"09:00", close:"21:00", closed:false } // extended to 9PM for today only
   }
 };
 
@@ -2248,9 +2253,10 @@ function getBookingDuration(){
 }
 function getHoursForDate(dateStr){
   if(!dateStr) return { start:0, end:0, closed:true };
+  const override = SHOP.dateOverrides && SHOP.dateOverrides[dateStr];
   const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const dayName = dayNames[new Date(dateStr + "T12:00:00").getDay()];
-  const h = SHOP.hours[dayName];
+  const h = override || SHOP.hours[dayName];
   if(!h || h.closed) return { start:0, end:0, closed:true };
   const [oh,om] = (h.open||"09:00").split(":").map(Number);
   const [ch,cm] = (h.close||"19:00").split(":").map(Number);
@@ -2260,11 +2266,13 @@ function generateSlots(){
   const date = document.getElementById("bkDate")?.value;
   const hrs = getHoursForDate(date);
   if(hrs.closed) return [];
-  const dur = getBookingDuration();
   const out = [];
   let mins = hrs.start * 60 + (hrs.startMin||0);
   const end = hrs.end * 60 + (hrs.endMin||0);
-  while(mins + dur <= end){
+  // Last bookable start time is the actual closing time itself (e.g. 7:00 PM
+  // start when the shop closes at 7:00 PM), not closing time minus the
+  // service duration.
+  while(mins <= end){
     out.push({ h: Math.floor(mins/60), m: mins%60 });
     mins += 30;
   }
