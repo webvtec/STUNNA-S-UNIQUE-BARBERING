@@ -1823,6 +1823,32 @@ async function addHourOverride(){
   if(!open || !close) return toast("Enter open and close times", "red");
   if(open >= close) return toast("Close time must be after open time", "red");
 
+  // If shrinking the window (e.g. opening later or closing earlier than an
+  // existing override, or narrower than a booking already made under the
+  // current 7AM–9PM default), block it the same way "Mark a Day Unavailable" does.
+  const [oh,om] = parseTime24(open);
+  const [ch,cm] = parseTime24(close);
+  const newOpenMin = oh*60+om, newCloseMin = ch*60+cm;
+  const conflicts = bookings.filter(b => {
+    if(b.status === "Cancelled" || b.archived) return false;
+    if(b.barberId !== barberId || b.date !== date) return false;
+    const [bh,bm] = parseTimeAmPm(b.time);
+    const bStart = bh*60+bm, bEnd = bStart + (b.duration||SLOT_MINUTES);
+    return bStart < newOpenMin || bEnd > newCloseMin;
+  });
+
+  if(conflicts.length){
+    const list = conflicts.map(b => `<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>#${b.bookingNumber}</strong> — ${esc(b.name)} @ ${b.time}</div>`).join("");
+    openAM("Booking Conflict", `<p>That window would leave ${conflicts.length} existing booking(s) outside the hours you set:</p>${list}`, () => {
+      closeAM(); showSection("reservations");
+      setTimeout(() => {
+        const el = document.getElementById("bk-" + conflicts[0].id);
+        if(el){ document.querySelectorAll(".bcard").forEach(c => c.classList.remove("highlight")); el.classList.add("highlight"); el.scrollIntoView({behavior:"smooth",block:"center"}); }
+      }, 300);
+    }, "Go to Reservations");
+    return;
+  }
+
   await db.collection("hourOverrides").doc(barberId + "_" + date).set({
     barberId, date, open, close,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
