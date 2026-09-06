@@ -395,7 +395,7 @@ td{color:#ddd;}
       <!-- EXTEND / SHORTEN HOURS FOR A SPECIFIC DAY -->
       <h3 style="margin-top:0;color:var(--gold);">Extend Hours for a Day</h3>
       <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">
-        Shop default is 7:00 AM – 9:00 PM every day. Pick a date to open earlier or stay open later
+        Shop default is 9:00 AM – 7:00 PM every day. Pick a date to open earlier or stay open later
         just for that day — this only changes what customers can book with <span id="hoWhoLabel">you</span>,
         and updates the site instantly.
       </p>
@@ -410,8 +410,8 @@ td{color:#ddd;}
         <div></div>
       </div>
       <div class="two-col">
-        <div class="field"><label>Open At</label><input type="time" id="hoOpen" value="07:00"></div>
-        <div class="field"><label>Close At</label><input type="time" id="hoClose" value="21:00"></div>
+        <div class="field"><label>Open At</label><input type="time" id="hoOpen" value="09:00"></div>
+        <div class="field"><label>Close At</label><input type="time" id="hoClose" value="19:00"></div>
       </div>
       <button class="btn" onclick="addHourOverride()">Save Extended Hours</button>
 
@@ -748,13 +748,13 @@ const SHOP = {
   address: "626 E Main St, Welland, ON L3B 3Y2",
   email: "stunnauniquebarbering@gmail.com",
   hours: {
-    Monday:    { open:"07:00", close:"21:00", closed:false },
-    Tuesday:   { open:"07:00", close:"21:00", closed:false },
-    Wednesday: { open:"07:00", close:"21:00", closed:false },
-    Thursday:  { open:"07:00", close:"21:00", closed:false },
-    Friday:    { open:"07:00", close:"21:00", closed:false },
-    Saturday:  { open:"07:00", close:"21:00", closed:false },
-    Sunday:    { open:"07:00", close:"21:00", closed:false }
+    Monday:    { open:"09:00", close:"19:00", closed:false },
+    Tuesday:   { open:"09:00", close:"19:00", closed:false },
+    Wednesday: { open:"09:00", close:"19:00", closed:false },
+    Thursday:  { open:"09:00", close:"19:00", closed:false },
+    Friday:    { open:"09:00", close:"19:00", closed:false },
+    Saturday:  { open:"09:00", close:"19:00", closed:false },
+    Sunday:    { open:"09:00", close:"19:00", closed:false }
   }
 };
 
@@ -1497,7 +1497,7 @@ function getHoursForDateAr(dateStr, barberId){
   const h = override || SHOP.hours[dayName];
   if(!h || h.closed) return { start:0, end:0, closed:true };
   const [oh,om] = (h.open||"09:00").split(":").map(Number);
-  const [ch,cm] = (h.close||"21:00").split(":").map(Number);
+  const [ch,cm] = (h.close||"19:00").split(":").map(Number);
   return { start:oh, startMin:om||0, end:ch, endMin:cm||0, closed:false };
 }
 function isBarberOnVacationAr(barberId, dateStr){
@@ -1865,7 +1865,7 @@ function renderHourOverrides(){
     mine = mine.filter(o => scopedIds.has(o.barberId));
   }
   mine.sort((a,b) => (a.date||"").localeCompare(b.date||""));
-  if(!mine.length){ list.innerHTML = '<div style="color:#666;padding:20px;">No hour extensions set — every day defaults to 7:00 AM – 9:00 PM.</div>'; return; }
+  if(!mine.length){ list.innerHTML = '<div style="color:#666;padding:20px;">No hour extensions set — every day defaults to 9:00 AM – 7:00 PM.</div>'; return; }
   list.innerHTML = mine.map(o => {
     const name = barbers.find(b => b.id === o.barberId)?.name || "You";
     return `

@@ -54,7 +54,7 @@
     "https://www.facebook.com/share/18z67suiPX/"
   ],
   "openingHoursSpecification": [
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], "opens": "07:00", "closes": "21:00" }
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], "opens": "09:00", "closes": "19:00" }
   ]
 }
 </script>
@@ -810,13 +810,13 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   <h2 class="title reveal">Hours</h2>
   <div style="max-width:500px;margin:0 auto;">
     <ul class="hours-list reveal">
-      <li><span class="day">Monday</span><span class="time">7:00 AM – 9:00 PM</span></li>
-      <li><span class="day">Tuesday</span><span class="time">7:00 AM – 9:00 PM</span></li>
-      <li><span class="day">Wednesday</span><span class="time">7:00 AM – 9:00 PM</span></li>
-      <li><span class="day">Thursday</span><span class="time">7:00 AM – 9:00 PM</span></li>
-      <li><span class="day">Friday</span><span class="time">7:00 AM – 9:00 PM</span></li>
-      <li><span class="day">Saturday</span><span class="time">7:00 AM – 9:00 PM</span></li>
-      <li><span class="day">Sunday</span><span class="time">7:00 AM – 9:00 PM</span></li>
+      <li><span class="day">Monday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+      <li><span class="day">Tuesday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+      <li><span class="day">Wednesday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+      <li><span class="day">Thursday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+      <li><span class="day">Friday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+      <li><span class="day">Saturday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+      <li><span class="day">Sunday</span><span class="time">9:00 AM – 7:00 PM</span></li>
     </ul>
   </div>
 </section>
@@ -1308,13 +1308,13 @@ const SHOP = {
   address: "626 E Main St, Welland, ON L3B 3Y2",
   email: "stunnauniquebarbering@gmail.com",
   hours: {
-    Monday:    { open:"07:00", close:"21:00", closed:false },
-    Tuesday:   { open:"07:00", close:"21:00", closed:false },
-    Wednesday: { open:"07:00", close:"21:00", closed:false },
-    Thursday:  { open:"07:00", close:"21:00", closed:false },
-    Friday:    { open:"07:00", close:"21:00", closed:false },
-    Saturday:  { open:"07:00", close:"21:00", closed:false },
-    Sunday:    { open:"07:00", close:"21:00", closed:false }
+    Monday:    { open:"09:00", close:"19:00", closed:false },
+    Tuesday:   { open:"09:00", close:"19:00", closed:false },
+    Wednesday: { open:"09:00", close:"19:00", closed:false },
+    Thursday:  { open:"09:00", close:"19:00", closed:false },
+    Friday:    { open:"09:00", close:"19:00", closed:false },
+    Saturday:  { open:"09:00", close:"19:00", closed:false },
+    Sunday:    { open:"09:00", close:"19:00", closed:false }
   }
   // Per-day, per-barber hour extensions (opening earlier / closing later than the
   // schedule above) now live in the "hourOverrides" Firestore collection, managed
@@ -2270,7 +2270,7 @@ function getHoursForDate(dateStr, barberId){
   const h = override || SHOP.hours[dayName];
   if(!h || h.closed) return { start:0, end:0, closed:true };
   const [oh,om] = (h.open||"09:00").split(":").map(Number);
-  const [ch,cm] = (h.close||"21:00").split(":").map(Number);
+  const [ch,cm] = (h.close||"19:00").split(":").map(Number);
   return { start: oh, startMin: om||0, end: ch, endMin: cm||0, closed: false };
 }
 function generateSlots(){
