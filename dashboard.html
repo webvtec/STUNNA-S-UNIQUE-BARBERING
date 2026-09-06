@@ -387,12 +387,39 @@ td{color:#ddd;}
     </div>
   </section>
 
-  <!-- UNAVAILABLE DAYS + VACATION -->
+  <!-- DAYS AVAILABILITY -->
   <section class="section" id="sec-unavail">
     <div class="panel">
-      <h2 id="unavailTitle">My Unavailable Days</h2>
+      <h2 id="unavailTitle">My Days Availability</h2>
+
+      <!-- EXTEND / SHORTEN HOURS FOR A SPECIFIC DAY -->
+      <h3 style="margin-top:0;color:var(--gold);">Extend Hours for a Day</h3>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">
+        Shop default is 7:00 AM – 9:00 PM every day. Pick a date to open earlier or stay open later
+        just for that day — this only changes what customers can book with <span id="hoWhoLabel">you</span>,
+        and updates the site instantly.
+      </p>
+      <div id="hoScopeWrap" style="display:none;">
+        <div class="field">
+          <label>Barber</label>
+          <select id="hoBarber"></select>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label>Date</label><input type="date" id="hoDate"></div>
+        <div></div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label>Open At</label><input type="time" id="hoOpen" value="07:00"></div>
+        <div class="field"><label>Close At</label><input type="time" id="hoClose" value="21:00"></div>
+      </div>
+      <button class="btn" onclick="addHourOverride()">Save Extended Hours</button>
+
+      <h3 style="margin-top:32px;">Current Hour Extensions</h3>
+      <div id="hourOverrideList"></div>
 
       <!-- Single day unavailable -->
+      <h3 style="margin-top:40px;">Mark a Day Unavailable</h3>
       <div class="field">
         <label>Pick a Date <span style="color:#666;text-transform:none;letter-spacing:0;">(red dots = already marked unavailable)</span></label>
         <div class="cal" id="uaCalendar"></div>
@@ -721,13 +748,13 @@ const SHOP = {
   address: "626 E Main St, Welland, ON L3B 3Y2",
   email: "stunnauniquebarbering@gmail.com",
   hours: {
-    Monday:    { open:"09:00", close:"19:00", closed:false },
-    Tuesday:   { open:"09:00", close:"19:00", closed:false },
-    Wednesday: { open:"09:00", close:"19:00", closed:false },
-    Thursday:  { open:"09:00", close:"19:00", closed:false },
-    Friday:    { open:"09:00", close:"19:00", closed:false },
-    Saturday:  { open:"09:00", close:"19:00", closed:false },
-    Sunday:    { open:"09:00", close:"19:00", closed:false }
+    Monday:    { open:"07:00", close:"21:00", closed:false },
+    Tuesday:   { open:"07:00", close:"21:00", closed:false },
+    Wednesday: { open:"07:00", close:"21:00", closed:false },
+    Thursday:  { open:"07:00", close:"21:00", closed:false },
+    Friday:    { open:"07:00", close:"21:00", closed:false },
+    Saturday:  { open:"07:00", close:"21:00", closed:false },
+    Sunday:    { open:"07:00", close:"21:00", closed:false }
   }
 };
 
@@ -752,6 +779,7 @@ let barbers = [];
 let bookings = [];
 let unavailable = [];
 let vacations = [];
+let hourOverrides = [];
 let gallery = [];
 let services = [];
 let currentSection = "reservations";
@@ -865,7 +893,7 @@ function buildNav(){
   const items = [
     { id:"reservations", label: role === "admin" ? "All Reservations" : "My Reservations" },
     { id:"homecall",      label: role === "admin" ? "Home Call Requests" : "My Home Call Requests" },
-    { id:"unavail",      label: role === "admin" ? "Unavailable Days" : "My Unavailable Days" },
+    { id:"unavail",      label: role === "admin" ? "Days Availability" : "My Days Availability" },
     { id:"earnings",     label:"My Earnings" },
     { id:"clients",      label: role === "admin" ? "Clients" : "My Clients" }
   ];
@@ -886,7 +914,7 @@ function buildNav(){
 
   document.getElementById("reservationsTitle").textContent = role === "admin" ? "All Reservations" : "My Reservations";
   document.getElementById("homecallTitle").textContent = role === "admin" ? "Home Call Requests" : "My Home Call Requests";
-  document.getElementById("unavailTitle").textContent = role === "admin" ? "Unavailable Days" : "My Unavailable Days";
+  document.getElementById("unavailTitle").textContent = role === "admin" ? "Days Availability" : "My Days Availability";
   document.getElementById("galleryTitle").textContent = "Website Gallery";
   document.getElementById("earningsTitle").textContent = "My Earnings";
   document.getElementById("clientsTitle").textContent = role === "admin" ? "Clients" : "My Clients";
@@ -902,6 +930,7 @@ function buildNav(){
     document.getElementById("barberChips").style.display = "flex";
     document.getElementById("uaScopeWrap").style.display = "";
     document.getElementById("vacScopeWrap").style.display = "";
+    document.getElementById("hoScopeWrap").style.display = "";
   }
 }
 function showSection(id){
@@ -918,6 +947,15 @@ function showSection(id){
   if(id === "barbers") renderBarbersList();
   if(id === "locations") renderLocationsList();
   if(id === "services") renderServicesList();
+  if(id === "unavail"){
+    populateHoBarberSelect();
+    renderHourOverrides();
+    renderUnavailable();
+    renderVacations();
+    renderUaCalendar();
+    const hd = document.getElementById("hoDate");
+    if(hd && !hd.min) hd.min = arLocalStr(new Date());
+  }
 }
 
 /* =========================================================
@@ -973,6 +1011,12 @@ function attachListeners(){
     renderUnavailable();
     renderVacations();
     renderUaCalendar();
+  });
+  db.collection("hourOverrides").onSnapshot(snap => {
+    hourOverrides = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderHourOverrides();
+    renderUaCalendar();
+    renderArCalendar(); // safe no-op if the Add Reservation modal isn't open
   });
   db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
     gallery = snap.docs.map(d => ({id:d.id, ...d.data()}));
@@ -1445,14 +1489,15 @@ function updateArSummary(){
 }
 
 function arLocalStr(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
-function getHoursForDateAr(dateStr){
+function getHoursForDateAr(dateStr, barberId){
   if(!dateStr) return { start:0, end:0, closed:true };
   const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const dayName = dayNames[new Date(dateStr + "T12:00:00").getDay()];
-  const h = SHOP.hours[dayName];
+  const override = barberId && hourOverrides.find(o => o.date === dateStr && o.barberId === barberId);
+  const h = override || SHOP.hours[dayName];
   if(!h || h.closed) return { start:0, end:0, closed:true };
   const [oh,om] = (h.open||"09:00").split(":").map(Number);
-  const [ch,cm] = (h.close||"19:00").split(":").map(Number);
+  const [ch,cm] = (h.close||"21:00").split(":").map(Number);
   return { start:oh, startMin:om||0, end:ch, endMin:cm||0, closed:false };
 }
 function isBarberOnVacationAr(barberId, dateStr){
@@ -1478,7 +1523,7 @@ function getBlockedRangesAr(barberId, date){
   return ranges;
 }
 function arDayIsFull(barberId, dstr){
-  const hrs = getHoursForDateAr(dstr);
+  const hrs = getHoursForDateAr(dstr, barberId);
   if(hrs.closed) return false;
   const dur = getArBookingDuration();
   const taken = getBlockedRangesAr(barberId, dstr);
@@ -1527,7 +1572,7 @@ function renderArCalendar(){
   for(let day = 1; day <= daysInMonth; day++){
     const dstr = arLocalStr(new Date(y, mo, day));
     const past = dstr < todayStr;
-    const closed = getHoursForDateAr(dstr).closed;
+    const closed = getHoursForDateAr(dstr, barberId).closed;
     const onVac = barberId && isBarberOnVacationAr(barberId, dstr);
     let cls = "cal-day", click = "";
     if(past || closed || onVac){
@@ -1550,7 +1595,8 @@ function pickArDate(dstr){
 }
 function generateArSlots(){
   const date = document.getElementById("arDate")?.value;
-  const hrs = getHoursForDateAr(date);
+  const barberId = getArBarberId();
+  const hrs = getHoursForDateAr(date, barberId);
   if(hrs.closed) return [];
   const dur = getArBookingDuration();
   const out = [];
@@ -1738,6 +1784,76 @@ function toggleUaTimes(){
   const allDay = document.getElementById("uaAllDay").checked;
   document.getElementById("uaTimes").style.display = allDay ? "none" : "grid";
 }
+/* =========================================================
+   HOUR EXTENSIONS (Days Availability)
+========================================================= */
+function populateHoBarberSelect(){
+  const sel = document.getElementById("hoBarber");
+  const label = document.getElementById("hoWhoLabel");
+  if(role !== "admin"){
+    if(label) label.textContent = "you";
+    return;
+  }
+  if(!sel) return;
+  const scoped = barbersAtCurrentLocation();
+  const prev = sel.value;
+  sel.innerHTML = scoped.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join("");
+  if(prev && scoped.some(b => b.id === prev)) sel.value = prev;
+  sel.onchange = () => {
+    if(label) label.textContent = barbers.find(b => b.id === sel.value)?.name || "that barber";
+    renderHourOverrides();
+  };
+  if(label) label.textContent = barbers.find(b => b.id === sel.value)?.name || "that barber";
+}
+function fmtHHMM(str){
+  if(!str) return "";
+  const [h,m] = str.split(":").map(Number);
+  const ap = h >= 12 ? "PM" : "AM";
+  const hh = ((h + 11) % 12) + 1;
+  return `${hh}:${String(m).padStart(2,"0")} ${ap}`;
+}
+async function addHourOverride(){
+  const date = document.getElementById("hoDate").value;
+  const open = document.getElementById("hoOpen").value;
+  const close = document.getElementById("hoClose").value;
+  const barberId = role === "admin" ? document.getElementById("hoBarber")?.value : myBarberId;
+
+  if(!date) return toast("Pick a date", "red");
+  if(!barberId) return toast(role === "admin" ? "Select a barber" : "Your barber profile isn't set up yet", "red");
+  if(!open || !close) return toast("Enter open and close times", "red");
+  if(open >= close) return toast("Close time must be after open time", "red");
+
+  await db.collection("hourOverrides").doc(barberId + "_" + date).set({
+    barberId, date, open, close,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  toast("Hours updated for " + fmtDate(date), "green");
+}
+function renderHourOverrides(){
+  const list = document.getElementById("hourOverrideList");
+  if(!list) return;
+  let mine = hourOverrides.slice();
+  if(role === "barber") mine = mine.filter(o => o.barberId === myBarberId);
+  if(role === "admin"){
+    const scopedIds = new Set(barbersAtCurrentLocation().map(b => b.id));
+    mine = mine.filter(o => scopedIds.has(o.barberId));
+  }
+  mine.sort((a,b) => (a.date||"").localeCompare(b.date||""));
+  if(!mine.length){ list.innerHTML = '<div style="color:#666;padding:20px;">No hour extensions set — every day defaults to 7:00 AM – 9:00 PM.</div>'; return; }
+  list.innerHTML = mine.map(o => {
+    const name = barbers.find(b => b.id === o.barberId)?.name || "You";
+    return `
+      <div class="unavail-item">
+        <div class="info">
+          <strong>${fmtDate(o.date)}</strong> · ${fmtHHMM(o.open)} – ${fmtHHMM(o.close)}
+          <small>${esc(name)}</small>
+        </div>
+        <button class="btn small danger" onclick="removeHourOverride('${o.id}')">Remove</button>
+      </div>`;
+  }).join("");
+}
+async function removeHourOverride(id){ await db.collection("hourOverrides").doc(id).delete(); toast("Removed — back to default hours", "green"); }
+
 async function addUnavailable(){
   const date = document.getElementById("uaDate").value;
   const allDay = document.getElementById("uaAllDay").checked;

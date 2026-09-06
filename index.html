@@ -54,7 +54,7 @@
     "https://www.facebook.com/share/18z67suiPX/"
   ],
   "openingHoursSpecification": [
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], "opens": "09:00", "closes": "19:00" }
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], "opens": "07:00", "closes": "21:00" }
   ]
 }
 </script>
@@ -810,13 +810,13 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
   <h2 class="title reveal">Hours</h2>
   <div style="max-width:500px;margin:0 auto;">
     <ul class="hours-list reveal">
-      <li><span class="day">Monday</span><span class="time">9:00 AM – 7:00 PM</span></li>
-      <li><span class="day">Tuesday</span><span class="time">9:00 AM – 7:00 PM</span></li>
-      <li><span class="day">Wednesday</span><span class="time">9:00 AM – 7:00 PM</span></li>
-      <li><span class="day">Thursday</span><span class="time">9:00 AM – 7:00 PM</span></li>
-      <li><span class="day">Friday</span><span class="time">9:00 AM – 7:00 PM</span></li>
-      <li><span class="day">Saturday</span><span class="time">9:00 AM – 9:00 PM</span></li>
-      <li><span class="day">Sunday</span><span class="time">9:00 AM – 7:00 PM</span></li>
+      <li><span class="day">Monday</span><span class="time">7:00 AM – 9:00 PM</span></li>
+      <li><span class="day">Tuesday</span><span class="time">7:00 AM – 9:00 PM</span></li>
+      <li><span class="day">Wednesday</span><span class="time">7:00 AM – 9:00 PM</span></li>
+      <li><span class="day">Thursday</span><span class="time">7:00 AM – 9:00 PM</span></li>
+      <li><span class="day">Friday</span><span class="time">7:00 AM – 9:00 PM</span></li>
+      <li><span class="day">Saturday</span><span class="time">7:00 AM – 9:00 PM</span></li>
+      <li><span class="day">Sunday</span><span class="time">7:00 AM – 9:00 PM</span></li>
     </ul>
   </div>
 </section>
@@ -1099,7 +1099,7 @@ footer{background:#090909;border-top:1px solid var(--border);padding:60px 8% 30p
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;align-items:end;">
         <div class="field">
           <label for="bkDuration" style="display:block;color:var(--text-dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Estimated Duration</label>
-          <input type="text" id="bkDuration" value="35 min" readonly style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:var(--text-muted);padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
+          <input type="text" id="bkDuration" value="Select a service" readonly style="width:100%;background:var(--dark);border:1px solid rgba(255,255,255,.1);color:var(--text-muted);padding:14px 16px;border-radius:10px;font-family:Poppins;font-size:14px;">
         </div>
         <div></div>
       </div>
@@ -1254,7 +1254,7 @@ const provider = new firebase.auth.GoogleAuthProvider();
    CONSTANTS — UNIVERSAL SERVICE MENU
 ========================================================= */
 const ADMIN_UID = "7kV7eY9vrHUwoywlDItY7644R063";
-const SLOT_MINUTES = 35;
+const SLOT_MINUTES = 30;
 const DEFAULT_LOCATION_ID = "welland-626-main";
 const CURRENCY = "$";
 const CURRENCY_SUFFIX = " CAD";
@@ -1308,19 +1308,17 @@ const SHOP = {
   address: "626 E Main St, Welland, ON L3B 3Y2",
   email: "stunnauniquebarbering@gmail.com",
   hours: {
-    Monday:    { open:"09:00", close:"19:00", closed:false },
-    Tuesday:   { open:"09:00", close:"19:00", closed:false },
-    Wednesday: { open:"09:00", close:"19:00", closed:false },
-    Thursday:  { open:"09:00", close:"19:00", closed:false },
-    Friday:    { open:"09:00", close:"19:00", closed:false },
-    Saturday:  { open:"09:00", close:"22:00", closed:false },
-    Sunday:    { open:"09:00", close:"19:00", closed:false }
-  },
-  // One-off overrides for specific calendar dates (YYYY-MM-DD).
-  // If a date appears here, it replaces that day's normal hours entirely.
-  dateOverrides: {
-    "2026-09-06": { open:"09:00", close:"21:00", closed:false } // extended to 9PM for today (Sunday) only
+    Monday:    { open:"07:00", close:"21:00", closed:false },
+    Tuesday:   { open:"07:00", close:"21:00", closed:false },
+    Wednesday: { open:"07:00", close:"21:00", closed:false },
+    Thursday:  { open:"07:00", close:"21:00", closed:false },
+    Friday:    { open:"07:00", close:"21:00", closed:false },
+    Saturday:  { open:"07:00", close:"21:00", closed:false },
+    Sunday:    { open:"07:00", close:"21:00", closed:false }
   }
+  // Per-day, per-barber hour extensions (opening earlier / closing later than the
+  // schedule above) now live in the "hourOverrides" Firestore collection, managed
+  // from each barber's Days Availability tab in the dashboard — see getHoursForDate().
 };
 
 /* =========================================================
@@ -1616,6 +1614,12 @@ db.collection("unavailableDays").onSnapshot(snap => {
   unavailable = all.filter(u => u.type !== "vacation");
   vacations = all.filter(u => u.type === "vacation");
   renderBarbers(); // re-render vacation badges
+  renderCal();
+  rebuildTimeSlots();
+});
+let hourOverrides = [];
+db.collection("hourOverrides").onSnapshot(snap => {
+  hourOverrides = snap.docs.map(d => ({id:d.id, ...d.data()}));
   renderCal();
   rebuildTimeSlots();
 });
@@ -2092,7 +2096,7 @@ function updateSummary(){
     : '<span style="color:#666;font-size:13px;">No services selected</span>';
   document.getElementById("summaryTotal").textContent = fmtMoney(total);
   const durEl = document.getElementById("bkDuration");
-  if(durEl) durEl.value = getBookingDuration() + " min";
+  if(durEl) durEl.value = picked.length ? (getBookingDuration() + " min") : "Select a service";
 }
 
 /* Phone auto-format — supports both 10-digit and 11-digit (leading country/area code) numbers */
@@ -2139,7 +2143,7 @@ function calShift(dir){
   renderCal();
 }
 function dayIsFull(barberId, dstr){
-  const hrs = getHoursForDate(dstr);
+  const hrs = getHoursForDate(dstr, barberId);
   if(hrs.closed) return false;
   const dur = getBookingDuration();
   const taken = getBlockedRanges(barberId, dstr);
@@ -2184,7 +2188,7 @@ function renderCal(){
   for(let day = 1; day <= daysInMonth; day++){
     const dstr = localDateStr(new Date(y, mo, day));
     const past = dstr < todayStr;
-    const closed = getHoursForDate(dstr).closed;
+    const closed = getHoursForDate(dstr, barberId).closed;
     const onVac = barberId && isOnVacation(barberId, dstr);
     let cls = "cal-day", click = "";
     if(past || closed || onVac){
@@ -2245,26 +2249,34 @@ function rebuildTimeSlots(){
     document.getElementById("bkTime").value = "";
   }
 }
+// Before a service is picked, we don't yet know how long the appointment will
+// take, so we probe the calendar with a minimal duration. That way every slot
+// that isn't ALREADY occupied by a real booking shows up as available. Once a
+// service is selected, getBookingDuration() switches to its real duration and
+// rebuildTimeSlots() re-filters, hiding any slot too short to fit it.
+const UNSELECTED_PROBE_MINUTES = 5;
 function getBookingDuration(){
   const picked = getSelectedMenuItems();
-  if(!picked.length) return SLOT_MINUTES;
+  if(!picked.length) return UNSELECTED_PROBE_MINUTES;
   const total = picked.reduce((s,i) => s + (i.duration || 0), 0);
   return Math.max(total, 20) || SLOT_MINUTES;
 }
-function getHoursForDate(dateStr){
+function getHoursForDate(dateStr, barberId){
   if(!dateStr) return { start:0, end:0, closed:true };
-  const override = SHOP.dateOverrides && SHOP.dateOverrides[dateStr];
   const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const dayName = dayNames[new Date(dateStr + "T12:00:00").getDay()];
+  // A barber's own hour extension for this exact date wins over the shop default.
+  const override = barberId && hourOverrides.find(o => o.date === dateStr && o.barberId === barberId);
   const h = override || SHOP.hours[dayName];
   if(!h || h.closed) return { start:0, end:0, closed:true };
   const [oh,om] = (h.open||"09:00").split(":").map(Number);
-  const [ch,cm] = (h.close||"19:00").split(":").map(Number);
+  const [ch,cm] = (h.close||"21:00").split(":").map(Number);
   return { start: oh, startMin: om||0, end: ch, endMin: cm||0, closed: false };
 }
 function generateSlots(){
   const date = document.getElementById("bkDate")?.value;
-  const hrs = getHoursForDate(date);
+  const barberId = document.getElementById("bkBarber")?.value;
+  const hrs = getHoursForDate(date, barberId);
   if(hrs.closed) return [];
   const out = [];
   let mins = hrs.start * 60 + (hrs.startMin||0);
