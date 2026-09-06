@@ -140,6 +140,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);}
 .cal-day.selected{background:var(--red);color:white;border-color:var(--red);}
 .cal-day.marked::after{content:"";position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--red-bright);}
 .cal-day.selected.marked::after{background:white;}
+.cal-day.ho-dot::after{content:"";position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--gold);}
+.cal-day.selected.ho-dot::after{background:white;}
 .cal-day.full{color:#777;background:#160707;cursor:not-allowed;text-decoration:line-through;border:1px solid rgba(230,0,0,.25);}
 .cal-day.full:hover{border-color:rgba(230,0,0,.25);}
 
@@ -405,9 +407,10 @@ td{color:#ddd;}
           <select id="hoBarber"></select>
         </div>
       </div>
-      <div class="two-col">
-        <div class="field"><label>Date</label><input type="date" id="hoDate"></div>
-        <div></div>
+      <div class="field">
+        <label>Date <span style="color:#666;text-transform:none;letter-spacing:0;">(tap a day to select)</span></label>
+        <div class="cal" id="hoCalendar" style="max-width:420px;"></div>
+        <input type="hidden" id="hoDate">
       </div>
       <div class="two-col">
         <div class="field"><label>Open At</label><input type="time" id="hoOpen" value="09:00"></div>
@@ -953,8 +956,7 @@ function showSection(id){
     renderUnavailable();
     renderVacations();
     renderUaCalendar();
-    const hd = document.getElementById("hoDate");
-    if(hd && !hd.min) hd.min = arLocalStr(new Date());
+    renderHoCalendar();
   }
 }
 
@@ -1016,6 +1018,7 @@ function attachListeners(){
     hourOverrides = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderHourOverrides();
     renderUaCalendar();
+    renderHoCalendar();
     renderArCalendar(); // safe no-op if the Add Reservation modal isn't open
   });
   db.collection("gallery").orderBy("sortOrder","asc").onSnapshot(snap => {
@@ -1787,6 +1790,63 @@ function toggleUaTimes(){
 /* =========================================================
    HOUR EXTENSIONS (Days Availability)
 ========================================================= */
+let hoCalMonth = null;
+function hoCalShift(dir){
+  const n = new Date();
+  const min = new Date(n.getFullYear(), n.getMonth(), 1);
+  const max = new Date(n.getFullYear(), n.getMonth() + 3, 1);
+  const next = new Date(hoCalMonth.getFullYear(), hoCalMonth.getMonth() + dir, 1);
+  if(next < min || next > max) return;
+  hoCalMonth = next;
+  renderHoCalendar();
+}
+function renderHoCalendar(){
+  const wrap = document.getElementById("hoCalendar");
+  if(!wrap) return;
+  if(!hoCalMonth){ const n = new Date(); hoCalMonth = new Date(n.getFullYear(), n.getMonth(), 1); }
+  const n = new Date();
+  const min = new Date(n.getFullYear(), n.getMonth(), 1);
+  const max = new Date(n.getFullYear(), n.getMonth() + 3, 1);
+  const y = hoCalMonth.getFullYear(), mo = hoCalMonth.getMonth();
+  const monthName = hoCalMonth.toLocaleString("en-CA", { month:"long", year:"numeric" });
+  const startDow = new Date(y, mo, 1).getDay();
+  const daysInMonth = new Date(y, mo + 1, 0).getDate();
+  const todayStr = arLocalStr(new Date());
+  const selected = document.getElementById("hoDate").value;
+  // Mark days that already have an hour override (gold dot)
+  const overrideSet = new Set(
+    hourOverrides
+      .filter(o => role === "barber" ? o.barberId === myBarberId : true)
+      .map(o => o.date)
+  );
+
+  let html = `
+    <div class="cal-head">
+      <button onclick="hoCalShift(-1)" ${hoCalMonth.getTime() <= min.getTime() ? "disabled" : ""}>‹</button>
+      <span class="cal-title">${monthName}</span>
+      <button onclick="hoCalShift(1)" ${hoCalMonth.getTime() >= max.getTime() ? "disabled" : ""}>›</button>
+    </div>
+    <div class="cal-grid">
+      ${["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => `<div class="cal-dow">${d}</div>`).join("")}
+      ${'<div class="cal-day blank"></div>'.repeat(startDow)}`;
+
+  for(let day = 1; day <= daysInMonth; day++){
+    const dstr = arLocalStr(new Date(y, mo, day));
+    const past = dstr < todayStr;
+    let cls = "cal-day";
+    if(past) cls += " muted";
+    else if(dstr === selected) cls += " selected";
+    if(overrideSet.has(dstr)) cls += " ho-dot";
+    const click = past ? "" : ` onclick="pickHoDate('${dstr}')"`;
+    html += `<div class="${cls}"${click}>${day}</div>`;
+  }
+  wrap.innerHTML = html + "</div>";
+}
+function pickHoDate(dstr){
+  document.getElementById("hoDate").value = dstr;
+  renderHoCalendar();
+}
+
 function populateHoBarberSelect(){
   const sel = document.getElementById("hoBarber");
   const label = document.getElementById("hoWhoLabel");
@@ -1853,6 +1913,8 @@ async function addHourOverride(){
     barberId, date, open, close,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
+  document.getElementById("hoDate").value = "";
+  renderHoCalendar();
   toast("Hours updated for " + fmtDate(date), "green");
 }
 function renderHourOverrides(){
