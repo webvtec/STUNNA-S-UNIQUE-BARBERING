@@ -1206,7 +1206,12 @@ function renderReservations(){
     else if(d > today) groups.Upcoming.push(b);
     else groups.Past.push(b);
   });
-  Object.keys(groups).forEach(k => groups[k].sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time)));
+  Object.keys(groups).forEach(k => groups[k].sort((a,b) => {
+    if(a.date !== b.date) return a.date.localeCompare(b.date);
+    const [ah,am] = parseTimeAmPm(a.time);
+    const [bh,bm] = parseTimeAmPm(b.time);
+    return (ah*60+am) - (bh*60+bm);
+  }));
   let html = "";
   ["Today","Tomorrow","Upcoming","Past"].forEach(g => {
     if(!groups[g].length) return;
@@ -2273,7 +2278,7 @@ function renderRevenue(){
       ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.count}</td><td style="color:var(--red-bright);font-family:Cinzel;">${fmtMoney(r.revenue)}</td></tr>`).join("")
       : '<tr><td colspan="3" style="color:#666;text-align:center;padding:20px;">No completed bookings.</td></tr>'}</tbody></table>`;
   } else {
-    const recent = ranged.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
+    const recent = ranged.slice().sort((a,b) => cmpDateTimeDesc(a,b)).slice(0,30);
     wrap.innerHTML = `<h3 style="margin-top:24px;">Completed Bookings${rangeNote}</h3>${recent.length ? recent.map(b => `
       <div class="unavail-item"><div class="info"><strong>${fmtDate(b.date)}</strong> · ${b.time} · ${esc(b.name)}<small>${esc(b.service||"")}</small></div>
       <div style="color:var(--red-bright);font-family:Cinzel;font-size:18px;">${fmtMoney(b.total||0)}</div></div>`).join("") : '<div style="color:#666;padding:20px;">No completed bookings.</div>'}`;
@@ -2296,7 +2301,7 @@ function renderEarnings(){
   document.getElementById("earnToday").textContent = fmtMoney(sum(todaysBk));
   document.getElementById("earnWeek").textContent = fmtMoney(sum(weekBk));
   document.getElementById("earnMonth").textContent = fmtMoney(sum(monthBk));
-  const list = scope.slice().sort((a,b) => (b.date+b.time||"").localeCompare(a.date+a.time||"")).slice(0,30);
+  const list = scope.slice().sort((a,b) => cmpDateTimeDesc(a,b)).slice(0,30);
   const emptyMsg = !myBarberId && role === "admin"
     ? 'You are not set up as a barber yet — your profile will be created when an admin adds you.'
     : 'No completed cuts yet. Mark bookings as Completed to see them here.';
@@ -2542,6 +2547,15 @@ function parseTimeAmPm(str){
   if(ap === "PM" && h < 12) h += 12;
   if(ap === "AM" && h === 12) h = 0;
   return [h,mm];
+}
+// Newest-first comparator: compares real date, then real time-of-day
+// (not plain text, which sorts "10:00 AM" before "9:00 AM").
+function cmpDateTimeDesc(a,b){
+  const ad = a.date || "", bd = b.date || "";
+  if(ad !== bd) return bd.localeCompare(ad);
+  const [ah,am] = parseTimeAmPm(a.time);
+  const [bh,bm] = parseTimeAmPm(b.time);
+  return (bh*60+bm) - (ah*60+am);
 }
 </script>
 </body>
