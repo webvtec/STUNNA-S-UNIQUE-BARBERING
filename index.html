@@ -1633,6 +1633,7 @@ db.collection("unavailableDays").onSnapshot(snap => {
 let hourOverrides = [];
 db.collection("hourOverrides").onSnapshot(snap => {
   hourOverrides = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderBarbers();
   renderCal();
   rebuildTimeSlots();
 });
