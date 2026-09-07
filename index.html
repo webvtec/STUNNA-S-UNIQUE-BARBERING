@@ -285,6 +285,19 @@ section{padding:120px 8%;}
   width:100%;align-self:stretch;box-shadow:0 0 14px rgba(179,0,0,.3);
 }
 .barber-profile .btn-book:hover{background:var(--red-bright);box-shadow:0 4px 25px rgba(230,0,0,.5);}
+.barber-hours-banner{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:7px;
+  font-family:Poppins;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  padding:7px 12px;box-sizing:border-box;
+}
+.barber-hours-banner.late{
+  background:rgba(230,0,0,.12);color:#ff6b6b;
+  border-bottom:1px solid rgba(230,0,0,.2);
+}
+.barber-hours-banner.early{
+  background:rgba(47,107,255,.12);color:#7eb8ff;
+  border-bottom:1px solid rgba(47,107,255,.2);
+}
 .vacation-badge{
   margin-top:10px;padding:6px 14px;background:rgba(47,107,255,.15);
   border:1px solid rgba(47,107,255,.3);color:var(--blue-glow);
@@ -1695,6 +1708,56 @@ function pickLocation(id){
 }
 
 /* =========================================================
+   BARBER TODAY-HOURS BANNER
+   Returns HTML string for a banner shown under the certified badge
+   when the barber has a non-standard schedule today (early open or late close).
+========================================================= */
+function getBarberTodayHoursBanner(barberId){
+  const todayStr = localDateStr(new Date());
+  const override = hourOverrides.find(o => o.date === todayStr && o.barberId === barberId);
+  if(!override) return "";
+
+  const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const dayName = dayNames[new Date(todayStr + "T12:00:00").getDay()];
+  const shopDay = SHOP.hours[dayName] || {};
+
+  const shopOpen  = shopDay.open  || "09:00";
+  const shopClose = shopDay.close || "19:00";
+  const ovOpen    = override.open  || shopOpen;
+  const ovClose   = override.close || shopClose;
+
+  const isEarlierOpen = ovOpen  < shopOpen;
+  const isLaterClose  = ovClose > shopClose;
+
+  if(!isEarlierOpen && !isLaterClose) return "";
+
+  // Format "7:00 AM" style from "07:00"
+  function fmt(t){
+    const [hh, mm] = t.split(":").map(Number);
+    const ampm = hh >= 12 ? "PM" : "AM";
+    const h12  = ((hh + 11) % 12) + 1;
+    return h12 + (mm ? ":" + String(mm).padStart(2,"0") : "") + " " + ampm;
+  }
+
+  if(isLaterClose && isEarlierOpen){
+    return `<div class="barber-hours-banner late">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 11H7v-2h4V7h2v6z"/></svg>
+      Extended today: ${fmt(ovOpen)} – ${fmt(ovClose)}
+    </div>`;
+  }
+  if(isLaterClose){
+    return `<div class="barber-hours-banner late">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 11H7v-2h4V7h2v6z"/></svg>
+      Working late today until ${fmt(ovClose)}
+    </div>`;
+  }
+  return `<div class="barber-hours-banner early">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 11H7v-2h4V7h2v6z"/></svg>
+    Starting early today at ${fmt(ovOpen)}
+  </div>`;
+}
+
+/* =========================================================
    RENDER: BARBERS (no hasMenu gate — all active barbers show)
    Admin's barber profile always appears first. Filtered to the
    currently selected location once the shop has more than one.
@@ -1727,9 +1790,11 @@ function renderBarbers(){
       const fmtReturn = returnDate.toLocaleDateString("en-CA", { month:"short", day:"numeric" });
       vacHtml = `<div class="vacation-badge">On vacation — back ${fmtReturn}${vac.message ? ' · ' + esc(vac.message) : ''}</div>`;
     }
+    const hoursBanner = getBarberTodayHoursBanner(b.id);
     return `
     <div class="barber-profile reveal">
       <div class="certified-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="#c9a84c" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm-1 15l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>LICENSED PROFESSIONAL</div>
+      ${hoursBanner}
       <img class="barber-avatar" src="${b.photoURL || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80'}" alt="${esc(b.name)}" loading="lazy">
       <h3>${esc(b.name || "Barber")}</h3>
       <p class="specialty">${esc(b.specialty || "")}</p>
